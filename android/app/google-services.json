@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1053688684931",
+    "project_id": "kseb-f73cf",
+    "storage_bucket": "kseb-f73cf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1053688684931:android:941a40307e525223cd16b6",
+        "android_client_info": {
+          "package_name": "com.example.kseb"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDasLnNKkfoT7afiLCz0cclQcfv0g9JCis"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
