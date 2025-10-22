@@ -5,6 +5,7 @@ import 'attendance_screen.dart';
 import 'attendance_history_screen.dart';
 import 'material_management_screen.dart';
 import 'worksheet_screen.dart';
+import 'staff_management_screen.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_toast.dart';
 
@@ -24,6 +25,8 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
   int workingDaysThisMonth = 0;
   bool isLoading = true;
   bool isBirthday = false;
+  bool isSupervisor = false;
+  String? workerId;
 
   late AnimationController _birthdayController;
   late Animation<double> _confettiAnimation;
@@ -78,7 +81,9 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
 
       if (workerDoc.docs.isNotEmpty) {
         final workerData = workerDoc.docs.first.data();
+        workerId = workerDoc.docs.first.id;
         workerName = workerData['name'] ?? 'Worker';
+        isSupervisor = true; // Always treat as supervisor
 
         if (workerData['dob'] != null) {
           workerDob = (workerData['dob'] as Timestamp).toDate();
@@ -547,6 +552,22 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                       ? 1.25
                       : (MediaQuery.of(context).size.height < 800 ? 1.15 : 1.0),
                   children: [
+                    if (isSupervisor)
+                      _buildDashboardCard(
+                        context,
+                        icon: Icons.people_rounded,
+                        label: 'Staff Management',
+                        color: AppColors.dashboardCardColors[2],
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => StaffManagementScreen(
+                                supervisorId: workerId!,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     _buildDashboardCard(
                       context,
                       icon: Icons.fingerprint,

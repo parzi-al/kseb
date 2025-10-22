@@ -207,7 +207,8 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
         ),
         title: Text(
           'Withdraw Material',
-          style: AppColors.getResponsiveTextStyle(context, AppColors.headingStyle),
+          style:
+              AppColors.getResponsiveTextStyle(context, AppColors.headingStyle),
         ),
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
@@ -256,15 +257,15 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                   color: AppColors.surface,
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(
-                      AppColors.getResponsivePadding(context, 12), 
-                      AppColors.getResponsivePadding(context, 12), 
-                      AppColors.getResponsivePadding(context, 12), 
-                      AppColors.getResponsivePadding(context, 16)
-                    ),
+                        AppColors.getResponsivePadding(context, 12),
+                        AppColors.getResponsivePadding(context, 12),
+                        AppColors.getResponsivePadding(context, 12),
+                        AppColors.getResponsivePadding(context, 16)),
                     child: Column(
                       children: [
                         Container(
-                          padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 8)),
+                          padding: EdgeInsets.all(
+                              AppColors.getResponsivePadding(context, 8)),
                           decoration: BoxDecoration(
                             color: AppColors.primaryWithLowOpacity,
                             shape: BoxShape.circle,
@@ -275,20 +276,26 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                             color: AppColors.primary,
                           ),
                         ),
-                        SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
+                        SizedBox(
+                            height:
+                                AppColors.getResponsiveSpacing(context, 12)),
                         Text(
                           'Withdraw Material',
-                          style: AppColors.getResponsiveTextStyle(context, AppColors.displayStyle).copyWith(
+                          style: AppColors.getResponsiveTextStyle(
+                                  context, AppColors.displayStyle)
+                              .copyWith(
                             fontWeight: FontWeight.w800,
                             color: AppColors.textPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        SizedBox(height: AppColors.getResponsiveSpacing(context, 6)),
+                        SizedBox(
+                            height: AppColors.getResponsiveSpacing(context, 6)),
                         Text(
                           'Request materials for your project',
                           style: TextStyle(
-                            fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeBase),
+                            fontSize: AppColors.getResponsiveFontSize(
+                                context, AppColors.fontSizeBase),
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.w500,
                           ),
@@ -306,21 +313,29 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                     child: Form(
                       key: _formKey,
                       child: SingleChildScrollView(
-                        padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 8.0)),
+                        padding: EdgeInsets.all(
+                            AppColors.getResponsivePadding(context, 8.0)),
                         physics: const AlwaysScrollableScrollPhysics(),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _buildMaterialSelectionCard(),
-                            SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
+                            SizedBox(
+                                height: AppColors.getResponsiveSpacing(
+                                    context, 16)),
                             _buildProjectDetailsCard(),
-                            SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
+                            SizedBox(
+                                height: AppColors.getResponsiveSpacing(
+                                    context, 16)),
                             _buildRequestDetailsCard(),
-                            SizedBox(height: AppColors.getResponsiveSpacing(context, 20)),
+                            SizedBox(
+                                height: AppColors.getResponsiveSpacing(
+                                    context, 20)),
                             // Submit Button
                             Container(
                               width: double.infinity,
-                              height: AppColors.getResponsiveHeight(context, 44),
+                              height:
+                                  AppColors.getResponsiveHeight(context, 44),
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
@@ -348,7 +363,10 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                                       'SUBMIT REQUEST',
                                       style: TextStyle(
                                         color: AppColors.textOnDark,
-                                        fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeBase),
+                                        fontSize:
+                                            AppColors.getResponsiveFontSize(
+                                                context,
+                                                AppColors.fontSizeBase),
                                         fontWeight: FontWeight.bold,
                                         letterSpacing: 1.2,
                                       ),
@@ -371,7 +389,8 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
 
   Widget _buildSectionHeader(String title, IconData icon) {
     return Padding(
-      padding: EdgeInsets.only(bottom: AppColors.getResponsiveSpacing(context, 12.0)),
+      padding: EdgeInsets.only(
+          bottom: AppColors.getResponsiveSpacing(context, 12.0)),
       child: Row(
         children: [
           Container(
@@ -380,14 +399,17 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
               color: AppColors.primaryWithLowOpacity,
               borderRadius: BorderRadius.circular(6),
             ),
-            child: Icon(icon, color: AppColors.primary, size: AppColors.getResponsiveHeight(context, 18)),
+            child: Icon(icon,
+                color: AppColors.primary,
+                size: AppColors.getResponsiveHeight(context, 18)),
           ),
           SizedBox(width: AppColors.getResponsiveSpacing(context, 8)),
           Flexible(
             child: Text(
               title,
               style: TextStyle(
-                fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeLG),
+                fontSize: AppColors.getResponsiveFontSize(
+                    context, AppColors.fontSizeLG),
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
               ),
@@ -422,74 +444,77 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
             // Material Dropdown
             _isLoadingMaterials
                 ? Padding(
-                    padding: EdgeInsets.symmetric(horizontal: AppColors.getResponsivePadding(context, 8)),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: AppColors.getResponsivePadding(context, 8)),
                     child: Container(
                       height: 60,
                       decoration: BoxDecoration(
-                      color: AppColors.grey50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.grey300, width: 1),
-                    ),
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.primary),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Loading materials...',
-                            style: TextStyle(color: AppColors.textSecondary),
-                          ),
-                        ],
+                        color: AppColors.grey50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.grey300, width: 1),
                       ),
-                    ),
-                  )
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    AppColors.primary),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Loading materials...',
+                              style: TextStyle(color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ))
                 : _availableMaterials.isEmpty
                     ? Padding(
-                        padding: EdgeInsets.symmetric(horizontal: AppColors.getResponsivePadding(context, 8)),
+                        padding: EdgeInsets.symmetric(
+                            horizontal:
+                                AppColors.getResponsivePadding(context, 8)),
                         child: Container(
                           height: 60,
                           decoration: BoxDecoration(
-                          color: AppColors.grey50,
-                          borderRadius: BorderRadius.circular(12),
-                          border:
-                              Border.all(color: AppColors.grey300, width: 1),
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.inventory_outlined,
-                                  color: AppColors.textSecondary),
-                              const SizedBox(height: 8),
-                              Text(
-                                'No materials available',
-                                style:
-                                    TextStyle(color: AppColors.textSecondary),
-                              ),
-                              const SizedBox(height: 12),
-                              TextButton.icon(
-                                onPressed: _fetchAvailableMaterials,
-                                icon: Icon(Icons.refresh,
-                                    color: AppColors.primary),
-                                label: Text(
-                                  'Refresh',
-                                  style: TextStyle(color: AppColors.primary),
+                            color: AppColors.grey50,
+                            borderRadius: BorderRadius.circular(12),
+                            border:
+                                Border.all(color: AppColors.grey300, width: 1),
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.inventory_outlined,
+                                    color: AppColors.textSecondary),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'No materials available',
+                                  style:
+                                      TextStyle(color: AppColors.textSecondary),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 12),
+                                TextButton.icon(
+                                  onPressed: _fetchAvailableMaterials,
+                                  icon: Icon(Icons.refresh,
+                                      color: AppColors.primary),
+                                  label: Text(
+                                    'Refresh',
+                                    style: TextStyle(color: AppColors.primary),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    )
+                      )
                     : _buildDropdown(
                         value: _selectedMaterial,
                         label: 'Select Material',
@@ -631,37 +656,39 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
 
             // Required Date
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppColors.getResponsivePadding(context, 8)),
+              padding: EdgeInsets.symmetric(
+                  horizontal: AppColors.getResponsivePadding(context, 8)),
               child: Container(
                 decoration: BoxDecoration(
-                color: AppColors.grey50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.grey300, width: 1),
-              ),
-              child: InkWell(
-                onTap: _selectRequiredDate,
-                borderRadius: BorderRadius.circular(12),
-                child: InputDecorator(
-                  decoration: InputDecoration(
-                    labelText: 'Required Date',
-                    labelStyle: TextStyle(color: AppColors.textSecondary),
-                    prefixIcon: Icon(Icons.calendar_today_outlined,
-                        color: AppColors.primary),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                  color: AppColors.grey50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.grey300, width: 1),
+                ),
+                child: InkWell(
+                  onTap: _selectRequiredDate,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: 'Required Date',
+                      labelStyle: TextStyle(color: AppColors.textSecondary),
+                      prefixIcon: Icon(Icons.calendar_today_outlined,
+                          color: AppColors.primary),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: AppColors.grey50,
                     ),
-                    filled: true,
-                    fillColor: AppColors.grey50,
-                  ),
-                  child: Text(
-                    _requiredDate != null
-                        ? '${_requiredDate!.day}/${_requiredDate!.month}/${_requiredDate!.year}'
-                        : 'Select required date',
-                    style: TextStyle(
-                      color: _requiredDate != null
-                          ? AppColors.textPrimary
-                          : AppColors.textSecondary,
+                    child: Text(
+                      _requiredDate != null
+                          ? '${_requiredDate!.day}/${_requiredDate!.month}/${_requiredDate!.year}'
+                          : 'Select required date',
+                      style: TextStyle(
+                        color: _requiredDate != null
+                            ? AppColors.textPrimary
+                            : AppColors.textSecondary,
+                      ),
                     ),
                   ),
                 ),
@@ -691,52 +718,53 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
     String? Function(String?)? validator,
   }) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppColors.getResponsivePadding(context, 8)),
-      child: Container(
-        decoration: AppColors.modernCardDecoration,
-        child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        maxLines: maxLines,
-        validator: validator,
-        style: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w500,
-          ),
-          prefixIcon: Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.primaryWithLowOpacity,
-              borderRadius: BorderRadius.circular(8),
+        padding: EdgeInsets.symmetric(
+            horizontal: AppColors.getResponsivePadding(context, 8)),
+        child: Container(
+          decoration: AppColors.modernCardDecoration,
+          child: TextFormField(
+            controller: controller,
+            keyboardType: keyboardType,
+            maxLines: maxLines,
+            validator: validator,
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
             ),
-            child: Icon(
-              icon,
-              color: AppColors.primary,
-              size: 20,
+            decoration: InputDecoration(
+              labelText: label,
+              labelStyle: TextStyle(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+              prefixIcon: Container(
+                margin: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryWithLowOpacity,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              filled: true,
+              fillColor: AppColors.surface,
+              alignLabelWithHint: maxLines > 1,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 20,
+              ),
             ),
           ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: AppColors.surface,
-          alignLabelWithHint: maxLines > 1,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 20,
-          ),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _buildDropdown({
@@ -748,78 +776,79 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
     String? Function(String?)? validator,
   }) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppColors.getResponsivePadding(context, 8)),
+      padding: EdgeInsets.symmetric(
+          horizontal: AppColors.getResponsivePadding(context, 8)),
       child: Container(
         decoration: AppColors.modernCardDecoration,
         child: DropdownButtonFormField<String>(
-        value: value,
-        validator: validator,
-        style: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(
-            color: AppColors.textSecondary,
+          value: value,
+          validator: validator,
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
-          prefixIcon: Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(8),
+          decoration: InputDecoration(
+            labelText: label,
+            labelStyle: TextStyle(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+            prefixIcon: Container(
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primaryWithLowOpacity,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: AppColors.primary,
+                size: 20,
+              ),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            filled: true,
+            fillColor: AppColors.surface,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 20,
+            ),
+          ),
+          items: items
+              .map((item) => DropdownMenuItem(
+                    value: item,
+                    child: Text(
+                      item,
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ))
+              .toList(),
+          onChanged: onChanged,
+          dropdownColor: AppColors.surface,
+          menuMaxHeight: 300,
+          isDense: true,
+          isExpanded: true,
+          icon: Container(
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: AppColors.primaryWithLowOpacity,
-              borderRadius: BorderRadius.circular(8),
+              color: AppColors.grey200,
+              borderRadius: BorderRadius.circular(6),
             ),
             child: Icon(
-              icon,
-              color: AppColors.primary,
+              Icons.keyboard_arrow_down_rounded,
+              color: AppColors.textSecondary,
               size: 20,
             ),
           ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: AppColors.surface,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 20,
-          ),
         ),
-        items: items
-            .map((item) => DropdownMenuItem(
-                  value: item,
-                  child: Text(
-                    item,
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ))
-            .toList(),
-        onChanged: onChanged,
-        dropdownColor: AppColors.surface,
-        menuMaxHeight: 300,
-        isDense: true,
-        isExpanded: true,
-        icon: Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: AppColors.grey200,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: AppColors.textSecondary,
-            size: 20,
-          ),
-        ),
-      ),
       ),
     );
   }
