@@ -67,68 +67,58 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding:
+              EdgeInsets.all(AppColors.getResponsivePadding(context, 24.0)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 60),
+              SizedBox(height: AppColors.getResponsiveSpacing(context, 60)),
               // Clean Modern Header
               Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: EdgeInsets.all(
+                        AppColors.getResponsivePadding(context, 20)),
                     decoration: BoxDecoration(
                       color: AppColors.primaryWithLowOpacity,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.bolt_rounded,
-                      size: 40,
+                      size: AppColors.getResponsiveHeight(context, 40),
                       color: AppColors.primary,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: AppColors.getResponsiveSpacing(context, 24)),
                   Text(
                     'KSEB',
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                    ),
+                    style: AppColors.displayLargeStyle,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: AppColors.getResponsiveSpacing(context, 8)),
                   Text(
                     'Worker Portal',
-                    style: TextStyle(
-                      fontSize: 16,
+                    style: AppColors.bodyStyle.copyWith(
                       color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 48),
+              SizedBox(height: AppColors.getResponsiveSpacing(context, 48)),
               Text(
                 'Welcome Back',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
+                style: AppColors.displayStyle,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: AppColors.getResponsiveSpacing(context, 8)),
               Text(
                 'Sign in to continue',
-                style: TextStyle(
-                  fontSize: 16,
+                style: AppColors.bodyStyle.copyWith(
                   color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 48),
+              SizedBox(height: AppColors.getResponsiveSpacing(context, 48)),
               // Modern Email Field
               Container(
                 decoration: AppColors.modernCardDecoration,
@@ -156,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Icon(
                         Icons.email_outlined,
                         color: AppColors.primary,
-                        size: 20,
+                        size: AppColors.getResponsiveHeight(context, 20),
                       ),
                     ),
                     border: OutlineInputBorder(
@@ -172,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: AppColors.getResponsiveSpacing(context, 20)),
               // Modern Password Field
               Container(
                 decoration: AppColors.modernCardDecoration,
@@ -200,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Icon(
                         Icons.lock_outline,
                         color: AppColors.primary,
-                        size: 20,
+                        size: AppColors.getResponsiveHeight(context, 20),
                       ),
                     ),
                     border: OutlineInputBorder(
@@ -216,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: AppColors.getResponsiveSpacing(context, 32)),
               // Modern Login Button
               _isLoading
                   ? Center(
@@ -231,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     )
                   : Container(
                       width: double.infinity,
-                      height: 56,
+                      height: AppColors.getResponsiveHeight(context, 56),
                       decoration: BoxDecoration(
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(16),
@@ -253,7 +243,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               'SIGN IN',
                               style: TextStyle(
                                 color: AppColors.white,
-                                fontSize: 16,
+                                fontSize: AppColors.fontSizeBase,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.5,
                               ),
@@ -262,7 +252,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-              const SizedBox(height: 32),
+              SizedBox(height: AppColors.getResponsiveSpacing(context, 32)),
               // Modern Footer links
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -312,7 +302,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: AppColors.getResponsiveSpacing(context, 24)),
             ],
           ),
         ),

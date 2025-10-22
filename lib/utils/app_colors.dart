@@ -92,6 +92,129 @@ class AppColors {
         ],
       );
 
+  // Typography System (Smaller, Modern Font Sizes)
+  static const double fontSizeXS = 11.0; // Extra small text
+  static const double fontSizeSM = 12.0; // Small text (captions, labels)
+  static const double fontSizeBase = 14.0; // Base text size (body text)
+  static const double fontSizeLG = 16.0; // Large text (subheadings)
+  static const double fontSizeXL = 18.0; // Extra large (section headers)
+  static const double fontSize2XL = 20.0; // 2X large (page titles)
+  static const double fontSize3XL = 24.0; // 3X large (main headings)
+  static const double fontSize4XL = 28.0; // 4X large (display text)
+
+  // Text Styles (Pre-defined for consistency)
+  static TextStyle get captionStyle => TextStyle(
+        fontSize: fontSizeSM,
+        color: textSecondary,
+        fontWeight: FontWeight.w400,
+      );
+
+  static TextStyle get bodyStyle => TextStyle(
+        fontSize: fontSizeBase,
+        color: textPrimary,
+        fontWeight: FontWeight.w400,
+      );
+
+  static TextStyle get bodyMediumStyle => TextStyle(
+        fontSize: fontSizeBase,
+        color: textPrimary,
+        fontWeight: FontWeight.w500,
+      );
+
+  static TextStyle get subheadingStyle => TextStyle(
+        fontSize: fontSizeLG,
+        color: textPrimary,
+        fontWeight: FontWeight.w600,
+      );
+
+  static TextStyle get headingStyle => TextStyle(
+        fontSize: fontSizeXL,
+        color: textPrimary,
+        fontWeight: FontWeight.w600,
+      );
+
+  static TextStyle get titleStyle => TextStyle(
+        fontSize: fontSize2XL,
+        color: textPrimary,
+        fontWeight: FontWeight.w700,
+      );
+
+  static TextStyle get displayStyle => TextStyle(
+        fontSize: fontSize3XL,
+        color: textPrimary,
+        fontWeight: FontWeight.w700,
+      );
+
+  static TextStyle get displayLargeStyle => TextStyle(
+        fontSize: fontSize4XL,
+        color: textPrimary,
+        fontWeight: FontWeight.w800,
+      );
+
+  // Responsive Utilities
+  static double getResponsiveHeight(BuildContext context, double baseHeight) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    // Scale based on screen height relative to a standard phone (844px like iPhone 14)
+    return baseHeight * (screenHeight / 844.0);
+  }
+
+  static double getResponsiveWidth(BuildContext context, double baseWidth) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Scale based on screen width relative to a standard phone (390px like iPhone 14)
+    return baseWidth * (screenWidth / 390.0);
+  }
+
+  static double getResponsivePadding(BuildContext context, double basePadding) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    if (screenHeight < 700) {
+      // Small screens like Galaxy S23 (667px) - reduce padding by 40%
+      return basePadding * 0.6;
+    } else if (screenHeight < 800) {
+      // Medium screens - reduce padding by 20%
+      return basePadding * 0.8;
+    } else {
+      // Large screens - keep original padding
+      return basePadding;
+    }
+  }
+
+  static double getResponsiveSpacing(BuildContext context, double baseSpacing) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    if (screenHeight < 700) {
+      // Small screens - reduce spacing by 50%
+      return baseSpacing * 0.5;
+    } else if (screenHeight < 800) {
+      // Medium screens - reduce spacing by 25%
+      return baseSpacing * 0.75;
+    } else {
+      // Large screens - keep original spacing
+      return baseSpacing;
+    }
+  }
+
+  static double getResponsiveFontSize(
+      BuildContext context, double baseFontSize) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    if (screenHeight < 700) {
+      // Small screens - reduce font size by 15%
+      return baseFontSize * 0.85;
+    } else if (screenHeight < 800) {
+      // Medium screens - reduce font size by 8%
+      return baseFontSize * 0.92;
+    } else {
+      // Large screens - keep original font size
+      return baseFontSize;
+    }
+  }
+
+  static TextStyle getResponsiveTextStyle(
+      BuildContext context, TextStyle baseStyle) {
+    return baseStyle.copyWith(
+      fontSize:
+          getResponsiveFontSize(context, baseStyle.fontSize ?? fontSizeBase),
+    );
+  }
+
   // Modern Card Decoration
   static BoxDecoration get modernCardDecoration => BoxDecoration(
         color: surface,

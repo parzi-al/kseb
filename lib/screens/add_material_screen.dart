@@ -129,13 +129,27 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          child: IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.grey100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.textSecondary,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
         title: Text(
           'Add Material',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-            color: AppColors.textPrimary,
-          ),
+          style: AppColors.getResponsiveTextStyle(context, AppColors.headingStyle),
         ),
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
@@ -157,36 +171,40 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                   width: double.infinity,
                   color: AppColors.surface,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+                    padding: EdgeInsets.fromLTRB(
+                      AppColors.getResponsivePadding(context, 12), 
+                      AppColors.getResponsivePadding(context, 12), 
+                      AppColors.getResponsivePadding(context, 12), 
+                      AppColors.getResponsivePadding(context, 16)
+                    ),
                     child: Column(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(20),
+                          padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 8)),
                           decoration: BoxDecoration(
                             color: AppColors.primaryWithLowOpacity,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.add_circle_outline_rounded,
-                            size: 48,
+                            size: AppColors.getResponsiveHeight(context, 32),
                             color: AppColors.primary,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
                         Text(
                           'Add New Material',
-                          style: TextStyle(
-                            fontSize: 28,
+                          style: AppColors.getResponsiveTextStyle(context, AppColors.displayStyle).copyWith(
                             fontWeight: FontWeight.w800,
                             color: AppColors.textPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: AppColors.getResponsiveSpacing(context, 6)),
                         Text(
                           'Register new materials to inventory',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeBase),
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.w500,
                           ),
@@ -201,20 +219,20 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                   child: Form(
                     key: _formKey,
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24.0),
+                      padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 8.0)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _buildBasicInfoCard(),
-                          const SizedBox(height: 24),
+                          SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
                           _buildQuantityPricingCard(),
-                          const SizedBox(height: 24),
+                          SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
                           _buildLocationDetailsCard(),
-                          const SizedBox(height: 32),
+                          SizedBox(height: AppColors.getResponsiveSpacing(context, 20)),
                           // Submit Button
                           Container(
                             width: double.infinity,
-                            height: 56,
+                            height: AppColors.getResponsiveHeight(context, 44),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
@@ -242,7 +260,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                                     'ADD MATERIAL',
                                     style: TextStyle(
                                       color: AppColors.textOnDark,
-                                      fontSize: 16,
+                                      fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeBase),
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 1.2,
                                     ),
@@ -251,7 +269,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
                         ],
                       ),
                     ),
@@ -264,24 +282,27 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
 
   Widget _buildSectionHeader(String title, IconData icon) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: EdgeInsets.only(bottom: AppColors.getResponsiveSpacing(context, 12.0)),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 6)),
             decoration: BoxDecoration(
               color: AppColors.primaryWithLowOpacity,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(6),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 24),
+            child: Icon(icon, color: AppColors.primary, size: AppColors.getResponsiveHeight(context, 18)),
           ),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+          SizedBox(width: AppColors.getResponsiveSpacing(context, 8)),
+          Flexible(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeLG),
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -303,12 +324,12 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 12.0)),
         child: Column(
           children: [
             _buildSectionHeader(
                 'Basic Information', Icons.info_outline_rounded),
-            const SizedBox(height: 8),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
 
             // Material Name
             _buildTextField(
@@ -318,7 +339,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
               validator: (value) =>
                   value?.isEmpty ?? true ? 'Material name is required' : null,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
 
             // Material Code
             _buildTextField(
@@ -328,7 +349,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
               validator: (value) =>
                   value?.isEmpty ?? true ? 'Material code is required' : null,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
 
             // Category Dropdown
             _buildDropdown(
@@ -340,7 +361,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
               validator: (value) =>
                   value == null ? 'Please select a category' : null,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
 
             // Description
             _buildTextField(
@@ -369,11 +390,11 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 12.0)),
         child: Column(
           children: [
             _buildSectionHeader('Quantity & Pricing', Icons.calculate_outlined),
-            const SizedBox(height: 8),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
             Column(
               children: [
                 _buildTextField(
@@ -440,11 +461,11 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 12.0)),
         child: Column(
           children: [
             _buildSectionHeader('Storage Location', Icons.location_on_outlined),
-            const SizedBox(height: 8),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
             _buildDropdown(
               value: _selectedLocation,
               label: 'Storage Location',
@@ -468,9 +489,11 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
     int maxLines = 1,
     String? Function(String?)? validator,
   }) {
-    return Container(
-      decoration: AppColors.modernCardDecoration,
-      child: TextFormField(
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: AppColors.getResponsivePadding(context, 8)),
+      child: Container(
+        decoration: AppColors.modernCardDecoration,
+        child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
         maxLines: maxLines,
@@ -512,6 +535,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -523,9 +547,11 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
     required void Function(String?) onChanged,
     String? Function(String?)? validator,
   }) {
-    return Container(
-      decoration: AppColors.modernCardDecoration,
-      child: DropdownButtonFormField<String>(
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: AppColors.getResponsivePadding(context, 8)),
+      child: Container(
+        decoration: AppColors.modernCardDecoration,
+        child: DropdownButtonFormField<String>(
         value: value,
         validator: validator,
         style: TextStyle(
@@ -578,6 +604,9 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
             .toList(),
         onChanged: onChanged,
         dropdownColor: AppColors.surface,
+        menuMaxHeight: 300,
+        isDense: true,
+        isExpanded: true,
         icon: Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
@@ -590,6 +619,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
             size: 20,
           ),
         ),
+      ),
       ),
     );
   }

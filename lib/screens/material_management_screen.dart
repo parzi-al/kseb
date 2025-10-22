@@ -11,11 +11,29 @@ class MaterialManagementScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          child: IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.grey100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.textSecondary,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
         title: Text(
           'Material Management',
           style: TextStyle(
             fontWeight: FontWeight.w700,
-            fontSize: 20,
+            fontSize: AppColors.fontSizeLG,
             color: AppColors.textPrimary,
           ),
         ),
@@ -53,7 +71,7 @@ class MaterialManagementScreen extends StatelessWidget {
                     Text(
                       'Material Management',
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: AppColors.fontSize2XL,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary,
                       ),
@@ -63,7 +81,7 @@ class MaterialManagementScreen extends StatelessWidget {
                     Text(
                       'Manage inventory and material requests',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: AppColors.fontSizeBase,
                         color: AppColors.textSecondary,
                         fontWeight: FontWeight.w500,
                       ),
@@ -73,9 +91,9 @@ class MaterialManagementScreen extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 40),
-            
+
             // Modern Content Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -162,7 +180,7 @@ class MaterialManagementScreen extends StatelessWidget {
                       Text(
                         label,
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: AppColors.fontSizeLG,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
                         ),
@@ -171,7 +189,7 @@ class MaterialManagementScreen extends StatelessWidget {
                       Text(
                         description,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: AppColors.fontSizeSM,
                           color: AppColors.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),

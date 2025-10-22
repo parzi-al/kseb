@@ -163,11 +163,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       appBar: AppBar(
         title: Text(
           'Mark Attendance',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-            color: AppColors.textPrimary,
-          ),
+          style: AppColors.getResponsiveTextStyle(context, AppColors.headingStyle),
         ),
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
@@ -189,38 +185,43 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   width: double.infinity,
                   color: AppColors.surface,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+                    padding: EdgeInsets.fromLTRB(
+                      AppColors.getResponsivePadding(context, 12), 
+                      AppColors.getResponsivePadding(context, 12), 
+                      AppColors.getResponsivePadding(context, 12), 
+                      AppColors.getResponsivePadding(context, 16)
+                    ),
                     child: Column(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(20),
+                          padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 8)),
                           decoration: BoxDecoration(
                             color: AppColors.primaryWithLowOpacity,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.person_rounded,
-                            size: 60,
+                            size: AppColors.getResponsiveHeight(context, 32),
                             color: AppColors.primary,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
                         Text(
                           _workerName,
-                          style: TextStyle(
-                            fontSize: 28,
+                          style: AppColors.getResponsiveTextStyle(context, AppColors.displayStyle).copyWith(
                             fontWeight: FontWeight.w800,
                             color: AppColors.textPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: AppColors.getResponsiveSpacing(context, 8)),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: AppColors.getResponsivePadding(context, 8), 
+                              vertical: AppColors.getResponsiveSpacing(context, 4)),
                           decoration: BoxDecoration(
                             color: AppColors.primaryWithLowOpacity,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(MediaQuery.of(context).size.height < 700 ? 12 : 20),
                             border: Border.all(
                               color: AppColors.primary.withValues(alpha: 0.2),
                               width: 1,
@@ -230,7 +231,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             'KSEB Worker',
                             style: TextStyle(
                               color: AppColors.primary,
-                              fontSize: 14,
+                              fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeSM),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -242,17 +243,17 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 // Content Section
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(24.0),
+                    padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 12.0)),
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        const SizedBox(height: 20),
                         // Progress Card
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.all(24),
+                          padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 12)),
                           decoration: BoxDecoration(
                             color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(MediaQuery.of(context).size.height < 700 ? 16 : 20),
                             boxShadow: [
                               BoxShadow(
                                 color: AppColors.cardShadow,
@@ -265,22 +266,21 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             children: [
                               Text(
                                 'Attendance Progress',
-                                style: TextStyle(
-                                  fontSize: 18,
+                                style: AppColors.getResponsiveTextStyle(context, AppColors.titleStyle).copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textPrimary,
                                 ),
                               ),
-                              const SizedBox(height: 24),
+                              SizedBox(height: AppColors.getResponsiveSpacing(context, 18)),
                               CircularPercentIndicator(
-                                radius: 80.0,
-                                lineWidth: 10.0,
+                                radius: AppColors.getResponsiveHeight(context, 50),
+                                lineWidth: AppColors.getResponsiveHeight(context, 6),
                                 percent: attendancePercentage,
                                 center: Text(
                                   "${(attendancePercentage * 100).toStringAsFixed(0)}%",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 20.0,
+                                    fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeLG),
                                     color: AppColors.textPrimary,
                                   ),
                                 ),
@@ -289,105 +289,108 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 backgroundColor:
                                     AppColors.primaryWithLowOpacity,
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: AppColors.getResponsiveSpacing(context, 14)),
                               Text(
                                 "$_daysPresent / $_totalDays Days Present",
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
-                                  fontSize: 16.0,
+                                  fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeBase),
                                   color: AppColors.textSecondary,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const Spacer(),
-                        // Fingerprint Button
-                        Container(
-                          width: double.infinity,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.primary,
-                                AppColors.primaryLight
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: _authenticateAndMarkAttendance,
-                              borderRadius: BorderRadius.circular(16),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.fingerprint_rounded,
-                                    color: AppColors.textOnDark,
-                                    size: 28,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    'Mark Attendance',
-                                    style: TextStyle(
-                                      color: AppColors.textOnDark,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                        // Action Buttons Section
+                        Column(
+                          children: [
+                            // Fingerprint Button
+                            Container(
+                              width: double.infinity,
+                              height: AppColors.getResponsiveHeight(context, 44),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.primary,
+                                    AppColors.primaryLight
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(MediaQuery.of(context).size.height < 700 ? 12 : 16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withValues(alpha: 0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        // Test Button for Development (bypasses biometric auth)
-                        Container(
-                          width: double.infinity,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            border:
-                                Border.all(color: AppColors.warning, width: 2),
-                            borderRadius: BorderRadius.circular(16),
-                            color: AppColors.warning.withValues(alpha: 0.1),
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: _recordAttendance,
-                              borderRadius: BorderRadius.circular(16),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.bug_report_rounded,
-                                    color: AppColors.warning,
-                                    size: 20,
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: _authenticateAndMarkAttendance,
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.fingerprint_rounded,
+                                        color: AppColors.textOnDark,
+                                        size: AppColors.getResponsiveHeight(context, 20),
+                                      ),
+                                      SizedBox(width: AppColors.getResponsiveSpacing(context, 12)),
+                                      Text(
+                                        'Mark Attendance',
+                                        style: TextStyle(
+                                          color: AppColors.textOnDark,
+                                          fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeLG),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Test Mode - Mark Without Biometric',
-                                    style: TextStyle(
-                                      color: AppColors.warning,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
+                            SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
+                            // Test Button for Development (bypasses biometric auth)
+                            Container(
+                              width: double.infinity,
+                              height: AppColors.getResponsiveHeight(context, 36),
+                              decoration: BoxDecoration(
+                                border:
+                                    Border.all(color: AppColors.warning, width: 2),
+                                borderRadius: BorderRadius.circular(16),
+                                color: AppColors.warning.withValues(alpha: 0.1),
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: _recordAttendance,
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.bug_report_rounded,
+                                        color: AppColors.warning,
+                                        size: AppColors.getResponsiveHeight(context, 14),
+                                      ),
+                                      SizedBox(width: AppColors.getResponsiveSpacing(context, 8)),
+                                      Text(
+                                        'Test Mode - Mark Without Biometric',
+                                        style: TextStyle(
+                                          color: AppColors.warning,
+                                          fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeSM),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 24),
                       ],
                     ),
                   ),

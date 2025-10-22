@@ -75,7 +75,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
               Text(
                 'Select Photo Source',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: AppColors.fontSizeLG,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
@@ -280,13 +280,27 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          child: IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.grey100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.textSecondary,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
         title: Text(
           'Daily Worksheet',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-            color: AppColors.textPrimary,
-          ),
+          style: AppColors.getResponsiveTextStyle(context, AppColors.headingStyle),
         ),
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
@@ -308,36 +322,40 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   width: double.infinity,
                   color: AppColors.surface,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+                    padding: EdgeInsets.fromLTRB(
+                      AppColors.getResponsivePadding(context, 12), 
+                      AppColors.getResponsivePadding(context, 12), 
+                      AppColors.getResponsivePadding(context, 12), 
+                      AppColors.getResponsivePadding(context, 16)
+                    ),
                     child: Column(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(20),
+                          padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 8)),
                           decoration: BoxDecoration(
                             color: AppColors.primaryWithLowOpacity,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.assignment_rounded,
-                            size: 48,
+                            size: AppColors.getResponsiveHeight(context, 32),
                             color: AppColors.primary,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
                         Text(
                           'Daily Worksheet',
-                          style: TextStyle(
-                            fontSize: 28,
+                          style: AppColors.getResponsiveTextStyle(context, AppColors.displayStyle).copyWith(
                             fontWeight: FontWeight.w800,
                             color: AppColors.textPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: AppColors.getResponsiveSpacing(context, 6)),
                         Text(
                           'Submit your daily work report',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeBase),
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.w500,
                           ),
@@ -352,18 +370,18 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   child: Form(
                     key: _formKey,
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 8.0)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _buildProjectDetailsCard(),
-                          const SizedBox(height: 24),
+                          SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
                           _buildDocumentationCard(),
-                          const SizedBox(height: 32),
+                          SizedBox(height: AppColors.getResponsiveSpacing(context, 20)),
                           // Submit Button
                           Container(
                             width: double.infinity,
-                            height: 56,
+                            height: AppColors.getResponsiveHeight(context, 44),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
@@ -391,7 +409,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                                     'SUBMIT WORKSHEET',
                                     style: TextStyle(
                                       color: AppColors.textOnDark,
-                                      fontSize: 16,
+                                      fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeBase),
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 1.2,
                                     ),
@@ -400,7 +418,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
                         ],
                       ),
                     ),
@@ -414,24 +432,27 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   // Helper widget for a section header
   Widget _buildSectionHeader(String title, IconData icon) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: EdgeInsets.only(bottom: AppColors.getResponsiveSpacing(context, 12.0)),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 6)),
             decoration: BoxDecoration(
               color: AppColors.primaryWithLowOpacity,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(6),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 24),
+            child: Icon(icon, color: AppColors.primary, size: AppColors.getResponsiveHeight(context, 18)),
           ),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+          SizedBox(width: AppColors.getResponsiveSpacing(context, 8)),
+          Flexible(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeLG),
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -454,11 +475,11 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 12.0)),
         child: Column(
           children: <Widget>[
             _buildSectionHeader('Project Details', Icons.business_center),
-            const SizedBox(height: 8),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 6)),
 
             // Office Selection Dropdown
             Container(
@@ -496,7 +517,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
 
             // Work Type Field
             Container(
@@ -521,7 +542,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
 
             // Project Selection Dropdown
             Container(
@@ -558,7 +579,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
 
             // Project Name Field
             Container(
@@ -604,7 +625,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 12.0)),
         child: Column(
           children: <Widget>[
             _buildSectionHeader('Documentation & Location', Icons.folder_copy),
@@ -633,7 +654,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
 
             // Location Field
             Container(
@@ -658,11 +679,11 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
 
             // Upload Photo Button with Preview
             _buildPhotoUploadSection(),
-            const SizedBox(height: 16),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
 
             // Additional Information Field
             Container(
