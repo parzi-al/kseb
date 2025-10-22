@@ -1,6 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import '../utils/app_colors.dart';
+import '../utils/app_toast.dart';
 
 class WorksheetScreen extends StatefulWidget {
   const WorksheetScreen({super.key});
@@ -25,6 +30,12 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   String? _selectedOffice;
   String? _selectedProject;
 
+  // Image upload related variables
+  File? _selectedImage;
+  String? _uploadedImageUrl;
+  bool _isUploadingImage = false;
+  final ImagePicker _picker = ImagePicker();
+
   @override
   void dispose() {
     // Clean up the controllers when the widget is disposed.
@@ -37,14 +48,182 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   }
 
   // --- Functions ---
+
+  // Function to show image source selection dialog
+  Future<void> _showImageSourceDialog() async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 50,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.grey300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Select Photo Source',
+                style: TextStyle(
+                  fontSize: AppColors.fontSizeLG,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildSourceOption(
+                    icon: Icons.camera_alt_rounded,
+                    label: 'Camera',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _pickImage(ImageSource.camera);
+                    },
+                  ),
+                  _buildSourceOption(
+                    icon: Icons.photo_library_rounded,
+                    label: 'Gallery',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _pickImage(ImageSource.gallery);
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Helper widget for image source options
+  Widget _buildSourceOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.primaryWithLowOpacity,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 40, color: AppColors.primary),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Function to pick image from camera or gallery
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+          _uploadedImageUrl =
+              null; // Reset uploaded URL when new image is selected
+        });
+
+        // Upload the image immediately after selection
+        await _uploadImageToFirebase();
+      }
+    } catch (e) {
+      if (mounted) {
+        AppErrorHandler.handleError(context, e,
+            customMessage: 'Error selecting image');
+      }
+    }
+  }
+
+  // Function to upload image to Firebase Storage
+  Future<void> _uploadImageToFirebase() async {
+    if (_selectedImage == null) return;
+
+    setState(() {
+      _isUploadingImage = true;
+    });
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception("User not logged in.");
+      }
+
+      // Create a unique filename using timestamp and user ID
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = 'worksheets/${user.uid}/$timestamp.jpg';
+
+      // Create reference to Firebase Storage
+      final storageRef = FirebaseStorage.instance.ref().child(fileName);
+
+      // Upload the file
+      final uploadTask = storageRef.putFile(_selectedImage!);
+
+      // Get download URL after upload completes
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      setState(() {
+        _uploadedImageUrl = downloadUrl;
+        _isUploadingImage = false;
+      });
+
+      if (mounted) {
+        AppToast.showSuccess(context, 'Photo uploaded successfully! 📷');
+      }
+    } catch (e) {
+      setState(() {
+        _isUploadingImage = false;
+      });
+
+      if (mounted) {
+        AppErrorHandler.handleError(context, e,
+            customMessage: 'Error uploading photo');
+      }
+    }
+  }
+
   Future<void> _submitWorksheet() async {
     // Validate the form before proceeding
     if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill all required fields correctly.'),
-        ),
-      );
+      AppToast.showError(context, 'Please fill all required fields correctly.');
       return;
     }
 
@@ -70,7 +249,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
         'permitBook': _permitBookController.text,
         'location': _locationController.text,
         'moreInfo': _moreInfoController.text,
-        'photoUrl': null, // TODO: Add logic to upload photo and get URL
+        'photoUrl': _uploadedImageUrl, // URL from Firebase Storage
       };
 
       // Add a new document with a generated ID to the 'worksheets' collection
@@ -79,22 +258,13 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
           .add(worksheetData);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Worksheet Submitted Successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        AppToast.showSuccess(context, 'Worksheet submitted successfully! 📄');
         Navigator.of(context).pop(); // Go back to the previous screen
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to submit worksheet: ${e.toString()}'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+        AppErrorHandler.handleError(context, e,
+            customMessage: 'Failed to submit worksheet');
       }
     } finally {
       if (mounted) {
@@ -108,40 +278,153 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('New Worksheet'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 1,
-      ),
-      backgroundColor: Colors.grey[100],
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildProjectDetailsCard(),
-                    const SizedBox(height: 24),
-                    _buildDocumentationCard(),
-                    const SizedBox(height: 32),
-                    ElevatedButton(
-                      onPressed: _submitWorksheet,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      child: const Text('SUBMIT WORKSHEET'),
-                    ),
-                  ],
-                ),
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          child: IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.grey100,
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.textSecondary,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
+        title: Text(
+          'Daily Worksheet',
+          style: AppColors.getResponsiveTextStyle(context, AppColors.headingStyle),
+        ),
+        backgroundColor: AppColors.surface,
+        foregroundColor: AppColors.textPrimary,
+        elevation: 0.5,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: AppColors.shadowLight,
+        centerTitle: true,
+      ),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+              ),
+            )
+          : Column(
+              children: [
+                // Modern Header Section
+                Container(
+                  width: double.infinity,
+                  color: AppColors.surface,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      AppColors.getResponsivePadding(context, 12), 
+                      AppColors.getResponsivePadding(context, 12), 
+                      AppColors.getResponsivePadding(context, 12), 
+                      AppColors.getResponsivePadding(context, 16)
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 8)),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryWithLowOpacity,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.assignment_rounded,
+                            size: AppColors.getResponsiveHeight(context, 32),
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
+                        Text(
+                          'Daily Worksheet',
+                          style: AppColors.getResponsiveTextStyle(context, AppColors.displayStyle).copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: AppColors.getResponsiveSpacing(context, 6)),
+                        Text(
+                          'Submit your daily work report',
+                          style: TextStyle(
+                            fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeBase),
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Form Content
+                Expanded(
+                  child: Form(
+                    key: _formKey,
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 8.0)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildProjectDetailsCard(),
+                          SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
+                          _buildDocumentationCard(),
+                          SizedBox(height: AppColors.getResponsiveSpacing(context, 20)),
+                          // Submit Button
+                          Container(
+                            width: double.infinity,
+                            height: AppColors.getResponsiveHeight(context, 44),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.primary,
+                                  AppColors.primaryLight
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: _submitWorksheet,
+                                borderRadius: BorderRadius.circular(16),
+                                child: Center(
+                                  child: Text(
+                                    'SUBMIT WORKSHEET',
+                                    style: TextStyle(
+                                      color: AppColors.textOnDark,
+                                      fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeBase),
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
     );
   }
@@ -149,14 +432,28 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   // Helper widget for a section header
   Widget _buildSectionHeader(String title, IconData icon) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: EdgeInsets.only(bottom: AppColors.getResponsiveSpacing(context, 12.0)),
       child: Row(
         children: [
-          Icon(icon, color: Colors.teal, size: 28),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          Container(
+            padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 6)),
+            decoration: BoxDecoration(
+              color: AppColors.primaryWithLowOpacity,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(icon, color: AppColors.primary, size: AppColors.getResponsiveHeight(context, 18)),
+          ),
+          SizedBox(width: AppColors.getResponsiveSpacing(context, 8)),
+          Flexible(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: AppColors.getResponsiveFontSize(context, AppColors.fontSizeLG),
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
@@ -165,69 +462,146 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
 
   // Card for the first group of inputs
   Widget _buildProjectDetailsCard() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.cardShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 12.0)),
         child: Column(
           children: <Widget>[
             _buildSectionHeader('Project Details', Icons.business_center),
-            DropdownButtonFormField<String>(
-              value: _selectedOffice,
-              validator: (value) =>
-                  value == null ? 'Please select an office.' : null,
-              decoration: const InputDecoration(
-                labelText: 'Office Selection',
-                prefixIcon: Icon(Icons.location_city),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 6)),
+
+            // Office Selection Dropdown
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.grey50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.grey300, width: 1),
               ),
-              items: ['Office A', 'Office B', 'Office C']
-                  .map(
-                    (label) =>
-                        DropdownMenuItem(value: label, child: Text(label)),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedOffice = value;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _workTypeController,
-              decoration: const InputDecoration(
-                labelText: 'Work Type',
-                prefixIcon: Icon(Icons.construction),
+              child: DropdownButtonFormField<String>(
+                value: _selectedOffice,
+                validator: (value) =>
+                    value == null ? 'Please select an office.' : null,
+                decoration: InputDecoration(
+                  labelText: 'Office Selection',
+                  labelStyle: TextStyle(color: AppColors.textSecondary),
+                  prefixIcon:
+                      Icon(Icons.location_city, color: AppColors.primary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.grey50,
+                ),
+                items: ['Office A', 'Office B', 'Office C']
+                    .map(
+                      (label) =>
+                          DropdownMenuItem(value: label, child: Text(label)),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedOffice = value;
+                  });
+                },
               ),
             ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _selectedProject,
-              validator: (value) =>
-                  value == null ? 'Please select a project.' : null,
-              decoration: const InputDecoration(
-                labelText: 'Project Selection',
-                prefixIcon: Icon(Icons.assignment),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
+
+            // Work Type Field
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.grey50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.grey300, width: 1),
               ),
-              items: ['Project X', 'Project Y', 'Project Z']
-                  .map(
-                    (label) =>
-                        DropdownMenuItem(value: label, child: Text(label)),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedProject = value;
-                });
-              },
+              child: TextFormField(
+                controller: _workTypeController,
+                decoration: InputDecoration(
+                  labelText: 'Work Type',
+                  labelStyle: TextStyle(color: AppColors.textSecondary),
+                  prefixIcon:
+                      Icon(Icons.construction, color: AppColors.primary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.grey50,
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _projectNameController,
-              decoration: const InputDecoration(
-                labelText: 'Project Name',
-                prefixIcon: Icon(Icons.label_important_outline),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
+
+            // Project Selection Dropdown
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.grey50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.grey300, width: 1),
+              ),
+              child: DropdownButtonFormField<String>(
+                value: _selectedProject,
+                validator: (value) =>
+                    value == null ? 'Please select a project.' : null,
+                decoration: InputDecoration(
+                  labelText: 'Project Selection',
+                  labelStyle: TextStyle(color: AppColors.textSecondary),
+                  prefixIcon: Icon(Icons.assignment, color: AppColors.primary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.grey50,
+                ),
+                items: ['Project X', 'Project Y', 'Project Z']
+                    .map(
+                      (label) =>
+                          DropdownMenuItem(value: label, child: Text(label)),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedProject = value;
+                  });
+                },
+              ),
+            ),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
+
+            // Project Name Field
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.grey50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.grey300, width: 1),
+              ),
+              child: TextFormField(
+                controller: _projectNameController,
+                decoration: InputDecoration(
+                  labelText: 'Project Name',
+                  labelStyle: TextStyle(color: AppColors.textSecondary),
+                  prefixIcon: Icon(Icons.label_important_outline,
+                      color: AppColors.primary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.grey50,
+                ),
               ),
             ),
           ],
@@ -238,54 +612,263 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
 
   // Card for the second group of inputs
   Widget _buildDocumentationCard() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.cardShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 12.0)),
         child: Column(
           children: <Widget>[
             _buildSectionHeader('Documentation & Location', Icons.folder_copy),
-            TextFormField(
-              controller: _permitBookController,
-              decoration: const InputDecoration(
-                labelText: 'Permit Book',
-                prefixIcon: Icon(Icons.book_outlined),
+            const SizedBox(height: 8),
+
+            // Permit Book Field
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.grey50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.grey300, width: 1),
+              ),
+              child: TextFormField(
+                controller: _permitBookController,
+                decoration: InputDecoration(
+                  labelText: 'Permit Book',
+                  labelStyle: TextStyle(color: AppColors.textSecondary),
+                  prefixIcon:
+                      Icon(Icons.book_outlined, color: AppColors.primary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.grey50,
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _locationController,
-              decoration: const InputDecoration(
-                labelText: 'Location',
-                prefixIcon: Icon(Icons.location_on_outlined),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
+
+            // Location Field
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.grey50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.grey300, width: 1),
+              ),
+              child: TextFormField(
+                controller: _locationController,
+                decoration: InputDecoration(
+                  labelText: 'Location',
+                  labelStyle: TextStyle(color: AppColors.textSecondary),
+                  prefixIcon: Icon(Icons.location_on_outlined,
+                      color: AppColors.primary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.grey50,
+                ),
               ),
             ),
-            const SizedBox(height: 24),
-            OutlinedButton.icon(
-              icon: const Icon(Icons.camera_alt_outlined, size: 28),
-              label: const Text('Upload Photo', style: TextStyle(fontSize: 16)),
-              onPressed: () {
-                // TODO: Implement image picking and uploading functionality
-              },
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 55),
-                alignment: Alignment.center,
-                foregroundColor: Colors.teal,
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
+
+            // Upload Photo Button with Preview
+            _buildPhotoUploadSection(),
+            SizedBox(height: AppColors.getResponsiveSpacing(context, 12)),
+
+            // Additional Information Field
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.grey50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.grey300, width: 1),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _moreInfoController,
-              decoration: const InputDecoration(
-                labelText: 'Additional Information',
-                prefixIcon: Icon(Icons.notes),
+              child: TextFormField(
+                controller: _moreInfoController,
+                decoration: InputDecoration(
+                  labelText: 'Additional Information',
+                  labelStyle: TextStyle(color: AppColors.textSecondary),
+                  prefixIcon: Icon(Icons.notes, color: AppColors.primary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.grey50,
+                  alignLabelWithHint: true,
+                ),
+                maxLines: 3,
               ),
-              maxLines: 3,
             ),
           ],
         ),
       ),
     );
+  }
+
+  // Widget for photo upload section with preview
+  Widget _buildPhotoUploadSection() {
+    if (_selectedImage != null || _uploadedImageUrl != null) {
+      // Show image preview with option to change
+      return Column(
+        children: [
+          Container(
+            width: double.infinity,
+            height: 200,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.grey300),
+              image: _selectedImage != null
+                  ? DecorationImage(
+                      image: FileImage(_selectedImage!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: _selectedImage == null && _uploadedImageUrl != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.network(
+                      _uploadedImageUrl!,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          alignment: Alignment.center,
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.primary),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          alignment: Alignment.center,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.error_outline,
+                                  size: 40, color: AppColors.error),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Failed to load image',
+                                style: TextStyle(color: AppColors.error),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                : (_isUploadingImage
+                    ? Container(
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.primary),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Uploading...',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : null),
+          ),
+          const SizedBox(height: 16),
+          // Change photo button
+          Container(
+            width: double.infinity,
+            height: 50,
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.primary, width: 1),
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.transparent,
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _isUploadingImage ? null : _showImageSourceDialog,
+                borderRadius: BorderRadius.circular(12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.change_circle_outlined,
+                      size: 24,
+                      color: _isUploadingImage
+                          ? AppColors.textSecondary
+                          : AppColors.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _isUploadingImage ? 'Uploading...' : 'Change Photo',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: _isUploadingImage
+                            ? AppColors.textSecondary
+                            : AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      // Show upload button when no image is selected
+      return Container(
+        width: double.infinity,
+        height: 60,
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.primary, width: 2),
+          borderRadius: BorderRadius.circular(16),
+          color: AppColors.primaryWithLowOpacity,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _showImageSourceDialog,
+            borderRadius: BorderRadius.circular(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.camera_alt_rounded,
+                    size: 28, color: AppColors.primary),
+                const SizedBox(width: 12),
+                Text(
+                  'Upload Photo',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
   }
 }

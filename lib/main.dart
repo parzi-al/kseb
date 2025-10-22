@@ -34,23 +34,25 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       // StreamBuilder will listen to auth changes and show the correct screen
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            // Show a loading indicator while checking auth state
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-          if (snapshot.hasData) {
-            // If user is logged in, show worker home screen
-            // TODO: Add logic to differentiate between worker, supervisor, admin
-            return const WorkerHomeScreen();
-          }
-          // If user is not logged in, show login screen
-          return const LoginScreen();
-        },
+      home: SafeArea(
+        child: StreamBuilder<User?>(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              // Show a loading indicator while checking auth state
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snapshot.hasData) {
+              // If user is logged in, show worker home screen
+              // TODO: Add logic to differentiate between worker, supervisor, admin
+              return const WorkerHomeScreen();
+            }
+            // If user is not logged in, show login screen
+            return const LoginScreen();
+          },
+        ),
       ),
     );
   }

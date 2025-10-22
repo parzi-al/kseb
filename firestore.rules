@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow authenticated users to read/write their own worker profile
+    match /workers/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow access to attendance subcollection
+      match /attendance/{attendanceId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Allow authenticated users to create/read worksheets
+    match /worksheets/{worksheetId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Material management rules
+    match /materials/{materialId} {
+      // Allow all authenticated users to read materials
+      allow read: if request.auth != null;
+      // Only allow adding materials if user is authenticated
+      allow create: if request.auth != null && 
+        request.resource.data.addedBy == request.auth.uid;
+      // Allow updates and deletes by the user who added the material
+      allow update, delete: if request.auth != null && 
+        resource.data.addedBy == request.auth.uid;
+    }
+    
+    // Material request rules
+    match /material_requests/{requestId} {
+      // Allow users to read their own requests
+      allow read: if request.auth != null && 
+        resource.data.requestedBy == request.auth.uid;
+      // Allow users to create their own requests
+      allow create: if request.auth != null && 
+        request.resource.data.requestedBy == request.auth.uid;
+      // Allow users to update their own pending requests
+      allow update: if request.auth != null && 
+        resource.data.requestedBy == request.auth.uid &&
+        resource.data.status == 'Pending';
+    }
+    
+    // Deny all other requests by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
