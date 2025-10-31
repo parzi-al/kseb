@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:local_auth/local_auth.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_toast.dart';
+import '../services/attendance_service.dart';
+import '../models/user_model.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -15,16 +17,21 @@ class AttendanceScreen extends StatefulWidget {
 }
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
-  // Firebase and Local Auth instances
+  // Services
   final LocalAuthentication _localAuth = LocalAuthentication();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final AttendanceService _attendanceService = AttendanceService();
 
   // State variables
-  String _workerName = 'Loading...';
+  String _userName = 'Loading...';
+  UserRole? _userRole;
   int _daysPresent = 0;
-  final int _totalDays = 240; // Can be fetched from a config document if needed
+  int _thisMonthPresent = 0;
+  int _thisYearPresent = 0;
+  final int _totalDaysInYear = 240; // Working days in a year
   bool _isLoading = true;
+  bool _isMarkedToday = false;
   String? _userId;
 
   @override
@@ -33,7 +40,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     _fetchWorkerData();
   }
 
-  /// Fetches worker's name and attendance count from Firestore.
+  /// Fetches user's data and attendance statistics from Firestore.
   Future<void> _fetchWorkerData() async {
     setState(() {
       _isLoading = true;
@@ -43,35 +50,36 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     if (user != null) {
       _userId = user.uid;
       try {
-        // Fetch worker profile document
-        DocumentSnapshot workerDoc =
-            await _firestore.collection('workers').doc(_userId).get();
+        // Fetch user profile from 'users' collection
+        DocumentSnapshot userDoc =
+            await _firestore.collection('users').doc(_userId).get();
 
-        if (workerDoc.exists) {
-          final data = workerDoc.data() as Map<String, dynamic>?;
-          _workerName = data?['name'] ?? user.email ?? 'No name found';
+        if (userDoc.exists) {
+          final data = userDoc.data() as Map<String, dynamic>?;
+          _userName = data?['name'] ?? user.email ?? 'No name found';
+          _userRole = UserRole.fromString(data?['role'] ?? 'staff');
         } else {
-          _workerName = user.email ?? 'No name found';
+          _userName = user.email ?? 'No name found';
+          _userRole = UserRole.staff;
         }
 
-        // Fetch attendance records
-        QuerySnapshot attendanceSnapshot = await _firestore
-            .collection('workers')
-            .doc(_userId)
-            .collection('attendance')
-            .get();
-
-        _daysPresent = attendanceSnapshot.docs.length;
+        // Fetch attendance statistics using attendance service
+        final stats = await _attendanceService.getUserAttendanceStats(_userId!);
+        _daysPresent = stats['total'] ?? 0;
+        _thisMonthPresent = stats['thisMonth'] ?? 0;
+        _thisYearPresent = stats['thisYear'] ?? 0;
+        _isMarkedToday = stats['isMarkedToday'] ?? false;
       } catch (e) {
-        _workerName = "Error loading data";
+        _userName = "Error loading data";
         _daysPresent = 0;
+        _thisMonthPresent = 0;
+        _thisYearPresent = 0;
         if (mounted) {
-          AppErrorHandler.handleError(context, e,
-              customMessage: 'Error fetching worker data');
+          AppToast.showError(context, 'Error fetching user data: $e');
         }
       }
     } else {
-      _workerName = "Not Logged In";
+      _userName = "Not Logged In";
     }
 
     if (mounted) {
@@ -118,32 +126,22 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       _isLoading = true;
     });
 
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    final attendanceCollection =
-        _firestore.collection('workers').doc(_userId).collection('attendance');
-
-    // Check if attendance was already marked today to prevent duplicates
-    final querySnapshot = await attendanceCollection
-        .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(today))
-        .where(
-          'timestamp',
-          isLessThan: Timestamp.fromDate(today.add(const Duration(days: 1))),
-        )
-        .limit(1)
-        .get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      AppToast.showWarning(context, 'Attendance already marked for today.');
-    } else {
-      // Add a new attendance record with a server timestamp
-      await attendanceCollection.add({
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-      AppToast.showSuccess(context, 'Attendance marked successfully! 🎉');
-      // Refresh the data on screen after marking attendance
-      await _fetchWorkerData();
+    try {
+      await _attendanceService.markAttendance(userId: _userId!);
+      
+      if (mounted) {
+        AppToast.showSuccess(context, 'Attendance marked successfully! 🎉');
+        // Refresh the data on screen after marking attendance
+        await _fetchWorkerData();
+      }
+    } catch (e) {
+      if (mounted) {
+        if (e.toString().contains('already marked')) {
+          AppToast.showWarning(context, 'Attendance already marked for today.');
+        } else {
+          AppToast.showError(context, 'Error marking attendance: $e');
+        }
+      }
     }
 
     if (mounted) {
@@ -156,7 +154,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     final double attendancePercentage =
-        _totalDays > 0 ? (_daysPresent / _totalDays) : 0.0;
+        _totalDaysInYear > 0 ? (_thisYearPresent / _totalDaysInYear) : 0.0;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -206,7 +204,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          _workerName,
+                          _userName,
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w800,
@@ -227,7 +225,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             ),
                           ),
                           child: Text(
-                            'KSEB Worker',
+                            _userRole?.displayName ?? 'KSEB Staff',
                             style: TextStyle(
                               color: AppColors.primary,
                               fontSize: 14,
@@ -239,12 +237,58 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     ),
                   ),
                 ),
-                // Content Section
+                // Scrollable Content Section
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
                     child: Column(
                       children: [
+                        const SizedBox(height: 20),
+                        // Statistics Cards
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildStatCard(
+                                'This Month',
+                                '$_thisMonthPresent days',
+                                Icons.calendar_month_rounded,
+                                Colors.blue,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildStatCard(
+                                'This Year',
+                                '$_thisYearPresent days',
+                                Icons.calendar_today_rounded,
+                                Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildStatCard(
+                                'Total',
+                                '$_daysPresent days',
+                                Icons.check_circle_rounded,
+                                Colors.purple,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildStatCard(
+                                'Status',
+                                _isMarkedToday ? 'Marked' : 'Not Marked',
+                                Icons.today_rounded,
+                                _isMarkedToday ? Colors.green : Colors.orange,
+                              ),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 20),
                         // Progress Card
                         Container(
@@ -264,7 +308,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           child: Column(
                             children: [
                               Text(
-                                'Attendance Progress',
+                                'Yearly Progress',
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -291,7 +335,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                "$_daysPresent / $_totalDays Days Present",
+                                "$_thisYearPresent / $_totalDaysInYear Working Days",
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16.0,
@@ -301,57 +345,71 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             ],
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(height: 24),
                         // Fingerprint Button
-                        Container(
-                          width: double.infinity,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.primary,
-                                AppColors.primaryLight
+                        Opacity(
+                          opacity: _isMarkedToday ? 0.5 : 1.0,
+                          child: Container(
+                            width: double.infinity,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: _isMarkedToday
+                                    ? [Colors.grey, Colors.grey.shade600]
+                                    : [
+                                        AppColors.primary,
+                                        AppColors.primaryLight
+                                      ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _isMarkedToday
+                                      ? Colors.grey.withValues(alpha: 0.3)
+                                      : AppColors.primary.withValues(alpha: 0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
                               ],
                             ),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: _authenticateAndMarkAttendance,
-                              borderRadius: BorderRadius.circular(16),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.fingerprint_rounded,
-                                    color: AppColors.textOnDark,
-                                    size: 28,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    'Mark Attendance',
-                                    style: TextStyle(
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: _isMarkedToday
+                                    ? null
+                                    : _authenticateAndMarkAttendance,
+                                borderRadius: BorderRadius.circular(16),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      _isMarkedToday
+                                          ? Icons.check_circle_rounded
+                                          : Icons.fingerprint_rounded,
                                       color: AppColors.textOnDark,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                                      size: 28,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      _isMarkedToday
+                                          ? 'Already Marked Today'
+                                          : 'Mark Attendance',
+                                      style: TextStyle(
+                                        color: AppColors.textOnDark,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
                         const SizedBox(height: 16),
                         // Test Button for Development (bypasses biometric auth)
-                        Container(
+                        if (!_isMarkedToday)
+                          Container(
                           width: double.infinity,
                           height: 50,
                           decoration: BoxDecoration(
@@ -394,6 +452,63 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 ),
               ],
             ),
+    );
+  }
+
+  /// Build a statistics card widget
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.cardShadow,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -225,30 +225,13 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
 
         // Filter staff based on role hierarchy
         final allStaff = snapshot.data?.docs ?? [];
-
-        // Debug logging
-        print('=== Staff Management Debug ===');
-        print(
-            'Current User Role: ${widget.currentUserRole.name} (level ${widget.currentUserRole.hierarchyLevel})');
-        print('Total staff retrieved: ${allStaff.length}');
-
-        for (var doc in allStaff) {
-          final staffData = doc.data() as Map<String, dynamic>;
-          final staffRole = UserRole.fromString(staffData['role'] ?? 'staff');
-          final canManage = widget.currentUserRole.canManage(staffRole);
-          print(
-              '  - ${staffData['name']}: ${staffRole.name} (level ${staffRole.hierarchyLevel}) - Can manage: $canManage');
-        }
-
+        
         final manageableStaff = allStaff.where((doc) {
           final staffData = doc.data() as Map<String, dynamic>;
           final staffRole = UserRole.fromString(staffData['role'] ?? 'staff');
           // User can only see staff they can manage
           return widget.currentUserRole.canManage(staffRole);
         }).toList();
-
-        print('Manageable staff count: ${manageableStaff.length}');
-        print('==============================');
 
         return _buildStaffList(manageableStaff);
       },
