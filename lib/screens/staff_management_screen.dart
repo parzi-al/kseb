@@ -212,7 +212,8 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
     return StreamBuilder<QuerySnapshot>(
       stream: showAllStaff
           ? _staffService.getAllStaffStream() // Manager+ sees all staff
-          : _staffService.getStaffStream(widget.teamId!), // Supervisor sees only team
+          : _staffService
+              .getStaffStream(widget.teamId!), // Supervisor sees only team
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
@@ -222,7 +223,34 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return _buildStaffList(snapshot.data?.docs ?? []);
+        // Filter staff based on role hierarchy
+        final allStaff = snapshot.data?.docs ?? [];
+
+        // Debug logging
+        print('=== Staff Management Debug ===');
+        print(
+            'Current User Role: ${widget.currentUserRole.name} (level ${widget.currentUserRole.hierarchyLevel})');
+        print('Total staff retrieved: ${allStaff.length}');
+
+        for (var doc in allStaff) {
+          final staffData = doc.data() as Map<String, dynamic>;
+          final staffRole = UserRole.fromString(staffData['role'] ?? 'staff');
+          final canManage = widget.currentUserRole.canManage(staffRole);
+          print(
+              '  - ${staffData['name']}: ${staffRole.name} (level ${staffRole.hierarchyLevel}) - Can manage: $canManage');
+        }
+
+        final manageableStaff = allStaff.where((doc) {
+          final staffData = doc.data() as Map<String, dynamic>;
+          final staffRole = UserRole.fromString(staffData['role'] ?? 'staff');
+          // User can only see staff they can manage
+          return widget.currentUserRole.canManage(staffRole);
+        }).toList();
+
+        print('Manageable staff count: ${manageableStaff.length}');
+        print('==============================');
+
+        return _buildStaffList(manageableStaff);
       },
     );
   }
@@ -401,13 +429,23 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
                       final staffData =
                           filteredStaff[index].data() as Map<String, dynamic>;
                       final staffId = filteredStaff[index].id;
+                      final staffRole =
+                          UserRole.fromString(staffData['role'] ?? 'staff');
+
+                      // Check if current user can edit this staff member
+                      final canEditStaff =
+                          widget.currentUserRole.canManage(staffRole);
 
                       return StaffCard(
                         staffData: staffData,
                         staffId: staffId,
                         onTap: () => _showStaffDetails(staffData),
-                        onEdit: () => _editStaff(staffId, staffData),
-                        onDelete: () => _deleteStaff(staffId),
+                        onEdit: canEditStaff
+                            ? () => _editStaff(staffId, staffData)
+                            : () {},
+                        onDelete:
+                            canEditStaff ? () => _deleteStaff(staffId) : () {},
+                        canEdit: canEditStaff,
                       );
                     },
                   ),
@@ -429,6 +467,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
       context,
       staffId,
       staffData,
+      currentUserRole: widget.currentUserRole,
       onStaffUpdated: () {
         setState(() {}); // Force a rebuild to ensure UI is updated
       },
@@ -448,7 +487,8 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
   void _addNewStaff() {
     AddStaffDialog.show(
       context,
-      defaultTeamId: widget.teamId, // Pass current team as default (can be null)
+      defaultTeamId:
+          widget.teamId, // Pass current team as default (can be null)
       currentUserRole: widget.currentUserRole,
       onStaffAdded: () {
         // The stream will automatically update, but we can add any additional logic here if needed

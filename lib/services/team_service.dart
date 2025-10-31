@@ -10,8 +10,9 @@ class TeamService {
   /// Get team by ID
   Future<TeamModel?> getTeamById(String teamId) async {
     try {
-      final doc = await _firestore.collection(_teamsCollection).doc(teamId).get();
-      
+      final doc =
+          await _firestore.collection(_teamsCollection).doc(teamId).get();
+
       if (!doc.exists) {
         return null;
       }
@@ -30,9 +31,9 @@ class TeamService {
         .doc(teamId)
         .snapshots()
         .map((doc) {
-          if (!doc.exists) return null;
-          return TeamModel.fromFirestore(doc);
-        });
+      if (!doc.exists) return null;
+      return TeamModel.fromFirestore(doc);
+    });
   }
 
   /// Get teams by supervisor ID
@@ -41,9 +42,8 @@ class TeamService {
         .collection(_teamsCollection)
         .where('supervisorId', isEqualTo: supervisorId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => TeamModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => TeamModel.fromFirestore(doc)).toList());
   }
 
   /// Get teams by manager ID
@@ -52,9 +52,8 @@ class TeamService {
         .collection(_teamsCollection)
         .where('managerId', isEqualTo: managerId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => TeamModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => TeamModel.fromFirestore(doc)).toList());
   }
 
   /// Get teams by area code
@@ -63,15 +62,15 @@ class TeamService {
         .collection(_teamsCollection)
         .where('areaCode', isEqualTo: areaCode)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => TeamModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => TeamModel.fromFirestore(doc)).toList());
   }
 
   /// Create a new team
   Future<String> createTeam(TeamModel team) async {
     try {
-      final docRef = await _firestore.collection(_teamsCollection).add(team.toMap());
+      final docRef =
+          await _firestore.collection(_teamsCollection).add(team.toMap());
       return docRef.id;
     } catch (e) {
       print('Error creating team: $e');
@@ -154,11 +153,7 @@ class TeamService {
 
   /// Get all teams (for admin/management views)
   Stream<List<TeamModel>> getAllTeams() {
-    return _firestore
-        .collection(_teamsCollection)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => TeamModel.fromFirestore(doc))
-            .toList());
+    return _firestore.collection(_teamsCollection).snapshots().map((snapshot) =>
+        snapshot.docs.map((doc) => TeamModel.fromFirestore(doc)).toList());
   }
 }

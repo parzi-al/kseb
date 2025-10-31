@@ -21,7 +21,7 @@ class WorkerHomeScreen extends StatefulWidget {
 class _WorkerHomeScreenState extends State<WorkerHomeScreen>
     with TickerProviderStateMixin {
   final UserService _userService = UserService();
-  
+
   String workerName = 'Worker';
   String workerRole = '';
   DateTime? workerDob;
@@ -87,7 +87,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
         workerName = userModel.name;
         workerRole = userModel.role.displayName;
         teamId = userModel.teamId;
-        
+
         // Check if user is supervisor or higher
         isSupervisor = userModel.isSupervisor;
 
@@ -101,7 +101,8 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
         print('User Role (display): $workerRole');
         print('Team ID: $teamId');
         print('isSupervisor: $isSupervisor');
-        print('Should show Staff Management: ${isSupervisor && teamId != null}');
+        print(
+            'Should show Staff Management: ${isSupervisor && teamId != null}');
         print('═══════════════════════════════════════════════════════');
 
         if (userModel.dob != null) {
@@ -449,11 +450,11 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                         const SizedBox(width: 6),
                                         Text(
                                           workerRole,
-                                          style: AppColors
-                                                  .getResponsiveTextStyle(
+                                          style:
+                                              AppColors.getResponsiveTextStyle(
                                                       context,
                                                       AppColors.captionStyle)
-                                              .copyWith(
+                                                  .copyWith(
                                             color: AppColors.primary,
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -638,7 +639,8 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                             MaterialPageRoute(
                               builder: (context) => StaffManagementScreen(
                                 teamId: teamId,
-                                currentUserRole: UserRole.fromString(workerRole.toLowerCase()),
+                                currentUserRole: UserRole.fromString(
+                                    workerRole.toLowerCase()),
                               ),
                             ),
                           );

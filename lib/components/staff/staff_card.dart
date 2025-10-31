@@ -7,6 +7,7 @@ class StaffCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final bool canEdit;
 
   const StaffCard({
     Key? key,
@@ -15,6 +16,7 @@ class StaffCard extends StatelessWidget {
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
+    this.canEdit = true,
   }) : super(key: key);
 
   @override
@@ -125,22 +127,23 @@ class StaffCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildActionButton(
-                        icon: Icons.edit_rounded,
-                        color: Colors.blue.shade700,
-                        onTap: onEdit,
-                      ),
-                      const SizedBox(height: 8),
-                      _buildActionButton(
-                        icon: Icons.delete_rounded,
-                        color: Colors.red.shade600,
-                        onTap: onDelete,
-                      ),
-                    ],
-                  ),
+                  if (canEdit)
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildActionButton(
+                          icon: Icons.edit_rounded,
+                          color: Colors.blue.shade700,
+                          onTap: onEdit,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildActionButton(
+                          icon: Icons.delete_rounded,
+                          color: Colors.red.shade600,
+                          onTap: onDelete,
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),

@@ -39,6 +39,42 @@ enum UserRole {
         return UserRole.staff;
     }
   }
+
+  /// Get the hierarchy level of a role (lower number = higher authority)
+  int get hierarchyLevel {
+    switch (this) {
+      case UserRole.director:
+        return 0;
+      case UserRole.coo:
+        return 1;
+      case UserRole.manager:
+        return 2;
+      case UserRole.supervisor:
+        return 3;
+      case UserRole.staff:
+        return 4;
+    }
+  }
+
+  /// Check if this role can manage another role
+  bool canManage(UserRole otherRole) {
+    return hierarchyLevel <= otherRole.hierarchyLevel;
+  }
+
+  /// Get all roles that this role can assign/manage
+  List<UserRole> get manageableRoles {
+    return UserRole.values
+        .where((role) => hierarchyLevel <= role.hierarchyLevel)
+        .toList();
+  }
+
+  /// Check if this role is supervisor or higher
+  bool get isSupervisor {
+    return this == UserRole.supervisor ||
+        this == UserRole.manager ||
+        this == UserRole.coo ||
+        this == UserRole.director;
+  }
 }
 
 /// User model representing a user in the KSEB system
@@ -157,6 +193,11 @@ class UserModel {
   /// Check if user is Director
   bool get isDirector {
     return role == UserRole.director;
+  }
+
+  /// Check if current user can edit another user based on role hierarchy
+  bool canEdit(UserRole otherUserRole) {
+    return role.canManage(otherUserRole);
   }
 
   /// Copy with method for creating modified copies

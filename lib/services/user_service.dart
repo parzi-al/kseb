@@ -30,8 +30,9 @@ class UserService {
   /// Get user by ID
   Future<UserModel?> getUserById(String userId) async {
     try {
-      final doc = await _firestore.collection(_usersCollection).doc(userId).get();
-      
+      final doc =
+          await _firestore.collection(_usersCollection).doc(userId).get();
+
       if (!doc.exists) {
         return null;
       }
@@ -49,9 +50,8 @@ class UserService {
         .collection(_usersCollection)
         .where('teamId', isEqualTo: teamId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => UserModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList());
   }
 
   /// Get users by role
@@ -60,9 +60,8 @@ class UserService {
         .collection(_usersCollection)
         .where('role', isEqualTo: role.name)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => UserModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList());
   }
 
   /// Get all staff members in a team (role = staff)
@@ -72,15 +71,15 @@ class UserService {
         .where('teamId', isEqualTo: teamId)
         .where('role', isEqualTo: 'staff')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => UserModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList());
   }
 
   /// Create a new user
   Future<String> createUser(UserModel user) async {
     try {
-      final docRef = await _firestore.collection(_usersCollection).add(user.toMap());
+      final docRef =
+          await _firestore.collection(_usersCollection).add(user.toMap());
       return docRef.id;
     } catch (e) {
       print('Error creating user: $e');
@@ -144,9 +143,8 @@ class UserService {
         .collection(_usersCollection)
         .where('areaCode', isEqualTo: areaCode)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => UserModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList());
   }
 
   /// Update user bonus

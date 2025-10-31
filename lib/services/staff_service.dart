@@ -9,20 +9,20 @@ class StaffService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// Get staff stream for a specific team
+  /// Returns all users in the team regardless of role - filtering by role hierarchy
+  /// is done in the UI layer
   Stream<QuerySnapshot> getStaffStream(String teamId) {
     return _firestore
         .collection(_usersCollection)
         .where('teamId', isEqualTo: teamId)
-        .where('role', isEqualTo: 'staff')
         .snapshots();
   }
 
   /// Get all staff stream (for managers and above)
+  /// Returns ALL users regardless of role - filtering by role hierarchy
+  /// is done in the UI layer
   Stream<QuerySnapshot> getAllStaffStream() {
-    return _firestore
-        .collection(_usersCollection)
-        .where('role', isEqualTo: 'staff')
-        .snapshots();
+    return _firestore.collection(_usersCollection).snapshots();
   }
 
   /// Get all staff for a supervisor (by teamId)
@@ -32,9 +32,8 @@ class StaffService {
         .where('teamId', isEqualTo: teamId)
         .where('role', isEqualTo: 'staff')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => UserModel.fromFirestore(doc))
-            .toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList());
   }
 
   /// Add a new staff member
@@ -78,9 +77,14 @@ class StaffService {
     });
   }
 
-  /// Delete a staff member
+  /// Deletes a staff member from Firestore
+  /// This removes the user profile, preventing them from accessing the app
   Future<void> deleteStaff(String staffId) async {
-    await _firestore.collection(_usersCollection).doc(staffId).delete();
+    try {
+      await _firestore.collection(_usersCollection).doc(staffId).delete();
+    } catch (e) {
+      rethrow;
+    }
   }
 
   /// Search for staff by phone number
@@ -98,8 +102,9 @@ class StaffService {
 
   /// Get staff member by ID
   Future<UserModel?> getStaffById(String staffId) async {
-    final doc = await _firestore.collection(_usersCollection).doc(staffId).get();
-    
+    final doc =
+        await _firestore.collection(_usersCollection).doc(staffId).get();
+
     if (!doc.exists) {
       return null;
     }
@@ -108,7 +113,7 @@ class StaffService {
     if (user.role == UserRole.staff) {
       return user;
     }
-    
+
     return null;
   }
 
