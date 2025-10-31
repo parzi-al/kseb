@@ -1,80 +1,121 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/user_model.dart';
 
+/// Service for managing staff members (users with role='staff')
+/// Works with the new 'users' collection and team-based hierarchy
 class StaffService {
-  static const String _staffDetailsCollection = 'staff_details';
-  static const String _supervisorStaffCollection = 'supervisor-staff';
+  static const String _usersCollection = 'users';
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Get staff stream for a specific supervisor
-  Stream<QuerySnapshot> getStaffStream(String supervisorId) {
+  /// Get staff stream for a specific team
+  Stream<QuerySnapshot> getStaffStream(String teamId) {
     return _firestore
-        .collection(_staffDetailsCollection)
-        .where('supervisorId', isEqualTo: supervisorId)
+        .collection(_usersCollection)
+        .where('teamId', isEqualTo: teamId)
+        .where('role', isEqualTo: 'staff')
         .snapshots();
   }
 
-  // Add a new staff member
-  Future<void> addStaff({
+  /// Get all staff stream (for managers and above)
+  Stream<QuerySnapshot> getAllStaffStream() {
+    return _firestore
+        .collection(_usersCollection)
+        .where('role', isEqualTo: 'staff')
+        .snapshots();
+  }
+
+  /// Get all staff for a supervisor (by teamId)
+  Stream<List<UserModel>> getStaffByTeamId(String teamId) {
+    return _firestore
+        .collection(_usersCollection)
+        .where('teamId', isEqualTo: teamId)
+        .where('role', isEqualTo: 'staff')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => UserModel.fromFirestore(doc))
+            .toList());
+  }
+
+  /// Add a new staff member
+  Future<String> addStaff({
     required String name,
     required String phone,
     required String email,
-    required String supervisorId,
-    String? role,
+    required String teamId,
+    String? areaCode,
+    String? position,
   }) async {
-    await _firestore.collection(_staffDetailsCollection).add({
+    final userMap = {
       'name': name,
       'phone': phone,
       'email': email,
-      'role': role,
-      'supervisorId': supervisorId,
-      'joinDate': Timestamp.now(),
-    });
+      'role': 'staff',
+      'teamId': teamId,
+      'areaCode': areaCode,
+      'bonusPoints': 0,
+      'bonusAmount': 0.0,
+      'createdAt': Timestamp.now(),
+    };
+
+    final docRef = await _firestore.collection(_usersCollection).add(userMap);
+    return docRef.id;
   }
 
-  // Update an existing staff member
+  /// Update an existing staff member
   Future<void> updateStaff({
     required String staffId,
     required String name,
     required String email,
     required String phone,
-    String? role,
+    String? areaCode,
   }) async {
-    await _firestore.collection(_staffDetailsCollection).doc(staffId).update({
+    await _firestore.collection(_usersCollection).doc(staffId).update({
       'name': name,
       'email': email,
       'phone': phone,
-      'role': role,
+      if (areaCode != null) 'areaCode': areaCode,
     });
   }
 
-  // Delete a staff member
+  /// Delete a staff member
   Future<void> deleteStaff(String staffId) async {
-    await _firestore.collection(_staffDetailsCollection).doc(staffId).delete();
+    await _firestore.collection(_usersCollection).doc(staffId).delete();
   }
 
-  // Search for staff by phone number
-  Future<QuerySnapshot> searchStaffByPhone(String phoneNumber) async {
-    return await _firestore
-        .collection(_staffDetailsCollection)
+  /// Search for staff by phone number
+  Future<List<UserModel>> searchStaffByPhone(String phoneNumber) async {
+    final querySnapshot = await _firestore
+        .collection(_usersCollection)
         .where('phone', isEqualTo: phoneNumber)
+        .where('role', isEqualTo: 'staff')
         .get();
+
+    return querySnapshot.docs
+        .map((doc) => UserModel.fromFirestore(doc))
+        .toList();
   }
 
-  // Link staff to supervisor (if needed for the supervisor-staff collection)
-  Future<void> linkStaffToSupervisor({
-    required String supervisorId,
-    required String staffId,
-    required String phoneNumber,
-  }) async {
-    await _firestore
-        .collection(_supervisorStaffCollection)
-        .doc(supervisorId)
-        .collection('staff')
-        .add({
-      'staffId': staffId,
-      'phoneNumber': phoneNumber,
-      'addedAt': FieldValue.serverTimestamp(),
+  /// Get staff member by ID
+  Future<UserModel?> getStaffById(String staffId) async {
+    final doc = await _firestore.collection(_usersCollection).doc(staffId).get();
+    
+    if (!doc.exists) {
+      return null;
+    }
+
+    final user = UserModel.fromFirestore(doc);
+    if (user.role == UserRole.staff) {
+      return user;
+    }
+    
+    return null;
+  }
+
+  /// Transfer staff to another team
+  Future<void> transferStaffToTeam(String staffId, String newTeamId) async {
+    await _firestore.collection(_usersCollection).doc(staffId).update({
+      'teamId': newTeamId,
     });
   }
 }

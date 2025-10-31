@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:ui';
 import '../utils/app_colors.dart';
 import '../services/staff_service.dart';
+import '../models/user_model.dart';
 import '../components/staff/staff_card.dart';
 import '../components/staff/staff_details_bottom_sheet.dart';
 import '../components/staff/add_staff_dialog.dart';
@@ -10,11 +11,13 @@ import '../components/staff/edit_staff_dialog.dart';
 import '../components/staff/delete_staff_dialog.dart';
 
 class StaffManagementScreen extends StatefulWidget {
-  final String supervisorId;
+  final String? teamId; // Team ID for supervisor view (optional)
+  final UserRole currentUserRole; // Role of the logged-in user
 
   const StaffManagementScreen({
     Key? key,
-    required this.supervisorId,
+    this.teamId, // Optional for manager+, required for supervisor
+    required this.currentUserRole,
   }) : super(key: key);
 
   @override
@@ -201,8 +204,15 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
   }
 
   Widget _buildBody() {
+    // Manager+ sees all staff, Supervisor sees only their team
+    final bool showAllStaff = widget.currentUserRole == UserRole.manager ||
+        widget.currentUserRole == UserRole.coo ||
+        widget.currentUserRole == UserRole.director;
+
     return StreamBuilder<QuerySnapshot>(
-      stream: _staffService.getStaffStream(widget.supervisorId),
+      stream: showAllStaff
+          ? _staffService.getAllStaffStream() // Manager+ sees all staff
+          : _staffService.getStaffStream(widget.teamId!), // Supervisor sees only team
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
@@ -438,7 +448,8 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
   void _addNewStaff() {
     AddStaffDialog.show(
       context,
-      widget.supervisorId,
+      defaultTeamId: widget.teamId, // Pass current team as default (can be null)
+      currentUserRole: widget.currentUserRole,
       onStaffAdded: () {
         // The stream will automatically update, but we can add any additional logic here if needed
         setState(() {}); // Force a rebuild to ensure UI is updated

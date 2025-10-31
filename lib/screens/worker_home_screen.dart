@@ -8,6 +8,8 @@ import 'worksheet_screen.dart';
 import 'staff_management_screen.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_toast.dart';
+import '../services/user_service.dart';
+import '../models/user_model.dart';
 
 class WorkerHomeScreen extends StatefulWidget {
   const WorkerHomeScreen({super.key});
@@ -18,7 +20,10 @@ class WorkerHomeScreen extends StatefulWidget {
 
 class _WorkerHomeScreenState extends State<WorkerHomeScreen>
     with TickerProviderStateMixin {
+  final UserService _userService = UserService();
+  
   String workerName = 'Worker';
+  String workerRole = '';
   DateTime? workerDob;
   double todayHours = 0.0;
   int monthlyHours = 0;
@@ -27,6 +32,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
   bool isBirthday = false;
   bool isSupervisor = false;
   String? workerId;
+  String? teamId;
 
   late AnimationController _birthdayController;
   late Animation<double> _confettiAnimation;
@@ -73,20 +79,33 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
-      // Fetch worker info
-      final workerDoc = await FirebaseFirestore.instance
-          .collection('worker_info')
-          .where('email', isEqualTo: user.email)
-          .get();
+      // Fetch user info from new 'users' collection
+      final userModel = await _userService.getUserByEmail(user.email!);
 
-      if (workerDoc.docs.isNotEmpty) {
-        final workerData = workerDoc.docs.first.data();
-        workerId = workerDoc.docs.first.id;
-        workerName = workerData['name'] ?? 'Worker';
-        isSupervisor = true; // Always treat as supervisor
+      if (userModel != null) {
+        workerId = userModel.id;
+        workerName = userModel.name;
+        workerRole = userModel.role.displayName;
+        teamId = userModel.teamId;
+        
+        // Check if user is supervisor or higher
+        isSupervisor = userModel.isSupervisor;
 
-        if (workerData['dob'] != null) {
-          workerDob = (workerData['dob'] as Timestamp).toDate();
+        // DEBUG: Print role and visibility info
+        print('═══════════════════════════════════════════════════════');
+        print('DEBUG: Staff Management Visibility Check');
+        print('User Email: ${user.email}');
+        print('User ID: $workerId');
+        print('User Name: $workerName');
+        print('User Role (enum): ${userModel.role.name}');
+        print('User Role (display): $workerRole');
+        print('Team ID: $teamId');
+        print('isSupervisor: $isSupervisor');
+        print('Should show Staff Management: ${isSupervisor && teamId != null}');
+        print('═══════════════════════════════════════════════════════');
+
+        if (userModel.dob != null) {
+          workerDob = userModel.dob;
           _checkBirthday();
         }
       }
@@ -102,6 +121,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
         _birthdayController.forward();
       }
     } catch (e) {
+      print('Error fetching worker data: $e');
       setState(() {
         isLoading = false;
       });
@@ -243,11 +263,25 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
     workingDaysThisMonth = workingDays;
   }
 
+  IconData _getRoleIcon(String role) {
+    switch (role.toLowerCase()) {
+      case 'director':
+        return Icons.account_balance_rounded;
+      case 'coo':
+        return Icons.business_center_rounded;
+      case 'manager':
+        return Icons.manage_accounts_rounded;
+      case 'supervisor':
+        return Icons.supervisor_account_rounded;
+      case 'staff':
+        return Icons.person_rounded;
+      default:
+        return Icons.badge_rounded;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isSmallScreen = screenHeight < 700;
-
     String greeting = '';
 
     if (isBirthday) {
@@ -387,6 +421,47 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                     );
                                   },
                                 ),
+                                if (workerRole.isNotEmpty) ...[
+                                  SizedBox(
+                                      height: AppColors.getResponsiveSpacing(
+                                          context, 4)),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary
+                                          .withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: AppColors.primary
+                                            .withValues(alpha: 0.2),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _getRoleIcon(workerRole),
+                                          size: 14,
+                                          color: AppColors.primary,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          workerRole,
+                                          style: AppColors
+                                                  .getResponsiveTextStyle(
+                                                      context,
+                                                      AppColors.captionStyle)
+                                              .copyWith(
+                                            color: AppColors.primary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                                 if (isBirthday) ...[
                                   SizedBox(
                                       height: AppColors.getResponsiveSpacing(
@@ -552,7 +627,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                       ? 1.25
                       : (MediaQuery.of(context).size.height < 800 ? 1.15 : 1.0),
                   children: [
-                    if (isSupervisor)
+                    if (isSupervisor && teamId != null)
                       _buildDashboardCard(
                         context,
                         icon: Icons.people_rounded,
@@ -562,7 +637,8 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => StaffManagementScreen(
-                                supervisorId: workerId!,
+                                teamId: teamId,
+                                currentUserRole: UserRole.fromString(workerRole.toLowerCase()),
                               ),
                             ),
                           );

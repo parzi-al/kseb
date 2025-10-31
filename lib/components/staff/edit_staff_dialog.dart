@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_toast.dart';
+import '../../services/staff_service.dart';
 
 class EditStaffDialog extends StatefulWidget {
   final String staffId;
@@ -37,6 +37,7 @@ class EditStaffDialog extends StatefulWidget {
 
 class _EditStaffDialogState extends State<EditStaffDialog> {
   final _formKey = GlobalKey<FormState>();
+  final _staffService = StaffService();
   late final TextEditingController _nameController;
   late final TextEditingController _emailController;
   late final TextEditingController _phoneController;
@@ -68,15 +69,12 @@ class _EditStaffDialogState extends State<EditStaffDialog> {
     try {
       setState(() => _isLoading = true);
 
-      await FirebaseFirestore.instance
-          .collection('staff_details')
-          .doc(widget.staffId)
-          .update({
-        'name': _nameController.text,
-        'email': _emailController.text,
-        'phone': _phoneController.text,
-        'role': _roleController.text,
-      });
+      await _staffService.updateStaff(
+        staffId: widget.staffId,
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        phone: _phoneController.text.trim(),
+      );
 
       if (mounted) {
         Navigator.pop(context);

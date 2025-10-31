@@ -1,0 +1,219 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions for role-based access
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function hasRole(role) {
+      return isAuthenticated() && getUserData().role == role;
+    }
+    
+    function isStaff() {
+      return hasRole('staff');
+    }
+    
+    function isSupervisor() {
+      return hasRole('supervisor');
+    }
+    
+    function isManager() {
+      return hasRole('manager');
+    }
+    
+    function isCOO() {
+      return hasRole('coo');
+    }
+    
+    function isDirector() {
+      return hasRole('director');
+    }
+    
+    function isSupervisorOrHigher() {
+      return isSupervisor() || isManager() || isCOO() || isDirector();
+    }
+    
+    function isManagerOrHigher() {
+      return isManager() || isCOO() || isDirector();
+    }
+    
+    function isExecutive() {
+      return isCOO() || isDirector();
+    }
+    
+    function isInSameTeam(teamId) {
+      return isAuthenticated() && getUserData().teamId == teamId;
+    }
+    
+    function ownsDocument(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own document
+      // Supervisors and higher can read users in their team
+      // Managers and higher can read all users
+      allow read: if ownsDocument(userId) 
+                  || isManagerOrHigher()
+                  || (isSupervisorOrHigher() && isInSameTeam(resource.data.teamId));
+      
+      // Only managers and higher can create users
+      allow create: if isManagerOrHigher();
+      
+      // Users can update their own basic info (not role/teamId)
+      // Managers and higher can update any user
+      allow update: if (ownsDocument(userId) && 
+                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'teamId', 'bonusPoints', 'bonusAmount']))
+                    || isManagerOrHigher();
+      
+      // Only managers and higher can delete users
+      allow delete: if isManagerOrHigher();
+    }
+    
+    // Teams collection
+    match /teams/{teamId} {
+      // Team members can read their own team
+      // Managers and higher can read all teams
+      allow read: if isInSameTeam(teamId) || isManagerOrHigher();
+      
+      // Only managers and higher can create teams
+      allow create: if isManagerOrHigher();
+      
+      // Supervisors can update their own team's members/assets
+      // Managers and higher can update any team
+      allow update: if (isInSameTeam(teamId) && isSupervisorOrHigher())
+                    || isManagerOrHigher();
+      
+      // Only managers and higher can delete teams
+      allow delete: if isManagerOrHigher();
+    }
+    
+    // Attendance collection
+    match /attendance/{attendanceId} {
+      // Users can read their own attendance
+      // Supervisors can read attendance of their team members
+      // Managers and higher can read all attendance
+      allow read: if ownsDocument(resource.data.userId)
+                  || (isSupervisorOrHigher() && isInSameTeam(get(/databases/$(database)/documents/users/$(resource.data.userId)).data.teamId))
+                  || isManagerOrHigher();
+      
+      // Users can create their own attendance records
+      // Supervisors can create for their team
+      allow create: if ownsDocument(request.resource.data.userId)
+                    || (isSupervisorOrHigher() && isInSameTeam(get(/databases/$(database)/documents/users/$(request.resource.data.userId)).data.teamId));
+      
+      // Supervisors can verify (update) attendance
+      // Users cannot update their own attendance once created
+      allow update: if isSupervisorOrHigher();
+      
+      // Only managers and higher can delete attendance
+      allow delete: if isManagerOrHigher();
+    }
+    
+    // Worksheets collection
+    match /worksheets/{worksheetId} {
+      // Team members can read worksheets for their team
+      // Managers and higher can read all worksheets
+      allow read: if isInSameTeam(resource.data.teamId) || isManagerOrHigher();
+      
+      // Supervisors and higher can create worksheets for their team
+      allow create: if isSupervisorOrHigher() 
+                    && isInSameTeam(request.resource.data.teamId);
+      
+      // Supervisors can update their team's worksheets
+      // Managers can approve/update any worksheet
+      allow update: if (isSupervisorOrHigher() && isInSameTeam(resource.data.teamId))
+                    || isManagerOrHigher();
+      
+      // Only managers and higher can delete worksheets
+      allow delete: if isManagerOrHigher();
+    }
+    
+    // Materials collection (master inventory)
+    match /materials/{materialId} {
+      // All authenticated users can read materials
+      allow read: if isAuthenticated();
+      
+      // Supervisors and higher can update material quantities
+      allow update: if isSupervisorOrHigher();
+      
+      // Only managers and higher can create/delete materials
+      allow create, delete: if isManagerOrHigher();
+    }
+    
+    // Material requests collection (if you add it)
+    match /material_requests/{requestId} {
+      // Users can read their own requests
+      // Supervisors can read their team's requests
+      // Managers can read all requests
+      allow read: if ownsDocument(resource.data.requestedBy)
+                  || (isSupervisorOrHigher() && isInSameTeam(get(/databases/$(database)/documents/users/$(resource.data.requestedBy)).data.teamId))
+                  || isManagerOrHigher();
+      
+      // Users can create their own requests
+      allow create: if ownsDocument(request.resource.data.requestedBy);
+      
+      // Supervisors and higher can approve/update requests
+      allow update: if isSupervisorOrHigher();
+      
+      // Only managers can delete requests
+      allow delete: if isManagerOrHigher();
+    }
+    
+    // Assets collection
+    match /assets/{assetId} {
+      // All authenticated users can read assets
+      allow read: if isAuthenticated();
+      
+      // Supervisors can update assets assigned to their team
+      // Managers and higher can update any asset
+      allow update: if (isSupervisorOrHigher() && isInSameTeam(resource.data.assignedTeam))
+                    || isManagerOrHigher();
+      
+      // Only managers and higher can create/delete assets
+      allow create, delete: if isManagerOrHigher();
+    }
+    
+    // Insurance collection
+    match /insurance/{insuranceId} {
+      // Users can read their own insurance
+      // Managers and higher can read all insurance
+      allow read: if ownsDocument(resource.data.userId) || isManagerOrHigher();
+      
+      // Only managers and higher can create/update/delete insurance
+      allow create, update, delete: if isManagerOrHigher();
+    }
+    
+    // Bonuses collection
+    match /bonuses/{bonusId} {
+      // Users can read their own bonuses
+      // Supervisors can read their team's bonuses
+      // Managers and higher can read all bonuses
+      allow read: if ownsDocument(resource.data.userId)
+                  || (isSupervisorOrHigher() && isInSameTeam(get(/databases/$(database)/documents/users/$(resource.data.userId)).data.teamId))
+                  || isManagerOrHigher();
+      
+      // Supervisors and higher can create bonuses for their team
+      allow create: if isSupervisorOrHigher();
+      
+      // Only managers and higher can update/delete bonuses
+      allow update, delete: if isManagerOrHigher();
+    }
+    
+    // Cashbook collection (for COO and Director only)
+    match /cashbook/{recordId} {
+      // Only executives can read cashbook
+      allow read: if isExecutive();
+      
+      // Only Director can create/update/delete cashbook entries
+      allow create, update, delete: if isDirector();
+    }
+  }
+}
