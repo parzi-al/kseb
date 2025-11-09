@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'attendance_screen.dart';
-import 'attendance_history_screen.dart';
 import 'material_management_screen.dart';
 import 'worksheet_screen.dart';
 import 'staff_management_screen.dart';
@@ -649,7 +648,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                     _buildDashboardCard(
                       context,
                       icon: Icons.fingerprint,
-                      label: 'Mark Attendance',
+                      label: 'Attendance',
                       color: AppColors.dashboardCardColors[0],
                       onTap: () {
                         Navigator.of(context).push(
@@ -661,23 +660,9 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                     ),
                     _buildDashboardCard(
                       context,
-                      icon: Icons.verified_user_rounded,
-                      label: 'Attendance History',
-                      color: AppColors.dashboardCardColors[1],
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const AttendanceHistoryScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildDashboardCard(
-                      context,
                       icon: Icons.assignment_rounded,
                       label: 'Daily Worksheet',
-                      color: AppColors.dashboardCardColors[2],
+                      color: AppColors.dashboardCardColors[1],
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -690,7 +675,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                       context,
                       icon: Icons.inventory_2_rounded,
                       label: 'Material Request',
-                      color: AppColors.dashboardCardColors[3],
+                      color: AppColors.dashboardCardColors[2],
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(

@@ -43,7 +43,8 @@ dependencies:
   # UI & Fonts
   google_fonts: ^6.2.1
   percent_indicator: ^4.2.3 # For the circular attendance progress bar
-  intl: ^0.18.1 # For date formatting
+  intl: ^0.20.0 # For date formatting
+  table_calendar: ^3.1.2 # For calendar view
 
   cupertino_icons: ^1.0.6
   # The "flutter_lints" package below contains a set of recommended lints to
