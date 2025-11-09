@@ -405,6 +405,7 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
             final bonus = bonuses[index].data() as Map<String, dynamic>;
             final points = bonus['points'] ?? 0;
             final amount = (bonus['amount'] ?? 0).toDouble();
+            final reason = bonus['reason'] as String?;
             final updatedAt = (bonus['updatedAt'] as Timestamp?)?.toDate();
             final updatedBy = bonus['updatedBy'] as String?;
 
@@ -511,6 +512,50 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                             ),
                         ],
                       ),
+                      if (reason != null && reason.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryWithLowOpacity,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.info_outline_rounded,
+                                size: 16,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Reason',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      reason,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       if (updatedAt != null) ...[
                         const SizedBox(height: 12),
                         Divider(color: AppColors.grey300),

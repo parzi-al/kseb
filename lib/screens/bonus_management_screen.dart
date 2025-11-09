@@ -26,6 +26,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
   String _selectedAction = 'add'; // 'add' or 'remove'
   final TextEditingController _bonusPointsController = TextEditingController();
   final TextEditingController _bonusAmountController = TextEditingController();
+  final TextEditingController _reasonController = TextEditingController();
   String? _currentUserId;
 
   @override
@@ -39,6 +40,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
   void dispose() {
     _bonusPointsController.dispose();
     _bonusAmountController.dispose();
+    _reasonController.dispose();
     super.dispose();
   }
 
@@ -177,6 +179,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
         'userId': _selectedEmployeeId,
         'points': _selectedAction == 'add' ? bonusPoints : -bonusPoints,
         'amount': _selectedAction == 'add' ? bonusAmount : -bonusAmount,
+        'reason': _reasonController.text.trim(),
         'updatedBy': _currentUserId,
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -194,6 +197,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
       // Clear form
       _bonusPointsController.clear();
       _bonusAmountController.clear();
+      _reasonController.clear();
 
       setState(() {
         _isLoading = false;
@@ -651,6 +655,29 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
               if (double.tryParse(value) == null || double.parse(value) < 0) {
                 return 'Please enter a valid positive amount';
               }
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+
+        // Reason
+        TextFormField(
+          controller: _reasonController,
+          maxLines: 3,
+          decoration: InputDecoration(
+            labelText: 'Reason',
+            hintText: 'Enter reason for bonus update',
+            prefixIcon: Icon(Icons.edit_note_rounded, color: AppColors.primary),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            filled: true,
+            fillColor: AppColors.surface,
+          ),
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Please enter a reason';
             }
             return null;
           },
