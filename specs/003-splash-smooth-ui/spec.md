@@ -5,6 +5,15 @@
 **Status**: Draft
 **Input**: User description: "define the splash screen spec for the app and make app ui fully fluid and smooth"
 
+## Clarifications
+
+### Session 2026-03-09
+
+- Q: What specific splash animation visual design should be used? → A: Lightning bolt icon scales up from center with fade-in, followed by "KSEB" text sliding up beneath it (clean, minimal, no external assets), but keep the text in the common config file for easy changes.
+- Q: What slide direction for page transitions? → A: Slide from right + fade (standard mobile forward-navigation convention).
+- Q: Which lists get staggered entrance animations? → A: Only primary screen-level lists (staff, materials, bonus history, worksheets), not nested sub-lists or dropdowns.
+- Q: What transition style from splash to main screen? → A: Cross-fade (splash fades out while destination fades in simultaneously, distinct from regular page transitions).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — Branded Splash Screen on App Launch (Priority: P1)
@@ -73,16 +82,16 @@ Interactive elements across the app (buttons, cards, list items) respond to user
 **Splash Screen (US1)**
 
 - **FR-001**: System MUST display a branded splash screen on every app launch before any other screen is shown.
-- **FR-002**: The splash MUST feature the KSEB brand identity — primary color (#FF6B35), app name, and an animated visual element (e.g., logo reveal, pulsing icon).
+- **FR-002**: The splash MUST feature the KSEB brand identity — primary color (#FF6B35), a lightning bolt icon that scales up from center with a fade-in, followed by the "KSEB" app name text sliding up beneath it.
 - **FR-003**: The splash animation MUST have a minimum duration of 1.5 seconds and a maximum of 2.5 seconds under normal conditions.
 - **FR-004**: If the authentication/initialization check completes before the splash minimum duration, the splash MUST continue to its minimum duration before transitioning.
 - **FR-005**: If the authentication/initialization check takes longer than the splash maximum duration, the splash MUST display a subtle loading indicator (e.g., pulsing dot, progress shimmer) until ready.
-- **FR-006**: The transition from splash to the next screen (login or home) MUST be a smooth animated transition (fade, slide, or combination), not a hard cut.
+- **FR-006**: The transition from splash to the next screen (login or home) MUST be a cross-fade — the splash fades out while the destination screen fades in simultaneously. This is distinct from the slide-from-right used for regular page navigation.
 
 **Page Transitions (US2)**
 
 - **FR-007**: All screen-to-screen navigations MUST use a custom branded transition instead of the platform default page transition.
-- **FR-008**: The page transition MUST be a fade + slide combination with a duration between 250ms and 400ms.
+- **FR-008**: The page transition MUST be a slide-from-right + fade combination with a duration between 250ms and 400ms. The incoming screen slides in from the right edge while fading in; back navigation reverses the direction (slides out to the right).
 - **FR-009**: The transition MUST be reversible — back navigation plays the reverse animation.
 - **FR-010**: The custom transition MUST be defined globally so any new screens added in the future automatically inherit the app's transition style.
 - **FR-011**: The transition MUST not block user interaction after completing — no lingering overlays or dead zones.
@@ -91,7 +100,7 @@ Interactive elements across the app (buttons, cards, list items) respond to user
 
 - **FR-012**: Dashboard action cards MUST have a press-scale animation (scale to ~0.96× on press, spring back on release).
 - **FR-013**: Content-heavy screens MUST fade in their content when data loads, rather than appearing instantly (fade duration 200–300ms).
-- **FR-014**: List views (e.g., staff list, material list, bonus history) MUST stagger item entrance animations when the list first loads (50–100ms delay between items).
+- **FR-014**: Primary screen-level list views (staff list, material list, bonus history, worksheet list) MUST stagger item entrance animations when the list first loads (50–100ms delay between items). Nested sub-lists, dropdowns, and dialog lists are excluded.
 - **FR-015**: All animations MUST respect the device's "reduce motion" accessibility setting — if enabled, skip or minimize animations.
 - **FR-016**: Animations MUST use the app's existing design tokens and avoid introducing new hardcoded color or spacing values.
 
