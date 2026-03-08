@@ -16,8 +16,7 @@ void main() {
       ];
       for (var i = 0; i < values.length - 1; i++) {
         expect(values[i] < values[i + 1], isTrue,
-            reason:
-                'Spacing at index $i should be less than index ${i + 1}');
+            reason: 'Spacing at index $i should be less than index ${i + 1}');
       }
     });
 

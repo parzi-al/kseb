@@ -231,7 +231,8 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                   width: double.infinity,
                   color: AppColors.surface,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xxl),
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.xl,
+                    padding: EdgeInsets.fromLTRB(context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xxl)),
                     child: Column(
                       children: [
                         Container(
@@ -273,17 +274,17 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                     child: Form(
                       key: _formKey,
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(AppSpacing.xl),
+                        padding: EdgeInsets.all(context.responsivePadding(AppSpacing.xl)),
                         physics: const AlwaysScrollableScrollPhysics(),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _buildMaterialSelectionCard(),
-                            const SizedBox(height: AppSpacing.xl),
+                            SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
                             _buildProjectDetailsCard(),
-                            const SizedBox(height: AppSpacing.xl),
+                            SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
                             _buildRequestDetailsCard(),
-                            const SizedBox(height: AppSpacing.xxl),
+                            SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
                             // Submit Button
                             Container(
                               width: double.infinity,
@@ -295,7 +296,8 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                                     AppColors.warning.withValues(alpha: 0.8)
                                   ],
                                 ),
-                                borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                                borderRadius: BorderRadius.circular(
+                                    AppSpacing.radiusDefault),
                                 boxShadow: [
                                   BoxShadow(
                                     color: AppColors.warning
@@ -309,11 +311,13 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                                 color: Colors.transparent,
                                 child: InkWell(
                                   onTap: _submitWithdrawRequest,
-                                  borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                                  borderRadius: BorderRadius.circular(
+                                      AppSpacing.radiusDefault),
                                   child: Center(
                                     child: Text(
                                       'SUBMIT REQUEST',
-                                      style: AppTypography.subheadingStyle.copyWith(
+                                      style: AppTypography.subheadingStyle
+                                          .copyWith(
                                         color: AppColors.textOnPrimary,
                                         fontWeight: FontWeight.bold,
                                         letterSpacing: 1.2,
@@ -389,7 +393,8 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                         height: 60,
                         decoration: BoxDecoration(
                           color: AppColors.grey50,
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusMd),
                           border:
                               Border.all(color: AppColors.grey300, width: 1),
                         ),

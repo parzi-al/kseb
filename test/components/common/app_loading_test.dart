@@ -62,8 +62,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('inline variant shows message next to spinner',
-        (tester) async {
+    testWidgets('inline variant shows message next to spinner', (tester) async {
       await tester.pumpWidget(createTestApp(
         const Scaffold(
           body: AppLoading(

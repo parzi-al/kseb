@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
+import '../utils/app_decorations.dart';
 import '../utils/app_typography.dart';
 import '../utils/app_toast.dart';
 import '../components/common/app_bar_builder.dart';
@@ -59,7 +60,8 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
       context: context,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
       ),
       builder: (BuildContext context) {
         return Container(
@@ -293,7 +295,8 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   width: double.infinity,
                   color: AppColors.surface,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xxl),
+                    padding: EdgeInsets.fromLTRB(context.responsivePadding(AppSpacing.xl),
+                        context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xxl)),
                     child: Column(
                       children: [
                         Container(
@@ -337,14 +340,14 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   child: Form(
                     key: _formKey,
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _buildProjectDetailsCard(),
-                          const SizedBox(height: AppSpacing.xl),
+                          SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
                           _buildDocumentationCard(),
-                          const SizedBox(height: AppSpacing.xxl),
+                          SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
                           // Submit Button
                           Container(
                             width: double.infinity,
@@ -356,7 +359,8 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                                   AppColors.primaryLight
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                              borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusDefault),
                               boxShadow: [
                                 BoxShadow(
                                   color:
@@ -370,7 +374,8 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                               color: Colors.transparent,
                               child: InkWell(
                                 onTap: _submitWorksheet,
-                                borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                                borderRadius: BorderRadius.circular(
+                                    AppSpacing.radiusDefault),
                                 child: Center(
                                   child: Text(
                                     'SUBMIT WORKSHEET',
@@ -700,7 +705,8 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
             ),
             child: _selectedImage == null && _uploadedImageUrl != null
                 ? ClipRRect(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.radiusDefault),
                     child: Image.network(
                       _uploadedImageUrl!,
                       fit: BoxFit.cover,

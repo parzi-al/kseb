@@ -46,7 +46,8 @@ class AppButton extends StatelessWidget {
     return button;
   }
 
-  Widget _buildContent({required Color textColor, required Color spinnerColor}) {
+  Widget _buildContent(
+      {required Color textColor, required Color spinnerColor}) {
     if (isLoading) {
       return SizedBox(
         height: 24,

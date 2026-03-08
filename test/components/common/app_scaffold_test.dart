@@ -53,10 +53,12 @@ void main() {
 
       // Should have a Container with background color
       final container = tester.widget<Container>(
-        find.descendant(
-          of: find.byType(AppPageWrapper),
-          matching: find.byType(Container),
-        ).first,
+        find
+            .descendant(
+              of: find.byType(AppPageWrapper),
+              matching: find.byType(Container),
+            )
+            .first,
       );
       expect(container.color ?? (container.decoration as BoxDecoration?)?.color,
           AppColors.background);

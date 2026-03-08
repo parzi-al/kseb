@@ -157,10 +157,10 @@
 
 ### Responsive Migration
 
-- [ ] T059 [US4] Audit all screens for responsive helper usage — document which screens use vs. skip responsive scaling
-- [ ] T060 [US4] Apply BuildContext responsive extensions (responsivePadding, responsiveSpacing, responsiveFontSize) to all screen files that lack them
-- [ ] T061 [US4] Verify AppPageWrapper responsive padding works correctly across breakpoints in all screens
-- [ ] T062 [US4] Verify touch targets (buttons, card taps, list items) meet minimum 48dp on smallest supported screen width (360dp)
+- [x] T059 [US4] Audit all screens for responsive helper usage — document which screens use vs. skip responsive scaling
+- [x] T060 [US4] Apply BuildContext responsive extensions (responsivePadding, responsiveSpacing, responsiveFontSize) to all screen files that lack them
+- [x] T061 [US4] Verify AppPageWrapper responsive padding works correctly across breakpoints in all screens
+- [x] T062 [US4] Verify touch targets (buttons, card taps, list items) meet minimum 48dp on smallest supported screen width (360dp)
 
 **Checkpoint**: All screens scale responsively. User Story 4 is complete.
 

@@ -84,7 +84,8 @@ class AttendanceHistoryList extends StatelessWidget {
           ),
           title: Text(
             DateFormat('EEEE, MMMM d, y').format(record.timestamp),
-            style: AppTypography.bodyMediumStyle.copyWith(fontWeight: FontWeight.w600),
+            style: AppTypography.bodyMediumStyle
+                .copyWith(fontWeight: FontWeight.w600),
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,20 +93,23 @@ class AttendanceHistoryList extends StatelessWidget {
               SizedBox(height: AppSpacing.xs),
               Text(
                 DateFormat('h:mm a').format(record.timestamp),
-                style: AppTypography.bodyStyle.copyWith(color: AppColors.textSecondary),
+                style: AppTypography.bodyStyle
+                    .copyWith(color: AppColors.textSecondary),
               ),
               if (isToday) ...[
                 SizedBox(height: AppSpacing.xs),
                 Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm, vertical: 2),
                   decoration: BoxDecoration(
                     color: AppColors.success,
                     borderRadius: BorderRadius.circular(AppSpacing.base),
                   ),
                   child: Text(
                     'Today',
-                    style: AppTypography.captionStyle.copyWith(fontWeight: FontWeight.w600, color: AppColors.textOnPrimary),
+                    style: AppTypography.captionStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textOnPrimary),
                   ),
                 ),
               ],

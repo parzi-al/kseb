@@ -8,6 +8,7 @@ import 'package:local_auth/local_auth.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_typography.dart';
 import '../utils/app_spacing.dart';
+import '../utils/app_decorations.dart';
 import '../components/common/app_bar_builder.dart';
 import '../components/common/app_loading.dart';
 import '../utils/app_toast.dart';
@@ -257,7 +258,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         Expanded(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, 100),
+            padding: EdgeInsets.fromLTRB(
+                context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), 100),
             child: Column(
               children: [
                 SizedBox(height: AppSpacing.lg),
@@ -303,7 +305,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       width: double.infinity,
       color: AppColors.surface,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xxl),
+        padding: EdgeInsets.fromLTRB(
+        padding: EdgeInsets.fromLTRB(context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xxl)),
         child: Column(
           children: [
             Container(
@@ -323,7 +326,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             ),
             SizedBox(height: AppSpacing.sm),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+              padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md, vertical: AppSpacing.sm),
               decoration: BoxDecoration(
                 color: AppColors.primaryWithLowOpacity,
                 borderRadius: BorderRadius.circular(AppSpacing.radiusLg),

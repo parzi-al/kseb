@@ -141,7 +141,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: EdgeInsets.all(AppSpacing.sm),
                       decoration: BoxDecoration(
                         color: AppColors.primaryWithLowOpacity,
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusSm),
                       ),
                       child: Icon(
                         Icons.email_outlined,
@@ -150,7 +151,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusDefault),
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
@@ -181,7 +183,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: EdgeInsets.all(AppSpacing.sm),
                       decoration: BoxDecoration(
                         color: AppColors.primaryWithLowOpacity,
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusSm),
                       ),
                       child: Icon(
                         Icons.lock_outline,
@@ -190,7 +193,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusDefault),
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
@@ -223,7 +227,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusSm),
                       ),
                     ),
                     child: Text(
@@ -246,7 +251,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusSm),
                       ),
                     ),
                     child: Text(

@@ -330,7 +330,8 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      insetPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.page),
+      insetPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg, vertical: AppSpacing.page),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 600),
         decoration: BoxDecoration(
@@ -538,7 +539,9 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
               const SizedBox(width: AppSpacing.xs),
               const Text(
                 '*',
-                style: TextStyle(color: AppColors.error, fontSize: AppTypography.fontSizeBase),
+                style: TextStyle(
+                    color: AppColors.error,
+                    fontSize: AppTypography.fontSizeBase),
               ),
             ],
           ],
@@ -605,7 +608,8 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
             const SizedBox(width: AppSpacing.xs),
             const Text(
               '*',
-              style: TextStyle(color: AppColors.error, fontSize: AppTypography.fontSizeBase),
+              style: TextStyle(
+                  color: AppColors.error, fontSize: AppTypography.fontSizeBase),
             ),
           ],
         ),
@@ -699,7 +703,9 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                 ),
                 child: const Row(
                   children: [
-                    AppLoading(variant: AppLoadingVariant.inline, message: 'Loading teams...'),
+                    AppLoading(
+                        variant: AppLoadingVariant.inline,
+                        message: 'Loading teams...'),
                   ],
                 ),
               )
@@ -716,15 +722,18 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                   filled: true,
                   fillColor: AppColors.grey50,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.radiusDefault),
                     borderSide: BorderSide(color: AppColors.grey300),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.radiusDefault),
                     borderSide: BorderSide(color: AppColors.grey300),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.radiusDefault),
                     borderSide:
                         const BorderSide(color: AppColors.primary, width: 2),
                   ),
@@ -771,7 +780,8 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
             ),
             const SizedBox(width: AppSpacing.sm),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm, vertical: 2),
               decoration: BoxDecoration(
                 color: AppColors.warning.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(6),
@@ -1001,7 +1011,8 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                       // DS-EXCEPTION: Inline button spinner — AppLoading is for page/section loading
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(AppColors.white),
                       ),
                     )
                   : Text(

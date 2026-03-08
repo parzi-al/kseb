@@ -8,6 +8,7 @@ import '../components/common/app_error_state.dart';
 import '../components/common/app_empty_state.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
+import '../utils/app_decorations.dart';
 import '../utils/app_typography.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
@@ -108,7 +109,7 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
             Container(
               width: double.infinity,
               color: AppColors.surface,
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -140,7 +141,8 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
 
   Widget _buildUserDropdown() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.base, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: AppColors.background,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
@@ -188,7 +190,8 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.star_rounded,
-                              color: Colors.amber, size: 16), // DS-EXCEPTION: status color
+                              color: Colors.amber,
+                              size: 16), // DS-EXCEPTION: status color
                           const SizedBox(width: AppSpacing.xs),
                           Text(
                             '${user['bonusPoints']}',
@@ -303,7 +306,7 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
         });
 
         return ListView.builder(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
           itemCount: bonuses.length,
           itemBuilder: (context, index) {
             final bonus = bonuses[index].data() as Map<String, dynamic>;
@@ -332,7 +335,8 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                   padding: const EdgeInsets.all(AppSpacing.base),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.radiusDefault),
                     border: Border.all(
                       color: isPositive
                           ? AppColors.success.withValues(alpha: 0.3)
@@ -358,7 +362,8 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                               color: isPositive
                                   ? AppColors.success.withValues(alpha: 0.1)
                                   : AppColors.error.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                              borderRadius:
+                                  BorderRadius.circular(AppSpacing.radiusMd),
                             ),
                             child: Icon(
                               isPositive
@@ -417,7 +422,8 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                           padding: const EdgeInsets.all(AppSpacing.md),
                           decoration: BoxDecoration(
                             color: AppColors.primaryWithLowOpacity,
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.radiusSm),
                           ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -434,7 +440,8 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                                   children: [
                                     Text(
                                       'Reason',
-                                      style: AppTypography.captionStyle.copyWith(
+                                      style:
+                                          AppTypography.captionStyle.copyWith(
                                         fontSize: AppTypography.fontSizeXS,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.primary,

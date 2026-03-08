@@ -5,6 +5,7 @@ import '../components/common/app_bar_builder.dart';
 import '../components/common/app_loading.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
+import '../utils/app_decorations.dart';
 import '../utils/app_typography.dart';
 import '../utils/app_toast.dart';
 import '../models/user_model.dart';
@@ -242,7 +243,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
               child: AppLoading(),
             )
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.xl),
+              padding: EdgeInsets.all(context.responsivePadding(AppSpacing.xl)),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -256,7 +257,8 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
                         gradient: LinearGradient(
                           colors: [AppColors.primary, AppColors.primaryLight],
                         ),
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusDefault),
                       ),
                       child: Column(
                         children: [
@@ -276,15 +278,15 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
                           Text(
                             'Add or remove bonus points and amounts',
                             style: AppTypography.bodyStyle.copyWith(
-                              color:
-                                  AppColors.textOnPrimary.withValues(alpha: 0.8),
+                              color: AppColors.textOnPrimary
+                                  .withValues(alpha: 0.8),
                             ),
                             textAlign: TextAlign.center,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.xl),
+                    SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
 
                     // Team Selection
                     _buildSectionTitle('Select Team'),
@@ -344,7 +346,8 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
 
   Widget _buildTeamDropdown() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.base, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
@@ -383,7 +386,8 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
 
   Widget _buildEmployeeDropdown() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.base, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
@@ -674,13 +678,18 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: _selectedAction == 'add'
-              ? [Colors.green, Colors.green.shade700] // DS-EXCEPTION: status color
+              ? [
+                  Colors.green,
+                  Colors.green.shade700
+                ] // DS-EXCEPTION: status color
               : [Colors.red, Colors.red.shade700], // DS-EXCEPTION: status color
         ),
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         boxShadow: [
           BoxShadow(
-            color: (_selectedAction == 'add' ? Colors.green : Colors.red) // DS-EXCEPTION: status color
+            color: (_selectedAction == 'add'
+                    ? Colors.green
+                    : Colors.red) // DS-EXCEPTION: status color
                 .withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),

@@ -25,7 +25,10 @@ class MaterialManagementScreen extends StatelessWidget {
               color: AppColors.surface,
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
-                  AppSpacing.xl, AppSpacing.page, AppSpacing.xl, AppSpacing.page,
+                  context.responsivePadding(AppSpacing.xl),
+                  context.responsivePadding(AppSpacing.page),
+                  context.responsivePadding(AppSpacing.xl),
+                  context.responsivePadding(AppSpacing.page),
                 ),
                 child: Column(
                   children: [
@@ -60,11 +63,11 @@ class MaterialManagementScreen extends StatelessWidget {
               ),
             ),
 
-            SizedBox(height: AppSpacing.page),
+            SizedBox(height: context.responsiveSpacing(AppSpacing.page)),
 
             // Modern Content Section
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              padding: EdgeInsets.symmetric(horizontal: context.responsivePadding(AppSpacing.lg)),
               child: Column(
                 children: [
                   _buildManagementCard(
@@ -82,7 +85,7 @@ class MaterialManagementScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  SizedBox(height: AppSpacing.xxl),
+                  SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
                   _buildManagementCard(
                     context,
                     label: 'WITHDRAW MATERIAL',

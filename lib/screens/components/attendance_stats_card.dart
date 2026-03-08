@@ -118,7 +118,8 @@ class AttendanceStatsCard extends StatelessWidget {
           SizedBox(height: AppSpacing.xs),
           Text(
             value,
-            style: AppTypography.bodyMediumStyle.copyWith(fontWeight: FontWeight.bold),
+            style: AppTypography.bodyMediumStyle
+                .copyWith(fontWeight: FontWeight.bold),
           ),
         ],
       ),

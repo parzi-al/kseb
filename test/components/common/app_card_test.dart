@@ -24,10 +24,12 @@ void main() {
       ));
 
       final container = tester.widget<Container>(
-        find.descendant(
-          of: find.byType(AppCard),
-          matching: find.byType(Container),
-        ).first,
+        find
+            .descendant(
+              of: find.byType(AppCard),
+              matching: find.byType(Container),
+            )
+            .first,
       );
       final decoration = container.decoration as BoxDecoration;
       expect(decoration.color, AppColors.surface);
@@ -49,10 +51,12 @@ void main() {
       ));
 
       final container = tester.widget<Container>(
-        find.descendant(
-          of: find.byType(AppCard),
-          matching: find.byType(Container),
-        ).first,
+        find
+            .descendant(
+              of: find.byType(AppCard),
+              matching: find.byType(Container),
+            )
+            .first,
       );
       final decoration = container.decoration as BoxDecoration;
       expect(decoration.border, isNotNull);
@@ -93,10 +97,12 @@ void main() {
       ));
 
       final padding = tester.widget<Padding>(
-        find.ancestor(
-          of: find.text('Custom padding'),
-          matching: find.byType(Padding),
-        ).first,
+        find
+            .ancestor(
+              of: find.text('Custom padding'),
+              matching: find.byType(Padding),
+            )
+            .first,
       );
       expect(padding.padding, const EdgeInsets.all(32));
     });

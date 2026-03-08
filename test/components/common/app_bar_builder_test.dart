@@ -57,8 +57,8 @@ void main() {
       ));
 
       final appBar = tester.widget<AppBar>(find.byType(AppBar));
-      expect(appBar.titleTextStyle?.fontSize,
-          AppTypography.headingStyle.fontSize);
+      expect(
+          appBar.titleTextStyle?.fontSize, AppTypography.headingStyle.fontSize);
       expect(appBar.titleTextStyle?.fontWeight,
           AppTypography.headingStyle.fontWeight);
     });

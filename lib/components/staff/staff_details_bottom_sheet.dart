@@ -18,7 +18,8 @@ class StaffDetailsBottomSheet extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.xxl)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppSpacing.xxl)),
       ),
       builder: (context) => StaffDetailsBottomSheet(staffData: staffData),
     );

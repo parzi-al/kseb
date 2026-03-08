@@ -145,7 +145,8 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                   width: double.infinity,
                   color: AppColors.surface,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xxl),
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.xl,
+                    padding: EdgeInsets.fromLTRB(context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xxl)),
                     child: Column(
                       children: [
                         Container(
@@ -184,16 +185,16 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                   child: Form(
                     key: _formKey,
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(AppSpacing.xl),
+                      padding: EdgeInsets.all(context.responsivePadding(AppSpacing.xl)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _buildBasicInfoCard(),
-                          const SizedBox(height: AppSpacing.xl),
+                          SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
                           _buildQuantityPricingCard(),
-                          const SizedBox(height: AppSpacing.xl),
+                          SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
                           _buildLocationDetailsCard(),
-                          const SizedBox(height: AppSpacing.xxl),
+                          SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
                           // Submit Button
                           Container(
                             width: double.infinity,
@@ -205,7 +206,8 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                                   AppColors.success.withValues(alpha: 0.8)
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                              borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusDefault),
                               boxShadow: [
                                 BoxShadow(
                                   color:
@@ -219,11 +221,13 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                               color: Colors.transparent,
                               child: InkWell(
                                 onTap: _submitMaterial,
-                                borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                                borderRadius: BorderRadius.circular(
+                                    AppSpacing.radiusDefault),
                                 child: Center(
                                   child: Text(
                                     'ADD MATERIAL',
-                                    style: AppTypography.subheadingStyle.copyWith(
+                                    style:
+                                        AppTypography.subheadingStyle.copyWith(
                                       color: AppColors.textOnPrimary,
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 1.2,

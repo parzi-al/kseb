@@ -4,6 +4,7 @@ import 'dart:ui';
 import '../utils/app_colors.dart';
 import '../utils/app_typography.dart';
 import '../utils/app_spacing.dart';
+import '../utils/app_decorations.dart';
 import '../services/staff_service.dart';
 import '../models/user_model.dart';
 import '../models/team_model.dart';
@@ -135,7 +136,8 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                 hintText: 'Search staff...',
                 hintStyle: TextStyle(color: AppColors.grey600),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.base),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: AppSpacing.base),
               ),
               style: AppTypography.subheadingStyle,
               onChanged: (value) {
@@ -272,7 +274,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
 
         // Filter staff based on role hierarchy
         final allStaff = snapshot.data?.docs ?? [];
-        
+
         final manageableStaff = allStaff.where((doc) {
           final staffData = doc.data() as Map<String, dynamic>;
           final staffRole = UserRole.fromString(staffData['role'] ?? 'staff');
@@ -324,12 +326,12 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           }
 
           return ListView.builder(
-            padding: EdgeInsets.all(AppSpacing.base),
+            padding: EdgeInsets.all(context.responsivePadding(AppSpacing.base)),
             itemCount: teams.length,
             itemBuilder: (context, index) {
               final teamDoc = teams[index];
               final teamData = teamDoc.data() as Map<String, dynamic>;
-              
+
               return _buildTeamCard(teamDoc.id, teamData);
             },
           );
@@ -417,13 +419,15 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
               children: [
                 if (_searchQuery.isNotEmpty) ...[
                   Container(
-                    margin: EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.base, AppSpacing.base, AppSpacing.sm),
+                    margin: EdgeInsets.fromLTRB(AppSpacing.base,
+                        AppSpacing.base, AppSpacing.base, AppSpacing.sm),
                     padding: EdgeInsets.symmetric(
                         horizontal: AppSpacing.base, vertical: AppSpacing.md),
                     decoration: BoxDecoration(
                       color: AppColors.info.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                      border: Border.all(color: AppColors.info.withOpacity(0.3), width: 1),
+                      border: Border.all(
+                          color: AppColors.info.withOpacity(0.3), width: 1),
                     ),
                     child: Row(
                       children: [
@@ -448,7 +452,10 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                 Expanded(
                   child: ListView.builder(
                     padding: EdgeInsets.fromLTRB(
-                        AppSpacing.base, _searchQuery.isNotEmpty ? AppSpacing.sm : AppSpacing.lg, AppSpacing.base, 100),
+                        context.responsivePadding(AppSpacing.base),
+                        _searchQuery.isNotEmpty ? AppSpacing.sm : AppSpacing.lg,
+                        context.responsivePadding(AppSpacing.base),
+                        100),
                     physics: const BouncingScrollPhysics(),
                     itemCount: filteredStaff.length,
                     itemBuilder: (context, index) {
@@ -513,7 +520,8 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+          padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: AppSpacing.sm),
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
@@ -612,7 +620,10 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                   padding: EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [AppColors.purple.withOpacity(0.8), AppColors.purple], // DS-EXCEPTION: role color
+                      colors: [
+                        AppColors.purple.withOpacity(0.8),
+                        AppColors.purple
+                      ], // DS-EXCEPTION: role color
                     ),
                     borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                   ),
@@ -623,7 +634,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                   ),
                 ),
                 SizedBox(width: AppSpacing.base),
-                
+
                 // Team Info
                 Expanded(
                   child: Column(
@@ -670,7 +681,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                     ],
                   ),
                 ),
-                
+
                 // Action Buttons
                 Row(
                   mainAxisSize: MainAxisSize.min,
@@ -698,7 +709,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
   void _editTeam(String teamId, Map<String, dynamic> teamData) {
     // Convert team data to TeamModel
     final team = TeamModel.fromMap(teamData, teamId);
-    
+
     showDialog(
       context: context,
       builder: (context) => TeamDialog(team: team),
@@ -738,7 +749,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                     .collection('teams')
                     .doc(teamId)
                     .delete();
-                
+
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
