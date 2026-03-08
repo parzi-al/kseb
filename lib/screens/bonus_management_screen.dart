@@ -697,6 +697,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
                 ? const SizedBox(
                     height: 24,
                     width: 24,
+                    // DS-EXCEPTION: Inline button spinner — AppLoading is for page/section loading
                     child: CircularProgressIndicator(
                       color: AppColors.white,
                       strokeWidth: 2,

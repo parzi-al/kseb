@@ -9,6 +9,7 @@ import '../../utils/app_spacing.dart';
 import '../../utils/app_typography.dart';
 import '../../utils/app_toast.dart';
 import '../../models/user_model.dart';
+import '../common/app_loading.dart';
 
 class StaffFormDialog extends StatefulWidget {
   final String? staffId; // null for add mode, non-null for edit mode
@@ -698,13 +699,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                 ),
                 child: const Row(
                   children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    SizedBox(width: AppSpacing.md),
-                    Text('Loading teams...'),
+                    AppLoading(variant: AppLoadingVariant.inline, message: 'Loading teams...'),
                   ],
                 ),
               )
@@ -1003,6 +998,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                   ? const SizedBox(
                       height: 20,
                       width: 20,
+                      // DS-EXCEPTION: Inline button spinner — AppLoading is for page/section loading
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),

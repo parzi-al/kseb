@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../components/common/app_bar_builder.dart';
 import '../components/common/app_loading.dart';
+import '../components/common/app_error_state.dart';
+import '../components/common/app_empty_state.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_typography.dart';
@@ -274,81 +276,17 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
         }
 
         if (snapshot.hasError) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.xxl),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline_rounded,
-                    size: 64,
-                    color: AppColors.error,
-                  ),
-                  const SizedBox(height: AppSpacing.base),
-                  Text(
-                    'Error Loading History',
-                    style: AppTypography.headingStyle.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    snapshot.error.toString(),
-                    textAlign: TextAlign.center,
-                    style: AppTypography.bodyStyle.copyWith(
-                      color: AppColors.error,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.base),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        // Force rebuild to retry
-                      });
-                    },
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Retry'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          return AppErrorState(
+            message: snapshot.error.toString(),
+            onRetry: () => setState(() {}),
           );
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.xxl),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.inbox_rounded,
-                    size: 64,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(height: AppSpacing.base),
-                  Text(
-                    'No Bonus History',
-                    style: AppTypography.headingStyle.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'No bonus records yet',
-                    style: AppTypography.bodyStyle.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          return const AppEmptyState(
+            icon: Icons.inbox_rounded,
+            title: 'No Bonus History',
+            subtitle: 'No bonus records yet',
           );
         }
 

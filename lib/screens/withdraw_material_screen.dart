@@ -377,25 +377,10 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                       border: Border.all(color: AppColors.grey300, width: 1),
                     ),
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.primary),
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Text(
-                            'Loading materials...',
-                            style: TextStyle(color: AppColors.textSecondary),
-                          ),
-                        ],
+                    child: const Center(
+                      child: AppLoading(
+                        variant: AppLoadingVariant.inline,
+                        message: 'Loading materials...',
                       ),
                     ),
                   )

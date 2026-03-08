@@ -139,11 +139,11 @@
 
 ### Loading/Error/Empty State Audit & Implementation
 
-- [ ] T054 [US3] Audit all screens for existing loading implementations — document which screens use custom spinners vs. no loading state
-- [ ] T055 [US3] Replace all custom loading indicators with AppLoading across all screen files
-- [ ] T056 [US3] Add AppErrorState to screens that handle errors with raw Text/Container instead of the shared widget
-- [ ] T057 [US3] Add AppEmptyState to list/data screens that lack empty-state handling (material management, bonus history, worksheet)
-- [ ] T058 [US3] Verify TableCalendar loading and error states in lib/screens/attendance_screen.dart and lib/screens/components/attendance_calendar.dart use AppLoading and AppErrorState per research.md R-007
+- [x] T054 [US3] Audit all screens for existing loading implementations — document which screens use custom spinners vs. no loading state
+- [x] T055 [US3] Replace all custom loading indicators with AppLoading across all screen files
+- [x] T056 [US3] Add AppErrorState to screens that handle errors with raw Text/Container instead of the shared widget
+- [x] T057 [US3] Add AppEmptyState to list/data screens that lack empty-state handling (material management, bonus history, worksheet)
+- [x] T058 [US3] Verify TableCalendar loading and error states in lib/screens/attendance_screen.dart and lib/screens/components/attendance_calendar.dart use AppLoading and AppErrorState per research.md R-007
 
 **Checkpoint**: Loading, error, and empty states are visually consistent across all screens. User Story 3 is complete.
 

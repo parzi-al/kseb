@@ -70,6 +70,7 @@ class _DeleteStaffDialogState extends State<DeleteStaffDialog> {
               ? const SizedBox(
                   height: 20,
                   width: 20,
+                  // DS-EXCEPTION: Inline button spinner — AppLoading is for page/section loading
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(AppColors.error),

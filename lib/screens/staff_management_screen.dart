@@ -14,6 +14,8 @@ import '../components/staff/edit_staff_dialog.dart';
 import '../components/staff/delete_staff_dialog.dart';
 import '../components/team/team_dialog.dart';
 import '../components/common/app_loading.dart';
+import '../components/common/app_error_state.dart';
+import '../components/common/app_empty_state.dart';
 
 class StaffManagementScreen extends StatefulWidget {
   final String? teamId; // Team ID for supervisor view (optional)
@@ -258,7 +260,10 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
               .getStaffStream(widget.teamId!), // Supervisor sees only team
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return AppErrorState(
+            message: 'Error: ${snapshot.error}',
+            onRetry: () => setState(() {}),
+          );
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -298,7 +303,10 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
         stream: FirebaseFirestore.instance.collection('teams').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return AppErrorState(
+              message: 'Error: ${snapshot.error}',
+              onRetry: () => setState(() {}),
+            );
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -308,32 +316,10 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           final teams = snapshot.data?.docs ?? [];
 
           if (teams.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.groups_rounded,
-                    size: 80,
-                    color: AppColors.grey400,
-                  ),
-                  SizedBox(height: AppSpacing.base),
-                  Text(
-                    'No Teams Yet',
-                    style: AppTypography.titleStyle.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.grey700,
-                    ),
-                  ),
-                  SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'Create your first team to get started',
-                    style: AppTypography.bodyStyle.copyWith(
-                      color: AppColors.grey600,
-                    ),
-                  ),
-                ],
-              ),
+            return AppEmptyState(
+              icon: Icons.groups_rounded,
+              title: 'No Teams Yet',
+              subtitle: 'Create your first team to get started',
             );
           }
 
@@ -383,78 +369,18 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
     final filteredStaff = _filterStaff(staff);
 
     if (staff.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(AppSpacing.xl),
-              decoration: BoxDecoration(
-                color: AppColors.grey100,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.people_outline,
-                size: 48,
-                color: AppColors.grey400,
-              ),
-            ),
-            SizedBox(height: AppSpacing.xl),
-            Text(
-              'No staff members yet',
-              style: AppTypography.headingStyle.copyWith(
-                color: AppColors.grey600,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: AppSpacing.sm),
-            Text(
-              'Add your first staff member to get started',
-              style: AppTypography.bodyStyle.copyWith(
-                color: AppColors.grey500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+      return const AppEmptyState(
+        icon: Icons.people_outline,
+        title: 'No staff members yet',
+        subtitle: 'Add your first staff member to get started',
       );
     }
 
     if (filteredStaff.isEmpty && _searchQuery.isNotEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(AppSpacing.xl),
-              decoration: BoxDecoration(
-                color: AppColors.grey100,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.search_off_rounded,
-                size: 48,
-                color: AppColors.grey400,
-              ),
-            ),
-            SizedBox(height: AppSpacing.xl),
-            Text(
-              'No results found',
-              style: AppTypography.headingStyle.copyWith(
-                color: AppColors.grey600,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: AppSpacing.sm),
-            Text(
-              'Try searching with different keywords',
-              style: AppTypography.bodyStyle.copyWith(
-                color: AppColors.grey500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+      return const AppEmptyState(
+        icon: Icons.search_off_rounded,
+        title: 'No results found',
+        subtitle: 'Try searching with different keywords',
       );
     }
 

@@ -7,7 +7,7 @@ import '../../utils/app_typography.dart';
 import '../../utils/app_toast.dart';
 import '../../models/team_model.dart';
 import '../../models/user_model.dart';
-import '../common/modern_dropdown.dart';
+import '../common/modern_dropdown.dart';\nimport '../common/app_loading.dart';
 
 class TeamDialog extends StatefulWidget {
   final TeamModel? team; // null for creating new team, TeamModel for editing
@@ -313,7 +313,7 @@ class _TeamDialogState extends State<TeamDialog> {
 
                 // Supervisor Dropdown
                 _isLoadingUsers
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Center(child: AppLoading(variant: AppLoadingVariant.inline, message: 'Loading supervisors...'))
                     : _supervisors.isEmpty
                         ? Container(
                             padding: const EdgeInsets.all(AppSpacing.base),
@@ -599,6 +599,7 @@ class _TeamDialogState extends State<TeamDialog> {
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
+                                // DS-EXCEPTION: Inline button spinner — AppLoading is for page/section loading
                                 child: CircularProgressIndicator(
                                   color: AppColors.white,
                                   strokeWidth: 2,

@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'utils/app_colors.dart';
 import 'utils/app_typography.dart';
 import 'utils/app_spacing.dart';
+import 'components/common/app_loading.dart';
 
 // Import screen files
 import 'screens/login_screen.dart';
@@ -141,7 +142,7 @@ class MyApp extends StatelessWidget {
             if (snapshot.connectionState == ConnectionState.waiting) {
               // Show a loading indicator while checking auth state
               return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
+                body: Center(child: AppLoading()),
               );
             }
             if (snapshot.hasData) {
