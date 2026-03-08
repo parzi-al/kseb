@@ -4,11 +4,13 @@ import 'dart:ui';
 import '../utils/app_colors.dart';
 import '../services/staff_service.dart';
 import '../models/user_model.dart';
+import '../models/team_model.dart';
 import '../components/staff/staff_card.dart';
 import '../components/staff/staff_details_bottom_sheet.dart';
 import '../components/staff/add_staff_dialog.dart';
 import '../components/staff/edit_staff_dialog.dart';
 import '../components/staff/delete_staff_dialog.dart';
+import '../components/team/team_dialog.dart';
 
 class StaffManagementScreen extends StatefulWidget {
   final String? teamId; // Team ID for supervisor view (optional)
@@ -24,52 +26,75 @@ class StaffManagementScreen extends StatefulWidget {
   State<StaffManagementScreen> createState() => _StaffManagementScreenState();
 }
 
-class _StaffManagementScreenState extends State<StaffManagementScreen> {
+class _StaffManagementScreenState extends State<StaffManagementScreen>
+    with SingleTickerProviderStateMixin {
   final StaffService _staffService = StaffService();
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
   String _searchQuery = '';
+  bool _isFabExpanded = false;
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
       backgroundColor: Colors.grey.shade50,
       appBar: _buildAppBar(),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _addNewStaff,
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 8,
-        icon: const Icon(Icons.add, size: 20),
-        label: const Text(
-          'Add Staff',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_isFabExpanded) ...[
+            _buildMiniFAB(
+              label: 'Add Team',
+              icon: Icons.group_add_rounded,
+              onPressed: _addNewTeam,
+              color: Colors.purple,
+            ),
+            const SizedBox(height: 12),
+            _buildMiniFAB(
+              label: 'Add Staff',
+              icon: Icons.person_add_rounded,
+              onPressed: _addNewStaff,
+              color: AppColors.primary,
+            ),
+            const SizedBox(height: 12),
+          ],
+          FloatingActionButton(
+            onPressed: () {
+              setState(() {
+                _isFabExpanded = !_isFabExpanded;
+              });
+            },
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            elevation: 8,
+            child: AnimatedRotation(
+              turns: _isFabExpanded ? 0.125 : 0, // 45 degrees rotation
+              duration: const Duration(milliseconds: 200),
+              child: Icon(_isFabExpanded ? Icons.close : Icons.add, size: 28),
+            ),
           ),
-        ),
+        ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.blue.shade50,
-              Colors.white,
-              Colors.grey.shade50,
-            ],
-            stops: const [0.0, 0.3, 1.0],
-          ),
-        ),
-        child: _buildBody(),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildStaffManagementTab(),
+          _buildTeamManagementTab(),
+        ],
       ),
     );
   }
@@ -200,10 +225,35 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
           ),
         ),
       ],
+      bottom: TabBar(
+        controller: _tabController,
+        labelColor: AppColors.primary,
+        unselectedLabelColor: AppColors.textSecondary,
+        indicatorColor: AppColors.primary,
+        indicatorWeight: 3,
+        labelStyle: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 15,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontWeight: FontWeight.w500,
+          fontSize: 15,
+        ),
+        tabs: const [
+          Tab(
+            icon: Icon(Icons.people_rounded),
+            text: 'Staff',
+          ),
+          Tab(
+            icon: Icon(Icons.groups_rounded),
+            text: 'Teams',
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildStaffManagementTab() {
     // Manager+ sees all staff, Supervisor sees only their team
     final bool showAllStaff = widget.currentUserRole == UserRole.manager ||
         widget.currentUserRole == UserRole.coo ||
@@ -235,6 +285,80 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
 
         return _buildStaffList(manageableStaff);
       },
+    );
+  }
+
+  Widget _buildTeamManagementTab() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.blue.shade50,
+            Colors.white,
+            Colors.grey.shade50,
+          ],
+          stops: const [0.0, 0.3, 1.0],
+        ),
+      ),
+      child: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('teams').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final teams = snapshot.data?.docs ?? [];
+
+          if (teams.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.groups_rounded,
+                    size: 80,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No Teams Yet',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Create your first team to get started',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: teams.length,
+            itemBuilder: (context, index) {
+              final teamDoc = teams[index];
+              final teamData = teamDoc.data() as Map<String, dynamic>;
+              
+              return _buildTeamCard(teamDoc.id, teamData);
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -349,8 +473,17 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
     }
 
     return Container(
-      margin: EdgeInsets.only(
-        top: AppBar().preferredSize.height + MediaQuery.of(context).padding.top,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.blue.shade50,
+            Colors.white,
+            Colors.grey.shade50,
+          ],
+          stops: const [0.0, 0.3, 1.0],
+        ),
       ),
       child: ClipRRect(
         borderRadius: const BorderRadius.only(
@@ -445,6 +578,65 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
     StaffDetailsBottomSheet.show(context, staffData);
   }
 
+  void _addNewTeam() {
+    setState(() {
+      _isFabExpanded = false; // Close FAB menu
+    });
+
+    showDialog(
+      context: context,
+      builder: (context) => const TeamDialog(),
+    ).then((success) {
+      if (success == true) {
+        setState(() {}); // Refresh to show new team
+      }
+    });
+  }
+
+  Widget _buildMiniFAB({
+    required String label,
+    required IconData icon,
+    required VoidCallback onPressed,
+    required Color color,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        FloatingActionButton.small(
+          onPressed: onPressed,
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          elevation: 4,
+          heroTag: label, // Unique hero tag for each FAB
+          child: Icon(icon, size: 20),
+        ),
+      ],
+    );
+  }
+
   void _editStaff(String staffId, Map<String, dynamic> staffData) {
     EditStaffDialog.show(
       context,
@@ -477,6 +669,199 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
         // The stream will automatically update, but we can add any additional logic here if needed
         setState(() {}); // Force a rebuild to ensure UI is updated
       },
+    );
+  }
+
+  Widget _buildTeamCard(String teamId, Map<String, dynamic> teamData) {
+    final name = teamData['name'] ?? 'Unnamed Team';
+    final areaCode = teamData['areaCode'] ?? '';
+    final memberCount = (teamData['members'] as List?)?.length ?? 0;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _editTeam(teamId, teamData),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Team Icon
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.purple.shade400, Colors.purple.shade600],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.groups_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                
+                // Team Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_rounded,
+                            size: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            areaCode,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Icon(
+                            Icons.people_rounded,
+                            size: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$memberCount members',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Action Buttons
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.edit_rounded, color: Colors.blue.shade600),
+                      onPressed: () => _editTeam(teamId, teamData),
+                      tooltip: 'Edit Team',
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete_rounded, color: Colors.red.shade600),
+                      onPressed: () => _deleteTeam(teamId, name),
+                      tooltip: 'Delete Team',
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _editTeam(String teamId, Map<String, dynamic> teamData) {
+    // Convert team data to TeamModel
+    final team = TeamModel.fromMap(teamData, teamId);
+    
+    showDialog(
+      context: context,
+      builder: (context) => TeamDialog(team: team),
+    ).then((success) {
+      if (success == true) {
+        setState(() {}); // Refresh to show updated team
+      }
+    });
+  }
+
+  void _deleteTeam(String teamId, String teamName) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.warning_rounded, color: Colors.red.shade600),
+            const SizedBox(width: 12),
+            const Text('Delete Team'),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete "$teamName"? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await FirebaseFirestore.instance
+                    .collection('teams')
+                    .doc(teamId)
+                    .delete();
+                
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Team "$teamName" deleted successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error deleting team: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
     );
   }
 }
