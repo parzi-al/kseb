@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_spacing.dart';
+import '../../utils/app_typography.dart';
 
 class ModernDropdown<T> extends StatelessWidget {
   final T? value;
@@ -28,7 +30,7 @@ class ModernDropdown<T> extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.background,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
         border: Border.all(
           color: AppColors.grey300,
           width: 1.5,
@@ -38,15 +40,14 @@ class ModernDropdown<T> extends StatelessWidget {
         value: value,
         decoration: InputDecoration(
           labelText: isRequired ? '$label *' : label,
-          labelStyle: TextStyle(
+          labelStyle: AppTypography.captionStyle.copyWith(
             color: AppColors.textSecondary,
-            fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
           hintText: hint,
           hintStyle: TextStyle(
             color: AppColors.textSecondary.withValues(alpha: 0.6),
-            fontSize: 14,
+            fontSize: AppTypography.fontSizeBASE,
           ),
           prefixIcon: prefixIcon != null
               ? Icon(
@@ -57,18 +58,18 @@ class ModernDropdown<T> extends StatelessWidget {
               : null,
           border: InputBorder.none,
           contentPadding: EdgeInsets.only(
-            left: prefixIcon != null ? 4 : 16,
-            right: 4,
-            top: 12,
-            bottom: 12,
+            left: prefixIcon != null ? AppSpacing.xs : AppSpacing.base,
+            right: AppSpacing.xs,
+            top: AppSpacing.md,
+            bottom: AppSpacing.md,
           ),
           errorStyle: TextStyle(
             color: AppColors.error,
-            fontSize: 12,
+            fontSize: AppTypography.fontSizeSM,
           ),
         ),
         icon: Padding(
-          padding: const EdgeInsets.only(right: 8.0),
+          padding: EdgeInsets.only(right: AppSpacing.sm),
           child: Icon(
             Icons.keyboard_arrow_down_rounded,
             color: AppColors.primary,
@@ -78,7 +79,7 @@ class ModernDropdown<T> extends StatelessWidget {
         dropdownColor: AppColors.surface,
         style: TextStyle(
           color: AppColors.textPrimary,
-          fontSize: 14,
+          fontSize: AppTypography.fontSizeBASE,
           fontWeight: FontWeight.w500,
           overflow: TextOverflow.ellipsis,
         ),
@@ -87,7 +88,7 @@ class ModernDropdown<T> extends StatelessWidget {
         items: items,
         onChanged: onChanged,
         validator: validator,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
         elevation: 8,
         menuMaxHeight: 300,
       ),
@@ -107,7 +108,10 @@ class ModernDropdownItem {
     return DropdownMenuItem<T>(
       value: value,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
+        padding: EdgeInsets.symmetric(
+          vertical: 2.0,
+          horizontal: AppSpacing.xs,
+        ),
         child: Row(
           children: [
             if (icon != null) ...[
@@ -116,7 +120,7 @@ class ModernDropdownItem {
                 size: 18,
                 color: iconColor ?? AppColors.primary,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: AppSpacing.sm),
             ],
             Flexible(
               child: subtitle != null
@@ -128,7 +132,7 @@ class ModernDropdownItem {
                           text,
                           style: TextStyle(
                             color: AppColors.textPrimary,
-                            fontSize: 13,
+                            fontSize: AppTypography.fontSizeSM,
                             fontWeight: FontWeight.w600,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -138,7 +142,7 @@ class ModernDropdownItem {
                           subtitle,
                           style: TextStyle(
                             color: AppColors.textSecondary,
-                            fontSize: 11,
+                            fontSize: AppTypography.fontSizeXS,
                           ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
@@ -149,7 +153,7 @@ class ModernDropdownItem {
                       text,
                       style: TextStyle(
                         color: AppColors.textPrimary,
-                        fontSize: 13,
+                        fontSize: AppTypography.fontSizeSM,
                         fontWeight: FontWeight.w500,
                       ),
                       overflow: TextOverflow.ellipsis,

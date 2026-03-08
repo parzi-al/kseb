@@ -19,8 +19,8 @@
 
 **Purpose**: Project initialization and shared test infrastructure
 
-- [ ] T001 Create test helper with GoogleFonts config and shared theme builder in test/helpers/test_helpers.dart
-- [ ] T002 [P] Create barrel export file for design tokens in lib/utils/design_tokens.dart
+- [x] T001 Create test helper with GoogleFonts config and shared theme builder in test/helpers/test_helpers.dart
+- [x] T002 [P] Create barrel export file for design tokens in lib/utils/design_tokens.dart
 
 ---
 
@@ -32,26 +32,26 @@
 
 ### Token File Creation
 
-- [ ] T003 [P] Create lib/utils/app_typography.dart with 8 named TextStyles, 8 font size constants, and TextTheme mapping per data-model.md
-- [ ] T004 [P] Create lib/utils/app_spacing.dart with 8 spacing values, 5 border radius constants, 4 shadow presets per data-model.md
-- [ ] T005 [P] Create lib/utils/app_decorations.dart with card decoration presets, gradient definitions, and responsive BuildContext extensions per data-model.md and research.md R-003
+- [x] T003 [P] Create lib/utils/app_typography.dart with 8 named TextStyles, 8 font size constants, and TextTheme mapping per data-model.md
+- [x] T004 [P] Create lib/utils/app_spacing.dart with 8 spacing values, 5 border radius constants, 4 shadow presets per data-model.md
+- [x] T005 [P] Create lib/utils/app_decorations.dart with card decoration presets, gradient definitions, and responsive BuildContext extensions per data-model.md and research.md R-003
 
 ### Token Refactoring
 
-- [ ] T006 Refactor lib/utils/app_colors.dart to contain only color tokens — remove typography, spacing, decorations, and responsive helpers that moved to T003–T005
-- [ ] T007 Update lib/utils/design_tokens.dart barrel export to re-export all 4 token files
+- [x] T006 Refactor lib/utils/app_colors.dart to contain only color tokens — remove typography, spacing, decorations, and responsive helpers that moved to T003–T005
+- [x] T007 Update lib/utils/design_tokens.dart barrel export to re-export all 4 token files
 
 ### Theme Configuration
 
-- [ ] T008 Update lib/main.dart root ThemeData with manual ColorScheme, AppBarTheme, CardTheme, InputDecorationTheme, ElevatedButtonTheme, TextButtonTheme, and FloatingActionButtonTheme per contracts/theme-contract.md
-- [ ] T009 Update all existing import statements across lib/ to reference new token file locations (app_typography, app_spacing, app_decorations instead of app_colors for non-color members)
+- [x] T008 Update lib/main.dart root ThemeData with manual ColorScheme, AppBarTheme, CardTheme, InputDecorationTheme, ElevatedButtonTheme, TextButtonTheme, and FloatingActionButtonTheme per contracts/theme-contract.md
+- [x] T009 Update all existing import statements across lib/ to reference new token file locations (app_typography, app_spacing, app_decorations instead of app_colors for non-color members)
 
 ### Token Verification Tests
 
-- [ ] T010 [P] Create test/utils/app_colors_test.dart — verify all color token values match data-model.md hex values
-- [ ] T011 [P] Create test/utils/app_typography_test.dart — verify TextStyle properties (fontSize, fontWeight, fontFamily) match data-model.md
-- [ ] T012 [P] Create test/utils/app_spacing_test.dart — verify spacing, radius, and elevation constant values match data-model.md
-- [ ] T013 Verify all existing tests pass after token system refactor (run full test suite)
+- [x] T010 [P] Create test/utils/app_colors_test.dart — verify all color token values match data-model.md hex values
+- [x] T011 [P] Create test/utils/app_typography_test.dart — verify TextStyle properties (fontSize, fontWeight, fontFamily) match data-model.md
+- [x] T012 [P] Create test/utils/app_spacing_test.dart — verify spacing, radius, and elevation constant values match data-model.md
+- [x] T013 Verify all existing tests pass after token system refactor (run full test suite)
 
 **Checkpoint**: Token system complete — 4 focused modules, root theme configured, all tests green. Widget and screen work can now begin.
 
@@ -65,30 +65,30 @@
 
 ### Widget Tests (write FIRST — must FAIL before implementation)
 
-- [ ] T014 [P] [US2] Create test/components/common/app_bar_builder_test.dart — verify AppBar properties (backgroundColor, foregroundColor, elevation, titleTextStyle) match contract
-- [ ] T015 [P] [US2] Create test/components/common/app_card_test.dart — verify default decoration, accent variant border, onTap InkWell, padding override
-- [ ] T016 [P] [US2] Create test/components/common/app_button_test.dart — verify all 4 variants (primary/outline/destructive/text), isLoading spinner, disabled opacity, icon placement
-- [ ] T017 [P] [US2] Create test/components/common/app_text_field_test.dart — verify border, focus color, label style, error display
-- [ ] T018 [P] [US2] Create test/components/common/app_loading_test.dart — verify 3 variants (fullPage/inline/overlay), spinner color, message display
-- [ ] T019 [P] [US2] Create test/components/common/app_empty_state_test.dart — verify icon, title, subtitle, action button rendering
-- [ ] T020 [P] [US2] Create test/components/common/app_error_state_test.dart — verify error icon, message, retry button
-- [ ] T021 [P] [US2] Create test/components/common/app_scaffold_test.dart — verify default padding, scrollable behavior, background color
+- [x] T014 [P] [US2] Create test/components/common/app_bar_builder_test.dart — verify AppBar properties (backgroundColor, foregroundColor, elevation, titleTextStyle) match contract
+- [x] T015 [P] [US2] Create test/components/common/app_card_test.dart — verify default decoration, accent variant border, onTap InkWell, padding override
+- [x] T016 [P] [US2] Create test/components/common/app_button_test.dart — verify all 4 variants (primary/outline/destructive/text), isLoading spinner, disabled opacity, icon placement
+- [x] T017 [P] [US2] Create test/components/common/app_text_field_test.dart — verify border, focus color, label style, error display
+- [x] T018 [P] [US2] Create test/components/common/app_loading_test.dart — verify 3 variants (fullPage/inline/overlay), spinner color, message display
+- [x] T019 [P] [US2] Create test/components/common/app_empty_state_test.dart — verify icon, title, subtitle, action button rendering
+- [x] T020 [P] [US2] Create test/components/common/app_error_state_test.dart — verify error icon, message, retry button
+- [x] T021 [P] [US2] Create test/components/common/app_scaffold_test.dart — verify default padding, scrollable behavior, background color
 
 ### Widget Implementation
 
-- [ ] T022 [P] [US2] Implement AppBarBuilder in lib/components/common/app_bar_builder.dart per contracts/widget-library.md
-- [ ] T023 [P] [US2] Implement AppCard in lib/components/common/app_card.dart per contracts/widget-library.md
-- [ ] T024 [P] [US2] Implement AppButton with AppButtonVariant enum in lib/components/common/app_button.dart per contracts/widget-library.md
-- [ ] T025 [P] [US2] Implement AppTextField in lib/components/common/app_text_field.dart per contracts/widget-library.md
-- [ ] T026 [P] [US2] Implement AppLoading with AppLoadingVariant enum in lib/components/common/app_loading.dart per contracts/widget-library.md
-- [ ] T027 [P] [US2] Implement AppEmptyState in lib/components/common/app_empty_state.dart per contracts/widget-library.md
-- [ ] T028 [P] [US2] Implement AppErrorState in lib/components/common/app_error_state.dart per contracts/widget-library.md
-- [ ] T029 [P] [US2] Implement AppPageWrapper in lib/components/common/app_scaffold.dart per contracts/widget-library.md
+- [x] T022 [P] [US2] Implement AppBarBuilder in lib/components/common/app_bar_builder.dart per contracts/widget-library.md
+- [x] T023 [P] [US2] Implement AppCard in lib/components/common/app_card.dart per contracts/widget-library.md
+- [x] T024 [P] [US2] Implement AppButton with AppButtonVariant enum in lib/components/common/app_button.dart per contracts/widget-library.md
+- [x] T025 [P] [US2] Implement AppTextField in lib/components/common/app_text_field.dart per contracts/widget-library.md
+- [x] T026 [P] [US2] Implement AppLoading with AppLoadingVariant enum in lib/components/common/app_loading.dart per contracts/widget-library.md
+- [x] T027 [P] [US2] Implement AppEmptyState in lib/components/common/app_empty_state.dart per contracts/widget-library.md
+- [x] T028 [P] [US2] Implement AppErrorState in lib/components/common/app_error_state.dart per contracts/widget-library.md
+- [x] T029 [P] [US2] Implement AppPageWrapper in lib/components/common/app_scaffold.dart per contracts/widget-library.md
 
 ### Existing Component Update
 
-- [ ] T030 [US2] Update lib/components/common/modern_dropdown.dart to use design tokens (AppColors, AppTypography, AppSpacing) instead of inline styling
-- [ ] T031 [US2] Run all widget tests and verify they pass (T014–T021)
+- [x] T030 [US2] Update lib/components/common/modern_dropdown.dart to use design tokens (AppColors, AppTypography, AppSpacing) instead of inline styling
+- [x] T031 [US2] Run all widget tests and verify they pass (T014–T021)
 
 **Checkpoint**: Widget library complete — all 8 shared widgets implemented, all widget tests green. Screen migration can now begin.
 
