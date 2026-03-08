@@ -145,7 +145,11 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                   width: double.infinity,
                   color: AppColors.surface,
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xxl)),
+                    padding: EdgeInsets.fromLTRB(
+                        context.responsivePadding(AppSpacing.xl),
+                        context.responsivePadding(AppSpacing.xl),
+                        context.responsivePadding(AppSpacing.xl),
+                        context.responsivePadding(AppSpacing.xxl)),
                     child: Column(
                       children: [
                         Container(
@@ -184,16 +188,21 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                   child: Form(
                     key: _formKey,
                     child: SingleChildScrollView(
-                      padding: EdgeInsets.all(context.responsivePadding(AppSpacing.xl)),
+                      padding: EdgeInsets.all(
+                          context.responsivePadding(AppSpacing.xl)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _buildBasicInfoCard(),
-                          SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
+                          SizedBox(
+                              height: context.responsiveSpacing(AppSpacing.xl)),
                           _buildQuantityPricingCard(),
-                          SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
+                          SizedBox(
+                              height: context.responsiveSpacing(AppSpacing.xl)),
                           _buildLocationDetailsCard(),
-                          SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
+                          SizedBox(
+                              height:
+                                  context.responsiveSpacing(AppSpacing.xxl)),
                           // Submit Button
                           Container(
                             width: double.infinity,

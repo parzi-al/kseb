@@ -231,7 +231,11 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                   width: double.infinity,
                   color: AppColors.surface,
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xxl)),
+                    padding: EdgeInsets.fromLTRB(
+                        context.responsivePadding(AppSpacing.xl),
+                        context.responsivePadding(AppSpacing.xl),
+                        context.responsivePadding(AppSpacing.xl),
+                        context.responsivePadding(AppSpacing.xxl)),
                     child: Column(
                       children: [
                         Container(
@@ -273,17 +277,24 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                     child: Form(
                       key: _formKey,
                       child: SingleChildScrollView(
-                        padding: EdgeInsets.all(context.responsivePadding(AppSpacing.xl)),
+                        padding: EdgeInsets.all(
+                            context.responsivePadding(AppSpacing.xl)),
                         physics: const AlwaysScrollableScrollPhysics(),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _buildMaterialSelectionCard(),
-                            SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
+                            SizedBox(
+                                height:
+                                    context.responsiveSpacing(AppSpacing.xl)),
                             _buildProjectDetailsCard(),
-                            SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
+                            SizedBox(
+                                height:
+                                    context.responsiveSpacing(AppSpacing.xl)),
                             _buildRequestDetailsCard(),
-                            SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
+                            SizedBox(
+                                height:
+                                    context.responsiveSpacing(AppSpacing.xxl)),
                             // Submit Button
                             Container(
                               width: double.infinity,

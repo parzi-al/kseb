@@ -259,7 +259,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             padding: EdgeInsets.fromLTRB(
-                context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), 100),
+                context.responsivePadding(AppSpacing.xl),
+                context.responsivePadding(AppSpacing.xl),
+                context.responsivePadding(AppSpacing.xl),
+                100),
             child: Column(
               children: [
                 SizedBox(height: AppSpacing.lg),
@@ -305,7 +308,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       width: double.infinity,
       color: AppColors.surface,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xxl)),
+        padding: EdgeInsets.fromLTRB(
+            context.responsivePadding(AppSpacing.xl),
+            context.responsivePadding(AppSpacing.xl),
+            context.responsivePadding(AppSpacing.xl),
+            context.responsivePadding(AppSpacing.xxl)),
         child: Column(
           children: [
             Container(
@@ -411,14 +418,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: _isMarkedToday
-                ? [Colors.grey, Colors.grey.shade600] // DS-EXCEPTION: disabled state
+                ? [
+                    Colors.grey,
+                    Colors.grey.shade600
+                  ] // DS-EXCEPTION: disabled state
                 : [AppColors.primary, AppColors.primaryLight],
           ),
           borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
           boxShadow: [
             BoxShadow(
               color: _isMarkedToday
-                  ? Colors.grey.withValues(alpha: 0.3) // DS-EXCEPTION: disabled state
+                  ? Colors.grey
+                      .withValues(alpha: 0.3) // DS-EXCEPTION: disabled state
                   : AppColors.primary.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
