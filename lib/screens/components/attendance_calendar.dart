@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_typography.dart';
+import '../../utils/app_spacing.dart';
 
 /// Extracted calendar widget showing attendance markers and public holidays.
 ///
@@ -38,10 +40,10 @@ class AttendanceCalendar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         boxShadow: [
           BoxShadow(
             color: AppColors.cardShadow,
@@ -60,18 +62,18 @@ class AttendanceCalendar extends StatelessWidget {
                 color: AppColors.primary,
                 size: 24,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: AppSpacing.base),
               Text(
                 'Attendance History',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: AppTypography.fontSizeXL,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: AppSpacing.lg),
           TableCalendar(
             firstDay: DateTime(DateTime.now().year, 1, 1),
             lastDay: DateTime(DateTime.now().year, 12, 31),
@@ -96,7 +98,7 @@ class AttendanceCalendar extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               selectedTextStyle: TextStyle(
-                color: AppColors.textOnDark,
+                color: AppColors.textOnPrimary,
                 fontWeight: FontWeight.bold,
               ),
               weekendTextStyle: TextStyle(
@@ -115,7 +117,7 @@ class AttendanceCalendar extends StatelessWidget {
               titleCentered: true,
               formatButtonVisible: false,
               titleTextStyle: TextStyle(
-                fontSize: 16,
+                fontSize: AppTypography.fontSizeLG,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
               ),
@@ -152,7 +154,7 @@ class AttendanceCalendar extends StatelessWidget {
               },
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: AppSpacing.lg),
           _buildLegend(),
         ],
       ),
@@ -173,7 +175,7 @@ class AttendanceCalendar extends StatelessWidget {
 
     if (isSelected) {
       backgroundColor = AppColors.primary;
-      textColor = AppColors.textOnDark;
+      textColor = AppColors.textOnPrimary;
       if (hasAttendance) {
         borderColor = AppColors.success;
       }
@@ -192,7 +194,7 @@ class AttendanceCalendar extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.all(4),
+      margin: EdgeInsets.all(AppSpacing.xs),
       decoration: BoxDecoration(
         color: backgroundColor,
         shape: BoxShape.circle,
@@ -211,7 +213,7 @@ class AttendanceCalendar extends StatelessWidget {
                 fontWeight: isToday || isSelected || hasAttendance
                     ? FontWeight.bold
                     : FontWeight.normal,
-                fontSize: 14,
+                fontSize: AppTypography.fontSizeBase,
               ),
             ),
             if (hasAttendance && !isSelected)
@@ -241,10 +243,10 @@ class AttendanceCalendar extends StatelessWidget {
 
   Widget _buildLegend() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(AppSpacing.base),
       decoration: BoxDecoration(
         color: AppColors.background,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       ),
       child: Column(
         children: [
@@ -261,7 +263,7 @@ class AttendanceCalendar extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: AppSpacing.sm),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -300,11 +302,11 @@ class AttendanceCalendar extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: AppSpacing.sm),
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: AppTypography.fontSizeSM,
             color: AppColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),

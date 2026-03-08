@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:ui';
 import '../utils/app_colors.dart';
+import '../utils/app_typography.dart';
+import '../utils/app_spacing.dart';
 import '../services/staff_service.dart';
 import '../models/user_model.dart';
 import '../models/team_model.dart';
@@ -11,6 +13,7 @@ import '../components/staff/add_staff_dialog.dart';
 import '../components/staff/edit_staff_dialog.dart';
 import '../components/staff/delete_staff_dialog.dart';
 import '../components/team/team_dialog.dart';
+import '../components/common/app_loading.dart';
 
 class StaffManagementScreen extends StatefulWidget {
   final String? teamId; // Team ID for supervisor view (optional)
@@ -51,7 +54,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.grey50,
       appBar: _buildAppBar(),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
@@ -61,16 +64,16 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
               label: 'Add Team',
               icon: Icons.group_add_rounded,
               onPressed: _addNewTeam,
-              color: Colors.purple,
+              color: AppColors.purple, // DS-EXCEPTION: role color
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md),
             _buildMiniFAB(
               label: 'Add Staff',
               icon: Icons.person_add_rounded,
               onPressed: _addNewStaff,
               color: AppColors.primary,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md),
           ],
           FloatingActionButton(
             onPressed: () {
@@ -79,7 +82,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
               });
             },
             backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
+            foregroundColor: AppColors.white,
             elevation: 8,
             child: AnimatedRotation(
               turns: _isFabExpanded ? 0.125 : 0, // 45 degrees rotation
@@ -102,8 +105,8 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       elevation: 0,
-      backgroundColor: Colors.white.withOpacity(0.9),
-      foregroundColor: Colors.black87,
+      backgroundColor: AppColors.white.withOpacity(0.9),
+      foregroundColor: AppColors.textPrimary,
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
       flexibleSpace: ClipRect(
@@ -111,10 +114,10 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
+              color: AppColors.white.withOpacity(0.8),
               border: Border(
                 bottom: BorderSide(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: AppColors.grey500.withOpacity(0.1),
                   width: 1,
                 ),
               ),
@@ -128,14 +131,11 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
               autofocus: true,
               decoration: InputDecoration(
                 hintText: 'Search staff...',
-                hintStyle: TextStyle(color: Colors.grey.shade600),
+                hintStyle: TextStyle(color: AppColors.grey600),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.base),
               ),
-              style: const TextStyle(
-                color: Colors.black87,
-                fontSize: 16,
-              ),
+              style: AppTypography.subheadingStyle,
               onChanged: (value) {
                 setState(() {
                   _searchQuery = value.toLowerCase();
@@ -145,29 +145,25 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           : Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.blue.shade400, Colors.blue.shade600],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.info,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.blue.withOpacity(0.3),
+                        color: AppColors.info.withOpacity(0.3),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.people_alt_rounded,
-                    color: Colors.white,
+                    color: AppColors.white,
                     size: 18,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,20 +171,16 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                     children: [
                       Text(
                         'Staff Management',
-                        style: const TextStyle(
+                        style: AppTypography.subheadingStyle.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: Colors.black87,
-                          fontSize: 16,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         'Manage your team',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w400,
+                        style: AppTypography.captionStyle.copyWith(
+                          fontSize: AppTypography.fontSizeXS,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -200,24 +192,24 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
             ),
       actions: [
         Padding(
-          padding: const EdgeInsets.only(right: 16),
+          padding: EdgeInsets.only(right: AppSpacing.base),
           child: Container(
             decoration: BoxDecoration(
               color: _isSearching
-                  ? Colors.blue.withOpacity(0.1)
-                  : Colors.grey.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+                  ? AppColors.info.withOpacity(0.1)
+                  : AppColors.grey500.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
               border: Border.all(
                 color: _isSearching
-                    ? Colors.blue.withOpacity(0.3)
-                    : Colors.grey.withOpacity(0.2),
+                    ? AppColors.info.withOpacity(0.3)
+                    : AppColors.grey500.withOpacity(0.2),
                 width: 1,
               ),
             ),
             child: IconButton(
               icon: Icon(
                 _isSearching ? Icons.close_rounded : Icons.search_rounded,
-                color: _isSearching ? Colors.blue.shade700 : Colors.black87,
+                color: _isSearching ? AppColors.info : AppColors.textPrimary,
                 size: 20,
               ),
               onPressed: _toggleSearch,
@@ -270,7 +262,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: AppLoading());
         }
 
         // Filter staff based on role hierarchy
@@ -295,9 +287,9 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.blue.shade50,
-            Colors.white,
-            Colors.grey.shade50,
+            AppColors.info.withOpacity(0.05),
+            AppColors.white,
+            AppColors.grey50,
           ],
           stops: const [0.0, 0.3, 1.0],
         ),
@@ -310,7 +302,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: AppLoading());
           }
 
           final teams = snapshot.data?.docs ?? [];
@@ -323,23 +315,21 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                   Icon(
                     Icons.groups_rounded,
                     size: 80,
-                    color: Colors.grey.shade400,
+                    color: AppColors.grey400,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.base),
                   Text(
                     'No Teams Yet',
-                    style: TextStyle(
-                      fontSize: 20,
+                    style: AppTypography.titleStyle.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade700,
+                      color: AppColors.grey700,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: AppSpacing.sm),
                   Text(
                     'Create your first team to get started',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
+                    style: AppTypography.bodyStyle.copyWith(
+                      color: AppColors.grey600,
                     ),
                   ),
                 ],
@@ -348,7 +338,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(AppSpacing.base),
             itemCount: teams.length,
             itemBuilder: (context, index) {
               final teamDoc = teams[index];
@@ -398,32 +388,30 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: AppColors.grey100,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.people_outline,
                 size: 48,
-                color: Colors.grey.shade400,
+                color: AppColors.grey400,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xl),
             Text(
               'No staff members yet',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 18,
+              style: AppTypography.headingStyle.copyWith(
+                color: AppColors.grey600,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: AppSpacing.sm),
             Text(
               'Add your first staff member to get started',
-              style: TextStyle(
-                color: Colors.grey.shade500,
-                fontSize: 14,
+              style: AppTypography.bodyStyle.copyWith(
+                color: AppColors.grey500,
               ),
               textAlign: TextAlign.center,
             ),
@@ -438,32 +426,30 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: AppColors.grey100,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.search_off_rounded,
                 size: 48,
-                color: Colors.grey.shade400,
+                color: AppColors.grey400,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xl),
             Text(
               'No results found',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 18,
+              style: AppTypography.headingStyle.copyWith(
+                color: AppColors.grey600,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: AppSpacing.sm),
             Text(
               'Try searching with different keywords',
-              style: TextStyle(
-                color: Colors.grey.shade500,
-                fontSize: 14,
+              style: AppTypography.bodyStyle.copyWith(
+                color: AppColors.grey500,
               ),
               textAlign: TextAlign.center,
             ),
@@ -478,56 +464,54 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.blue.shade50,
-            Colors.white,
-            Colors.grey.shade50,
+            AppColors.info.withOpacity(0.05),
+            AppColors.white,
+            AppColors.grey50,
           ],
           stops: const [0.0, 0.3, 1.0],
         ),
       ),
       child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(AppSpacing.xl),
+          topRight: Radius.circular(AppSpacing.xl),
         ),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
+              color: AppColors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(AppSpacing.xl),
+                topRight: Radius.circular(AppSpacing.xl),
               ),
             ),
             child: Column(
               children: [
                 if (_searchQuery.isNotEmpty) ...[
                   Container(
-                    margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                    margin: EdgeInsets.fromLTRB(AppSpacing.base, AppSpacing.base, AppSpacing.base, AppSpacing.sm),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: AppSpacing.base, vertical: AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue.shade200, width: 1),
+                      color: AppColors.info.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      border: Border.all(color: AppColors.info.withOpacity(0.3), width: 1),
                     ),
                     child: Row(
                       children: [
                         Icon(
                           Icons.search_rounded,
-                          color: Colors.blue.shade600,
+                          color: AppColors.info,
                           size: 18,
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: Text(
                             'Found ${filteredStaff.length} result${filteredStaff.length == 1 ? '' : 's'} for "$_searchQuery"',
-                            style: TextStyle(
-                              color: Colors.blue.shade700,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                            style: AppTypography.bodyMediumStyle.copyWith(
+                              color: AppColors.info,
                             ),
                           ),
                         ),
@@ -538,7 +522,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                 Expanded(
                   child: ListView.builder(
                     padding: EdgeInsets.fromLTRB(
-                        16, _searchQuery.isNotEmpty ? 8 : 20, 16, 100),
+                        AppSpacing.base, _searchQuery.isNotEmpty ? AppSpacing.sm : AppSpacing.lg, AppSpacing.base, 100),
                     physics: const BouncingScrollPhysics(),
                     itemCount: filteredStaff.length,
                     itemBuilder: (context, index) {
@@ -603,13 +587,13 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: AppColors.black.withValues(alpha: 0.1),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -617,18 +601,16 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           ),
           child: Text(
             label,
-            style: TextStyle(
-              color: AppColors.textPrimary,
+            style: AppTypography.bodyMediumStyle.copyWith(
               fontWeight: FontWeight.w600,
-              fontSize: 14,
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: AppSpacing.sm),
         FloatingActionButton.small(
           onPressed: onPressed,
           backgroundColor: color,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.white,
           elevation: 4,
           heroTag: label, // Unique hero tag for each FAB
           child: Icon(icon, size: 20),
@@ -678,13 +660,13 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
     final memberCount = (teamData['members'] as List?)?.length ?? 0;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -693,28 +675,28 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
           onTap: () => _editTeam(teamId, teamData),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(AppSpacing.base),
             child: Row(
               children: [
                 // Team Icon
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.purple.shade400, Colors.purple.shade600],
+                      colors: [AppColors.purple.withOpacity(0.8), AppColors.purple], // DS-EXCEPTION: role color
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.groups_rounded,
-                    color: Colors.white,
+                    color: AppColors.white,
                     size: 28,
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: AppSpacing.base),
                 
                 // Team Info
                 Expanded(
@@ -723,40 +705,38 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                     children: [
                       Text(
                         name,
-                        style: const TextStyle(
-                          fontSize: 16,
+                        style: AppTypography.subheadingStyle.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: AppSpacing.xs),
                       Row(
                         children: [
                           Icon(
                             Icons.location_on_rounded,
                             size: 14,
-                            color: Colors.grey.shade600,
+                            color: AppColors.grey600,
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: AppSpacing.xs),
                           Text(
                             areaCode,
-                            style: TextStyle(
+                            style: AppTypography.captionStyle.copyWith(
                               fontSize: 13,
-                              color: Colors.grey.shade600,
+                              color: AppColors.grey600,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: AppSpacing.md),
                           Icon(
                             Icons.people_rounded,
                             size: 14,
-                            color: Colors.grey.shade600,
+                            color: AppColors.grey600,
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: AppSpacing.xs),
                           Text(
                             '$memberCount members',
-                            style: TextStyle(
+                            style: AppTypography.captionStyle.copyWith(
                               fontSize: 13,
-                              color: Colors.grey.shade600,
+                              color: AppColors.grey600,
                             ),
                           ),
                         ],
@@ -770,12 +750,12 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: Icon(Icons.edit_rounded, color: Colors.blue.shade600),
+                      icon: Icon(Icons.edit_rounded, color: AppColors.info),
                       onPressed: () => _editTeam(teamId, teamData),
                       tooltip: 'Edit Team',
                     ),
                     IconButton(
-                      icon: Icon(Icons.delete_rounded, color: Colors.red.shade600),
+                      icon: Icon(Icons.delete_rounded, color: AppColors.error),
                       onPressed: () => _deleteTeam(teamId, name),
                       tooltip: 'Delete Team',
                     ),
@@ -808,12 +788,12 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         ),
         title: Row(
           children: [
-            Icon(Icons.warning_rounded, color: Colors.red.shade600),
-            const SizedBox(width: 12),
+            Icon(Icons.warning_rounded, color: AppColors.error),
+            SizedBox(width: AppSpacing.md),
             const Text('Delete Team'),
           ],
         ),
@@ -838,7 +818,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Team "$teamName" deleted successfully'),
-                      backgroundColor: Colors.green,
+                      backgroundColor: AppColors.success,
                     ),
                   );
                 }
@@ -848,15 +828,15 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Error deleting team: $e'),
-                      backgroundColor: Colors.red,
+                      backgroundColor: AppColors.error,
                     ),
                   );
                 }
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.error,
+              foregroundColor: AppColors.white,
             ),
             child: const Text('Delete'),
           ),

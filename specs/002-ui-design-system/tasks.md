@@ -104,28 +104,28 @@
 
 ### Screen Migration (simplest → most complex per research.md R-010)
 
-- [ ] T032 [US1] Migrate lib/screens/attendance_history_screen.dart (88 lines) to design system
-- [ ] T033 [US1] Migrate lib/screens/material_management_screen.dart (214 lines) to design system
-- [ ] T034 [US1] Migrate lib/screens/login_screen.dart (302 lines) to design system
-- [ ] T035 [US1] Migrate lib/screens/attendance_screen.dart (485 lines) to design system
-- [ ] T036 [US1] Migrate lib/screens/components/attendance_calendar.dart to design system
-- [ ] T037 [US1] Migrate lib/screens/components/attendance_stats_card.dart to design system
-- [ ] T038 [US1] Migrate lib/screens/components/attendance_history_list.dart to design system
-- [ ] T039 [US1] Migrate lib/screens/add_material_screen.dart (588 lines) to design system
-- [ ] T040 [US1] Migrate lib/screens/bonus_history_screen.dart (597 lines) to design system
-- [ ] T041 [US1] Migrate lib/screens/bonus_management_screen.dart (706 lines) to design system
-- [ ] T042 [US1] Migrate lib/screens/withdraw_material_screen.dart (770 lines) — remove DatePicker Theme() workaround per research.md R-001
-- [ ] T043 [US1] Migrate lib/screens/staff_management_screen.dart (828 lines) to design system
-- [ ] T044 [P] [US1] Migrate lib/components/staff/staff_card.dart — replace raw Colors.* with tokens
-- [ ] T045 [P] [US1] Migrate lib/components/staff/staff_form_dialog.dart to design system
-- [ ] T046 [P] [US1] Migrate lib/components/staff/add_staff_dialog.dart to design system
-- [ ] T047 [P] [US1] Migrate lib/components/staff/edit_staff_dialog.dart to design system
-- [ ] T048 [P] [US1] Migrate lib/components/staff/delete_staff_dialog.dart to design system
-- [ ] T049 [P] [US1] Migrate lib/components/staff/staff_details_bottom_sheet.dart to design system
-- [ ] T050 [US1] Migrate lib/components/team/team_dialog.dart to design system
-- [ ] T051 [US1] Migrate lib/screens/worksheet_screen.dart (829 lines) to design system
-- [ ] T052 [US1] Validate lib/screens/worker_home_screen.dart (861 lines) against design tokens — this is the reference standard; update only to use token references instead of literals where needed
-- [ ] T053 [US1] Run full test suite and verify no regressions after screen migration
+- [x] T032 [US1] Migrate lib/screens/attendance_history_screen.dart (88 lines) to design system
+- [x] T033 [US1] Migrate lib/screens/material_management_screen.dart (214 lines) to design system
+- [x] T034 [US1] Migrate lib/screens/login_screen.dart (302 lines) to design system
+- [x] T035 [US1] Migrate lib/screens/attendance_screen.dart (485 lines) to design system
+- [x] T036 [US1] Migrate lib/screens/components/attendance_calendar.dart to design system
+- [x] T037 [US1] Migrate lib/screens/components/attendance_stats_card.dart to design system
+- [x] T038 [US1] Migrate lib/screens/components/attendance_history_list.dart to design system
+- [x] T039 [US1] Migrate lib/screens/add_material_screen.dart (588 lines) to design system
+- [x] T040 [US1] Migrate lib/screens/bonus_history_screen.dart (597 lines) to design system
+- [x] T041 [US1] Migrate lib/screens/bonus_management_screen.dart (706 lines) to design system
+- [x] T042 [US1] Migrate lib/screens/withdraw_material_screen.dart (770 lines) — remove DatePicker Theme() workaround per research.md R-001
+- [x] T043 [US1] Migrate lib/screens/staff_management_screen.dart (828 lines) to design system
+- [x] T044 [P] [US1] Migrate lib/components/staff/staff_card.dart — replace raw Colors.* with tokens
+- [x] T045 [P] [US1] Migrate lib/components/staff/staff_form_dialog.dart to design system
+- [x] T046 [P] [US1] Migrate lib/components/staff/add_staff_dialog.dart to design system
+- [x] T047 [P] [US1] Migrate lib/components/staff/edit_staff_dialog.dart to design system
+- [x] T048 [P] [US1] Migrate lib/components/staff/delete_staff_dialog.dart to design system
+- [x] T049 [P] [US1] Migrate lib/components/staff/staff_details_bottom_sheet.dart to design system
+- [x] T050 [US1] Migrate lib/components/team/team_dialog.dart to design system
+- [x] T051 [US1] Migrate lib/screens/worksheet_screen.dart (829 lines) to design system
+- [x] T052 [US1] Validate lib/screens/worker_home_screen.dart (861 lines) against design tokens — this is the reference standard; update only to use token references instead of literals where needed
+- [x] T053 [US1] Run full test suite and verify no regressions after screen migration
 
 **Checkpoint**: All screens visually converge on the homepage standard. User Story 1 is complete and independently testable.
 

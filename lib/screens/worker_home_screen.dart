@@ -9,6 +9,9 @@ import 'staff_management_screen.dart';
 import 'bonus_management_screen.dart';
 import 'bonus_history_screen.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_typography.dart';
+import '../utils/app_spacing.dart';
+import '../utils/app_decorations.dart';
 import '../utils/app_toast.dart';
 import '../services/user_service.dart';
 import '../models/user_model.dart';
@@ -301,34 +304,33 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
           title: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: AppColors.primaryWithLowOpacity,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 ),
                 child: Icon(
                   Icons.bolt_rounded,
                   color: AppColors.primary,
-                  size: AppColors.getResponsiveHeight(context, 20),
+                  size: context.responsiveHeight(20),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.base),
               Text(
                 'KSEB Portal',
-                style: AppColors.getResponsiveTextStyle(
-                    context, AppColors.headingStyle),
+                style: context.responsiveTextStyle(AppTypography.headingStyle),
               ),
             ],
           ),
           actions: [
             Container(
-              margin: const EdgeInsets.only(right: 16),
+              margin: const EdgeInsets.only(right: AppSpacing.md),
               child: IconButton(
                 icon: Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
                     color: AppColors.grey100,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                   ),
                   child: Icon(
                     Icons.logout_rounded,
@@ -352,10 +354,10 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                 color: AppColors.surface,
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
-                      AppColors.getResponsivePadding(context, 24),
-                      AppColors.getResponsivePadding(context, 24),
-                      AppColors.getResponsivePadding(context, 24),
-                      AppColors.getResponsivePadding(context, 32)),
+                      context.responsivePadding(AppSpacing.xl),
+                      context.responsivePadding(AppSpacing.xl),
+                      context.responsivePadding(AppSpacing.xl),
+                      context.responsivePadding(AppSpacing.xxl)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -379,11 +381,10 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                               ? AppColors.primary
                                               : AppColors.textSecondary,
                                           fontSize:
-                                              AppColors.getResponsiveFontSize(
-                                                  context,
+                                              context.responsiveFontSize(
                                                   isBirthday
-                                                      ? AppColors.fontSizeLG
-                                                      : AppColors.fontSizeBase),
+                                                      ? AppTypography.fontSizeLG
+                                                      : AppTypography.fontSizeBase),
                                           fontWeight: isBirthday
                                               ? FontWeight.w600
                                               : FontWeight.w500,
@@ -393,8 +394,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                   },
                                 ),
                                 SizedBox(
-                                    height: AppColors.getResponsiveSpacing(
-                                        context, 4)),
+                                    height: context.responsiveSpacing(AppSpacing.xs)),
                                 AnimatedBuilder(
                                   animation: _scaleAnimation,
                                   builder: (context, child) {
@@ -404,8 +404,8 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                           : 1.0,
                                       child: Text(
                                         isLoading ? 'Loading...' : workerName,
-                                        style: AppColors.getResponsiveTextStyle(
-                                                context, AppColors.displayStyle)
+                                        style: context.responsiveTextStyle(
+                                                AppTypography.displayStyle)
                                             .copyWith(
                                           fontWeight: FontWeight.w800,
                                         ),
@@ -415,15 +415,14 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                 ),
                                 if (workerRole.isNotEmpty) ...[
                                   SizedBox(
-                                      height: AppColors.getResponsiveSpacing(
-                                          context, 4)),
+                                      height: context.responsiveSpacing(AppSpacing.xs)),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6),
+                                        horizontal: AppSpacing.base, vertical: 6),
                                     decoration: BoxDecoration(
                                       color: AppColors.primary
                                           .withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                                       border: Border.all(
                                         color: AppColors.primary
                                             .withValues(alpha: 0.2),
@@ -442,9 +441,8 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                         Text(
                                           workerRole,
                                           style:
-                                              AppColors.getResponsiveTextStyle(
-                                                      context,
-                                                      AppColors.captionStyle)
+                                              context.responsiveTextStyle(
+                                                      AppTypography.captionStyle)
                                                   .copyWith(
                                             color: AppColors.primary,
                                             fontWeight: FontWeight.w600,
@@ -456,8 +454,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                 ],
                                 if (isBirthday) ...[
                                   SizedBox(
-                                      height: AppColors.getResponsiveSpacing(
-                                          context, 8)),
+                                      height: context.responsiveSpacing(AppSpacing.sm)),
                                   AnimatedBuilder(
                                     animation: _confettiAnimation,
                                     builder: (context, child) {
@@ -465,12 +462,12 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                         opacity: _confettiAnimation.value,
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(
-                                              horizontal: 12, vertical: 8),
+                                              horizontal: AppSpacing.base, vertical: AppSpacing.sm),
                                           decoration: BoxDecoration(
                                             color: AppColors.primary
                                                 .withValues(alpha: 0.1),
                                             borderRadius:
-                                                BorderRadius.circular(20),
+                                                BorderRadius.circular(AppSpacing.radiusLg),
                                             border: Border.all(
                                               color: AppColors.primary
                                                   .withValues(alpha: 0.2),
@@ -483,16 +480,15 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                                 '🎂',
                                                 style: TextStyle(
                                                     fontSize:
-                                                        AppColors.fontSizeLG),
+                                                        AppTypography.fontSizeLG),
                                               ),
-                                              const SizedBox(width: 8),
+                                              const SizedBox(width: AppSpacing.sm),
                                               Flexible(
                                                 child: Text(
                                                   'Have a wonderful day!',
-                                                  style: AppColors
-                                                          .getResponsiveTextStyle(
-                                                              context,
-                                                              AppColors
+                                                  style: context
+                                                          .responsiveTextStyle(
+                                                              AppTypography
                                                                   .bodyMediumStyle)
                                                       .copyWith(
                                                     color: AppColors.primary,
@@ -502,12 +498,12 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                                       TextOverflow.ellipsis,
                                                 ),
                                               ),
-                                              const SizedBox(width: 4),
+                                              const SizedBox(width: AppSpacing.xs),
                                               Text(
                                                 '🎉',
                                                 style: TextStyle(
                                                     fontSize:
-                                                        AppColors.fontSizeBase),
+                                                        AppTypography.fontSizeBase),
                                               ),
                                             ],
                                           ),
@@ -521,10 +517,10 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
+                                horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                             decoration: BoxDecoration(
                               color: AppColors.success.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(AppSpacing.xl),
                               border: Border.all(
                                 color: AppColors.success.withValues(alpha: 0.2),
                                 width: 1,
@@ -541,11 +537,11 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                     shape: BoxShape.circle,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: AppSpacing.sm),
                                 Text(
                                   'Active',
-                                  style: AppColors.getResponsiveTextStyle(
-                                          context, AppColors.bodyMediumStyle)
+                                  style: context.responsiveTextStyle(
+                                          AppTypography.bodyMediumStyle)
                                       .copyWith(
                                     color: AppColors.success,
                                     fontWeight: FontWeight.w600,
@@ -561,12 +557,12 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                 ),
               ),
 
-              SizedBox(height: AppColors.getResponsiveSpacing(context, 24)),
+              SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
 
               // Modern Quick Stats Section
               Padding(
                 padding: EdgeInsets.symmetric(
-                    horizontal: AppColors.getResponsivePadding(context, 20.0)),
+                    horizontal: context.responsivePadding(AppSpacing.lg)),
                 child: Row(
                   children: [
                     Expanded(
@@ -578,7 +574,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                       ),
                     ),
                     SizedBox(
-                        width: AppColors.getResponsiveSpacing(context, 16)),
+                        width: context.responsiveSpacing(AppSpacing.md)),
                     Expanded(
                       child: _buildStatCard(
                         'Bonus Amount',
@@ -591,30 +587,30 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                 ),
               ),
 
-              SizedBox(height: AppColors.getResponsiveSpacing(context, 24)),
+              SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
 
               // Modern Menu Section
               Padding(
                 padding: EdgeInsets.symmetric(
-                    horizontal: AppColors.getResponsivePadding(context, 20.0)),
+                    horizontal: context.responsivePadding(AppSpacing.lg)),
                 child: Text(
                   'Quick Actions',
-                  style: AppColors.getResponsiveTextStyle(
-                      context, AppColors.titleStyle),
+                  style: context.responsiveTextStyle(
+                      AppTypography.titleStyle),
                 ),
               ),
-              SizedBox(height: AppColors.getResponsiveSpacing(context, 20)),
+              SizedBox(height: context.responsiveSpacing(AppSpacing.lg)),
 
               // Modern Dashboard Cards
               Padding(
                 padding: EdgeInsets.symmetric(
-                    horizontal: AppColors.getResponsivePadding(context, 20.0)),
+                    horizontal: context.responsivePadding(AppSpacing.lg)),
                 child: GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisCount: 2,
-                  crossAxisSpacing: AppColors.getResponsiveSpacing(context, 16),
-                  mainAxisSpacing: AppColors.getResponsiveSpacing(context, 16),
+                  crossAxisSpacing: context.responsiveSpacing(AppSpacing.md),
+                  mainAxisSpacing: context.responsiveSpacing(AppSpacing.md),
                   childAspectRatio: MediaQuery.of(context).size.height < 700
                       ? 1.25
                       : (MediaQuery.of(context).size.height < 800 ? 1.15 : 1.0),
@@ -642,7 +638,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                         context,
                         icon: Icons.card_giftcard_rounded,
                         label: 'Bonus Management',
-                        color: Colors.purple,
+                        color: Colors.purple, // DS-EXCEPTION: decorative color
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -657,7 +653,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                         context,
                         icon: Icons.history_rounded,
                         label: 'My Bonus History',
-                        color: Colors.deepPurple,
+                        color: Colors.deepPurple, // DS-EXCEPTION: decorative color
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -709,7 +705,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                   ],
                 ),
               ),
-              SizedBox(height: AppColors.getResponsiveSpacing(context, 32)),
+              SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
             ],
           ),
         ),
@@ -725,40 +721,40 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
     required VoidCallback onTap,
   }) {
     return Container(
-      decoration: AppColors.modernCardDecorationWithColor(color),
+      decoration: AppDecorations.modernCardDecorationWithColor(color),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(
-              MediaQuery.of(context).size.height < 700 ? 12 : 16),
+              MediaQuery.of(context).size.height < 700 ? AppSpacing.radiusMd : AppSpacing.radiusDefault),
           child: Padding(
             padding:
-                EdgeInsets.all(AppColors.getResponsivePadding(context, 12.0)),
+                EdgeInsets.all(context.responsivePadding(AppSpacing.base)),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   padding: EdgeInsets.all(
-                      AppColors.getResponsivePadding(context, 8)),
+                      context.responsivePadding(AppSpacing.sm)),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(
-                        MediaQuery.of(context).size.height < 700 ? 8 : 12),
+                        MediaQuery.of(context).size.height < 700 ? AppSpacing.radiusSm : AppSpacing.radiusMd),
                   ),
                   child: Icon(
                     icon,
-                    size: AppColors.getResponsiveHeight(context, 20),
+                    size: context.responsiveHeight(20),
                     color: color,
                   ),
                 ),
-                SizedBox(height: AppColors.getResponsiveSpacing(context, 8)),
+                SizedBox(height: context.responsiveSpacing(AppSpacing.sm)),
                 Text(
                   label,
                   textAlign: TextAlign.center,
-                  style: AppColors.getResponsiveTextStyle(
-                          context, AppColors.bodyMediumStyle)
+                  style: context.responsiveTextStyle(
+                          AppTypography.bodyMediumStyle)
                       .copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -775,8 +771,8 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
   Widget _buildStatCard(
       String title, String value, IconData icon, Color color) {
     return Container(
-      padding: EdgeInsets.all(AppColors.getResponsivePadding(context, 20)),
-      decoration: AppColors.modernCardDecoration,
+      padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
+      decoration: AppDecorations.modernCardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -784,19 +780,19 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
             children: [
               Container(
                 padding:
-                    EdgeInsets.all(AppColors.getResponsivePadding(context, 10)),
+                    EdgeInsets.all(context.responsivePadding(10)),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 ),
                 child: Icon(icon,
                     color: color,
-                    size: AppColors.getResponsiveHeight(context, 22)),
+                    size: context.responsiveHeight(22)),
               ),
               const Spacer(),
             ],
           ),
-          SizedBox(height: AppColors.getResponsiveSpacing(context, 16)),
+          SizedBox(height: context.responsiveSpacing(AppSpacing.md)),
           value == '--'
               ? Container(
                   width: 40,
@@ -809,17 +805,17 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                 )
               : Text(
                   value,
-                  style: AppColors.getResponsiveTextStyle(
-                          context, AppColors.displayStyle)
+                  style: context.responsiveTextStyle(
+                          AppTypography.displayStyle)
                       .copyWith(
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-          SizedBox(height: AppColors.getResponsiveSpacing(context, 4)),
+          SizedBox(height: context.responsiveSpacing(AppSpacing.xs)),
           Text(
             title,
-            style: AppColors.getResponsiveTextStyle(
-                    context, AppColors.captionStyle)
+            style: context.responsiveTextStyle(
+                    AppTypography.captionStyle)
                 .copyWith(
               color: AppColors.textSecondary,
             ),
@@ -835,16 +831,16 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
           ),
           backgroundColor: AppColors.surface,
           title: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: AppColors.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                 ),
                 child: Icon(
                   Icons.logout_rounded,
@@ -852,7 +848,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                   size: 20,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.base),
               Text(
                 'Logout',
                 style: TextStyle(
@@ -874,7 +870,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.textSecondary,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 ),
               ),
               child: const Text('Cancel'),
@@ -897,7 +893,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                 foregroundColor: AppColors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 ),
               ),
               child: const Text(

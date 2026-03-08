@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../components/common/app_bar_builder.dart';
+import '../components/common/app_loading.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_spacing.dart';
+import '../utils/app_typography.dart';
 import '../utils/app_toast.dart';
 import '../models/user_model.dart';
 import 'bonus_history_screen.dart';
@@ -216,21 +220,8 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Bonus Management',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0.5,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: AppColors.shadowLight,
-        centerTitle: true,
+      appBar: buildAppBar(
+        title: 'Bonus Management',
         actions: [
           IconButton(
             icon: const Icon(Icons.history_rounded),
@@ -247,13 +238,11 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
         ],
       ),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
+          ? const Center(
+              child: AppLoading(),
             )
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -262,78 +251,75 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
                     // Header Card
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(AppSpacing.lg),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [AppColors.primary, AppColors.primaryLight],
                         ),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
                       ),
                       child: Column(
                         children: [
                           Icon(
                             Icons.card_giftcard_rounded,
                             size: 48,
-                            color: AppColors.textOnDark,
+                            color: AppColors.textOnPrimary,
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AppSpacing.md),
                           Text(
                             'Manage Employee Bonuses',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textOnDark,
+                            style: AppTypography.titleStyle.copyWith(
+                              color: AppColors.textOnPrimary,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: AppSpacing.sm),
                           Text(
                             'Add or remove bonus points and amounts',
-                            style: TextStyle(
-                              fontSize: 14,
+                            style: AppTypography.bodyStyle.copyWith(
                               color:
-                                  AppColors.textOnDark.withValues(alpha: 0.8),
+                                  AppColors.textOnPrimary.withValues(alpha: 0.8),
                             ),
                             textAlign: TextAlign.center,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xl),
 
                     // Team Selection
                     _buildSectionTitle('Select Team'),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     _buildTeamDropdown(),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xl),
 
                     // Employee Selection
                     if (_selectedTeamId != null) ...[
                       _buildSectionTitle('Select Employee'),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       _buildEmployeeDropdown(),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: AppSpacing.xl),
                     ],
 
                     // Show current bonus if employee selected
                     if (_selectedEmployeeId != null) ...[
                       _buildCurrentBonusCard(),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: AppSpacing.xl),
                     ],
 
                     // Action Selection (Add/Remove)
                     if (_selectedEmployeeId != null) ...[
                       _buildSectionTitle('Action'),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       _buildActionSelector(),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: AppSpacing.xl),
                     ],
 
                     // Bonus Input Fields
                     if (_selectedEmployeeId != null) ...[
                       _buildSectionTitle('Bonus Details'),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       _buildInputFields(),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: AppSpacing.xl),
                     ],
 
                     // Submit Button
@@ -350,20 +336,18 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: TextStyle(
-        fontSize: 16,
+      style: AppTypography.subheadingStyle.copyWith(
         fontWeight: FontWeight.bold,
-        color: AppColors.textPrimary,
       ),
     );
   }
 
   Widget _buildTeamDropdown() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         border: Border.all(color: AppColors.grey300),
       ),
       child: DropdownButtonHideUnderline(
@@ -399,10 +383,10 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
 
   Widget _buildEmployeeDropdown() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         border: Border.all(color: AppColors.grey300),
       ),
       child: DropdownButtonHideUnderline(
@@ -432,10 +416,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
                   ),
                   Text(
                     '${employee['email']} • ${UserRole.fromString(employee['role']).displayName}',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                    ),
+                    style: AppTypography.captionStyle,
                   ),
                 ],
               ),
@@ -460,23 +441,21 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
           Text(
             'Current Bonus',
-            style: TextStyle(
-              fontSize: 16,
+            style: AppTypography.subheadingStyle.copyWith(
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.base),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -484,13 +463,13 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
                 'Points',
                 employee['currentBonusPoints'].toString(),
                 Icons.star_rounded,
-                Colors.amber,
+                Colors.amber, // DS-EXCEPTION: status color
               ),
               _buildBonusStat(
                 'Amount',
                 '₹${employee['currentBonusAmount'].toStringAsFixed(2)}',
                 Icons.currency_rupee_rounded,
-                Colors.green,
+                Colors.green, // DS-EXCEPTION: status color
               ),
             ],
           ),
@@ -508,28 +487,23 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           ),
           child: Icon(icon, color: color, size: 28),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
+          style: AppTypography.captionStyle,
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           value,
-          style: TextStyle(
-            fontSize: 18,
+          style: AppTypography.headingStyle.copyWith(
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
           ),
         ),
       ],
@@ -544,16 +518,16 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
             'Add Bonus',
             Icons.add_circle_outline_rounded,
             'add',
-            Colors.green,
+            Colors.green, // DS-EXCEPTION: status color
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: AppSpacing.base),
         Expanded(
           child: _buildActionButton(
             'Remove Bonus',
             Icons.remove_circle_outline_rounded,
             'remove',
-            Colors.red,
+            Colors.red, // DS-EXCEPTION: status color
           ),
         ),
       ],
@@ -574,12 +548,12 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
           _selectedAction = action;
         });
       },
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.base),
         decoration: BoxDecoration(
           color: isSelected ? color.withValues(alpha: 0.15) : AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           border: Border.all(
             color: isSelected ? color : AppColors.grey300,
             width: isSelected ? 2 : 1,
@@ -592,11 +566,11 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
               color: isSelected ? color : AppColors.textSecondary,
               size: 32,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               label,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: AppTypography.fontSizeBase,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected ? color : AppColors.textSecondary,
               ),
@@ -619,7 +593,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
             hintText: 'Enter bonus points',
             prefixIcon: Icon(Icons.star_rounded, color: AppColors.primary),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
             ),
             filled: true,
             fillColor: AppColors.surface,
@@ -633,7 +607,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
             return null;
           },
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.base),
 
         // Bonus Amount
         TextFormField(
@@ -645,7 +619,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
             prefixIcon:
                 Icon(Icons.currency_rupee_rounded, color: AppColors.primary),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
             ),
             filled: true,
             fillColor: AppColors.surface,
@@ -659,7 +633,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
             return null;
           },
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.base),
 
         // Reason
         TextFormField(
@@ -670,7 +644,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
             hintText: 'Enter reason for bonus update',
             prefixIcon: Icon(Icons.edit_note_rounded, color: AppColors.primary),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
             ),
             filled: true,
             fillColor: AppColors.surface,
@@ -682,12 +656,10 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
             return null;
           },
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         Text(
           'Note: Enter at least one value (points or amount)',
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
+          style: AppTypography.captionStyle.copyWith(
             fontStyle: FontStyle.italic,
           ),
         ),
@@ -702,13 +674,13 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: _selectedAction == 'add'
-              ? [Colors.green, Colors.green.shade700]
-              : [Colors.red, Colors.red.shade700],
+              ? [Colors.green, Colors.green.shade700] // DS-EXCEPTION: status color
+              : [Colors.red, Colors.red.shade700], // DS-EXCEPTION: status color
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         boxShadow: [
           BoxShadow(
-            color: (_selectedAction == 'add' ? Colors.green : Colors.red)
+            color: (_selectedAction == 'add' ? Colors.green : Colors.red) // DS-EXCEPTION: status color
                 .withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
@@ -719,14 +691,14 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: _isLoading ? null : _submitBonus,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           child: Center(
             child: _isLoading
                 ? const SizedBox(
                     height: 24,
                     width: 24,
                     child: CircularProgressIndicator(
-                      color: Colors.white,
+                      color: AppColors.white,
                       strokeWidth: 2,
                     ),
                   )
@@ -737,14 +709,13 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
                         _selectedAction == 'add'
                             ? Icons.add_rounded
                             : Icons.remove_rounded,
-                        color: Colors.white,
+                        color: AppColors.white,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       Text(
                         _selectedAction == 'add' ? 'Add Bonus' : 'Remove Bonus',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
+                        style: AppTypography.subheadingStyle.copyWith(
+                          color: AppColors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

@@ -47,7 +47,7 @@ class ModernDropdown<T> extends StatelessWidget {
           hintText: hint,
           hintStyle: TextStyle(
             color: AppColors.textSecondary.withValues(alpha: 0.6),
-            fontSize: AppTypography.fontSizeBASE,
+            fontSize: AppTypography.fontSizeBase,
           ),
           prefixIcon: prefixIcon != null
               ? Icon(
@@ -79,7 +79,7 @@ class ModernDropdown<T> extends StatelessWidget {
         dropdownColor: AppColors.surface,
         style: TextStyle(
           color: AppColors.textPrimary,
-          fontSize: AppTypography.fontSizeBASE,
+          fontSize: AppTypography.fontSizeBase,
           fontWeight: FontWeight.w500,
           overflow: TextOverflow.ellipsis,
         ),

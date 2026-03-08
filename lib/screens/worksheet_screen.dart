@@ -5,7 +5,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_spacing.dart';
+import '../utils/app_typography.dart';
 import '../utils/app_toast.dart';
+import '../components/common/app_bar_builder.dart';
+import '../components/common/app_loading.dart';
 
 class WorksheetScreen extends StatefulWidget {
   const WorksheetScreen({super.key});
@@ -55,11 +59,11 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
       context: context,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
       ),
       builder: (BuildContext context) {
         return Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -71,16 +75,16 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
               Text(
                 'Select Photo Source',
                 style: TextStyle(
-                  fontSize: AppColors.fontSizeLG,
+                  fontSize: AppTypography.fontSizeLG,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -102,7 +106,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
             ],
           ),
         );
@@ -118,22 +122,22 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
           color: AppColors.primaryWithLowOpacity,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
           border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [
             Icon(icon, size: 40, color: AppColors.primary),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               label,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTypography.fontSizeLG,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primary,
               ),
@@ -279,46 +283,9 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        leading: Container(
-          margin: const EdgeInsets.all(8),
-          child: IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.grey100,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: AppColors.textSecondary,
-                size: 20,
-              ),
-            ),
-          ),
-        ),
-        title: Text(
-          'Daily Worksheet',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0.5,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: AppColors.shadowLight,
-        centerTitle: true,
-      ),
+      appBar: buildAppBar(title: 'Daily Worksheet'),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
-            )
+          ? const AppLoading()
           : Column(
               children: [
                 // Modern Header Section
@@ -326,11 +293,11 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   width: double.infinity,
                   color: AppColors.surface,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xxl),
                     child: Column(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(AppSpacing.lg),
                           decoration: BoxDecoration(
                             color: AppColors.primaryWithLowOpacity,
                             shape: BoxShape.circle,
@@ -341,21 +308,21 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                             color: AppColors.primary,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.base),
                         Text(
                           'Daily Worksheet',
                           style: TextStyle(
-                            fontSize: AppColors.fontSize2XL,
+                            fontSize: AppTypography.fontSize2XL,
                             fontWeight: FontWeight.w800,
                             color: AppColors.textPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.sm),
                         Text(
                           'Submit your daily work report',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: AppTypography.fontSizeLG,
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.w500,
                           ),
@@ -370,14 +337,14 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   child: Form(
                     key: _formKey,
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(20.0),
+                      padding: const EdgeInsets.all(AppSpacing.lg),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _buildProjectDetailsCard(),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: AppSpacing.xl),
                           _buildDocumentationCard(),
-                          const SizedBox(height: 32),
+                          const SizedBox(height: AppSpacing.xxl),
                           // Submit Button
                           Container(
                             width: double.infinity,
@@ -389,7 +356,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                                   AppColors.primaryLight
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
                               boxShadow: [
                                 BoxShadow(
                                   color:
@@ -403,13 +370,13 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                               color: Colors.transparent,
                               child: InkWell(
                                 onTap: _submitWorksheet,
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
                                 child: Center(
                                   child: Text(
                                     'SUBMIT WORKSHEET',
                                     style: TextStyle(
-                                      color: AppColors.textOnDark,
-                                      fontSize: AppColors.fontSizeBase,
+                                      color: AppColors.textOnPrimary,
+                                      fontSize: AppTypography.fontSizeBase,
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 1.2,
                                     ),
@@ -418,7 +385,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: AppSpacing.xl),
                         ],
                       ),
                     ),
@@ -432,22 +399,22 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   // Helper widget for a section header
   Widget _buildSectionHeader(String title, IconData icon) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: AppSpacing.base),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: AppColors.primaryWithLowOpacity,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 24),
+            child: Icon(icon, color: AppColors.primary, size: AppSpacing.xl),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Text(
             title,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: AppTypography.fontSize2XL,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
             ),
@@ -462,7 +429,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         boxShadow: [
           BoxShadow(
             color: AppColors.cardShadow,
@@ -472,17 +439,17 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           children: <Widget>[
             _buildSectionHeader('Project Details', Icons.business_center),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
 
             // Office Selection Dropdown
             Container(
               decoration: BoxDecoration(
                 color: AppColors.grey50,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 border: Border.all(color: AppColors.grey300, width: 1),
               ),
               child: DropdownButtonFormField<String>(
@@ -495,7 +462,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   prefixIcon:
                       Icon(Icons.location_city, color: AppColors.primary),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
@@ -514,13 +481,13 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.base),
 
             // Work Type Field
             Container(
               decoration: BoxDecoration(
                 color: AppColors.grey50,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 border: Border.all(color: AppColors.grey300, width: 1),
               ),
               child: TextFormField(
@@ -531,7 +498,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   prefixIcon:
                       Icon(Icons.construction, color: AppColors.primary),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
@@ -539,13 +506,13 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.base),
 
             // Project Selection Dropdown
             Container(
               decoration: BoxDecoration(
                 color: AppColors.grey50,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 border: Border.all(color: AppColors.grey300, width: 1),
               ),
               child: DropdownButtonFormField<String>(
@@ -557,7 +524,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   labelStyle: TextStyle(color: AppColors.textSecondary),
                   prefixIcon: Icon(Icons.assignment, color: AppColors.primary),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
@@ -576,13 +543,13 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.base),
 
             // Project Name Field
             Container(
               decoration: BoxDecoration(
                 color: AppColors.grey50,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 border: Border.all(color: AppColors.grey300, width: 1),
               ),
               child: TextFormField(
@@ -593,7 +560,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   prefixIcon: Icon(Icons.label_important_outline,
                       color: AppColors.primary),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
@@ -612,7 +579,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         boxShadow: [
           BoxShadow(
             color: AppColors.cardShadow,
@@ -622,17 +589,17 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           children: <Widget>[
             _buildSectionHeader('Documentation & Location', Icons.folder_copy),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
 
             // Permit Book Field
             Container(
               decoration: BoxDecoration(
                 color: AppColors.grey50,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 border: Border.all(color: AppColors.grey300, width: 1),
               ),
               child: TextFormField(
@@ -643,7 +610,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   prefixIcon:
                       Icon(Icons.book_outlined, color: AppColors.primary),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
@@ -651,13 +618,13 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.base),
 
             // Location Field
             Container(
               decoration: BoxDecoration(
                 color: AppColors.grey50,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 border: Border.all(color: AppColors.grey300, width: 1),
               ),
               child: TextFormField(
@@ -668,7 +635,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   prefixIcon: Icon(Icons.location_on_outlined,
                       color: AppColors.primary),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
@@ -676,17 +643,17 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
             // Upload Photo Button with Preview
             _buildPhotoUploadSection(),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.base),
 
             // Additional Information Field
             Container(
               decoration: BoxDecoration(
                 color: AppColors.grey50,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 border: Border.all(color: AppColors.grey300, width: 1),
               ),
               child: TextFormField(
@@ -696,7 +663,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   labelStyle: TextStyle(color: AppColors.textSecondary),
                   prefixIcon: Icon(Icons.notes, color: AppColors.primary),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
@@ -722,7 +689,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
             width: double.infinity,
             height: 200,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
               border: Border.all(color: AppColors.grey300),
               image: _selectedImage != null
                   ? DecorationImage(
@@ -733,19 +700,13 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
             ),
             child: _selectedImage == null && _uploadedImageUrl != null
                 ? ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
                     child: Image.network(
                       _uploadedImageUrl!,
                       fit: BoxFit.cover,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
-                        return Container(
-                          alignment: Alignment.center,
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                AppColors.primary),
-                          ),
-                        );
+                        return const Center(child: AppLoading());
                       },
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
@@ -755,7 +716,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                             children: [
                               Icon(Icons.error_outline,
                                   size: 40, color: AppColors.error),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: AppSpacing.sm),
                               Text(
                                 'Failed to load image',
                                 style: TextStyle(color: AppColors.error),
@@ -767,43 +728,24 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                     ),
                   )
                 : (_isUploadingImage
-                    ? Container(
-                        alignment: Alignment.center,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.primary),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Uploading...',
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
+                    ? const AppLoading(message: 'Uploading...')
                     : null),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.base),
           // Change photo button
           Container(
             width: double.infinity,
             height: 50,
             decoration: BoxDecoration(
               border: Border.all(color: AppColors.primary, width: 1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
               color: Colors.transparent,
             ),
             child: Material(
               color: Colors.transparent,
               child: InkWell(
                 onTap: _isUploadingImage ? null : _showImageSourceDialog,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -814,11 +756,11 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                           ? AppColors.textSecondary
                           : AppColors.primary,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       _isUploadingImage ? 'Uploading...' : 'Change Photo',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: AppTypography.fontSizeLG,
                         fontWeight: FontWeight.w600,
                         color: _isUploadingImage
                             ? AppColors.textSecondary
@@ -839,24 +781,24 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
         height: 60,
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.primary, width: 2),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
           color: AppColors.primaryWithLowOpacity,
         ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: _showImageSourceDialog,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.camera_alt_rounded,
                     size: 28, color: AppColors.primary),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Text(
                   'Upload Photo',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: AppTypography.fontSizeLG,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primary,
                   ),

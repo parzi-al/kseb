@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import '../components/common/app_bar_builder.dart';
+import '../components/common/app_loading.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_spacing.dart';
+import '../utils/app_typography.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
 
@@ -94,22 +98,7 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Bonus History',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0.5,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: AppColors.shadowLight,
-        centerTitle: true,
-      ),
+      appBar: buildAppBar(title: 'Bonus History'),
       body: Column(
         children: [
           // User Selection (only for COO/Director)
@@ -117,26 +106,20 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
             Container(
               width: double.infinity,
               color: AppColors.surface,
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Select Employee',
-                    style: TextStyle(
-                      fontSize: 16,
+                    style: AppTypography.subheadingStyle.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   _isLoadingUsers
-                      ? Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.primary,
-                            ),
-                          ),
+                      ? const Center(
+                          child: AppLoading(),
                         )
                       : _buildUserDropdown(),
                 ],
@@ -155,10 +138,10 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
 
   Widget _buildUserDropdown() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: AppColors.background,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         border: Border.all(color: AppColors.grey300),
       ),
       child: DropdownButtonHideUnderline(
@@ -189,15 +172,12 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                         ),
                         Text(
                           '${user['email']} • ${UserRole.fromString(user['role']).displayName}',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                          ),
+                          style: AppTypography.captionStyle,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisSize: MainAxisSize.min,
@@ -206,13 +186,12 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.star_rounded,
-                              color: Colors.amber, size: 16),
-                          const SizedBox(width: 4),
+                              color: Colors.amber, size: 16), // DS-EXCEPTION: status color
+                          const SizedBox(width: AppSpacing.xs),
                           Text(
                             '${user['bonusPoints']}',
-                            style: TextStyle(
+                            style: AppTypography.captionStyle.copyWith(
                               color: AppColors.textPrimary,
-                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -221,9 +200,8 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                       const SizedBox(height: 2),
                       Text(
                         '₹${user['bonusAmount'].toStringAsFixed(2)}',
-                        style: TextStyle(
+                        style: AppTypography.captionStyle.copyWith(
                           color: AppColors.success,
-                          fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -246,12 +224,12 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
                 color: AppColors.primaryWithLowOpacity,
                 shape: BoxShape.circle,
@@ -262,21 +240,17 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                 color: AppColors.primary,
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.xxl),
             Text(
               'Select Employee',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
+              style: AppTypography.titleStyle,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               'Choose an employee to view their bonus history',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppTypography.fontSizeLG,
                 color: AppColors.textSecondary,
               ),
             ),
@@ -294,17 +268,15 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-            ),
+          return const Center(
+            child: AppLoading(),
           );
         }
 
         if (snapshot.hasError) {
           return Center(
             child: Padding(
-              padding: const EdgeInsets.all(32.0),
+              padding: const EdgeInsets.all(AppSpacing.xxl),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -313,25 +285,22 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                     size: 64,
                     color: AppColors.error,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.base),
                   Text(
                     'Error Loading History',
-                    style: TextStyle(
-                      fontSize: 18,
+                    style: AppTypography.headingStyle.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     snapshot.error.toString(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
+                    style: AppTypography.bodyStyle.copyWith(
                       color: AppColors.error,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.base),
                   ElevatedButton.icon(
                     onPressed: () {
                       setState(() {
@@ -342,7 +311,7 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                     label: const Text('Retry'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppColors.white,
                     ),
                   ),
                 ],
@@ -354,7 +323,7 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return Center(
             child: Padding(
-              padding: const EdgeInsets.all(32.0),
+              padding: const EdgeInsets.all(AppSpacing.xxl),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -363,20 +332,17 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                     size: 64,
                     color: AppColors.textSecondary,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.base),
                   Text(
                     'No Bonus History',
-                    style: TextStyle(
-                      fontSize: 18,
+                    style: AppTypography.headingStyle.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     'No bonus records yet',
-                    style: TextStyle(
-                      fontSize: 14,
+                    style: AppTypography.bodyStyle.copyWith(
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -399,7 +365,7 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
         });
 
         return ListView.builder(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           itemCount: bonuses.length,
           itemBuilder: (context, index) {
             final bonus = bonuses[index].data() as Map<String, dynamic>;
@@ -424,11 +390,11 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                 }
 
                 return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: AppSpacing.base),
+                  padding: const EdgeInsets.all(AppSpacing.base),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
                     border: Border.all(
                       color: isPositive
                           ? AppColors.success.withValues(alpha: 0.3)
@@ -454,7 +420,7 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                               color: isPositive
                                   ? AppColors.success.withValues(alpha: 0.1)
                                   : AppColors.error.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                             ),
                             child: Icon(
                               isPositive
@@ -466,33 +432,28 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                               size: 28,
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: AppSpacing.base),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   isPositive ? 'Bonus Added' : 'Bonus Removed',
-                                  style: TextStyle(
-                                    fontSize: 16,
+                                  style: AppTypography.subheadingStyle.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: AppSpacing.xs),
                                 Text(
                                   'By $updatedByName',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textSecondary,
-                                  ),
+                                  style: AppTypography.captionStyle,
                                 ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppSpacing.base),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
@@ -501,24 +462,24 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                               'Points',
                               '${points >= 0 ? '+' : ''}$points',
                               Icons.star_rounded,
-                              Colors.amber,
+                              Colors.amber, // DS-EXCEPTION: status color
                             ),
                           if (amount != 0)
                             _buildBonusValue(
                               'Amount',
                               '${amount >= 0 ? '+' : ''}₹${amount.abs().toStringAsFixed(2)}',
                               Icons.currency_rupee_rounded,
-                              Colors.green,
+                              Colors.green, // DS-EXCEPTION: status color
                             ),
                         ],
                       ),
                       if (reason != null && reason.isNotEmpty) ...[
-                        const SizedBox(height: 12),
+                        const SizedBox(height: AppSpacing.md),
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(AppSpacing.md),
                           decoration: BoxDecoration(
                             color: AppColors.primaryWithLowOpacity,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                           ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -528,15 +489,15 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                                 size: 16,
                                 color: AppColors.primary,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: AppSpacing.sm),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       'Reason',
-                                      style: TextStyle(
-                                        fontSize: 11,
+                                      style: AppTypography.captionStyle.copyWith(
+                                        fontSize: AppTypography.fontSizeXS,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.primary,
                                       ),
@@ -557,9 +518,9 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                         ),
                       ],
                       if (updatedAt != null) ...[
-                        const SizedBox(height: 12),
+                        const SizedBox(height: AppSpacing.md),
                         Divider(color: AppColors.grey300),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.sm),
                         Row(
                           children: [
                             Icon(
@@ -571,10 +532,7 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                             Text(
                               DateFormat('MMM dd, yyyy • h:mm a')
                                   .format(updatedAt),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
-                              ),
+                              style: AppTypography.captionStyle,
                             ),
                           ],
                         ),
@@ -599,21 +557,16 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
     return Column(
       children: [
         Icon(icon, color: color, size: 24),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
+          style: AppTypography.captionStyle,
         ),
         const SizedBox(height: 2),
         Text(
           value,
-          style: TextStyle(
-            fontSize: 18,
+          style: AppTypography.headingStyle.copyWith(
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
           ),
         ),
       ],

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_spacing.dart';
+import '../../utils/app_typography.dart';
 
 class StaffDetailsBottomSheet extends StatelessWidget {
   final Map<String, dynamic> staffData;
@@ -14,9 +16,9 @@ class StaffDetailsBottomSheet extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.xxl)),
       ),
       builder: (context) => StaffDetailsBottomSheet(staffData: staffData),
     );
@@ -45,21 +47,21 @@ class StaffDetailsBottomSheet extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.blue.shade500,
-                Colors.blue.shade700,
+                AppColors.info.withOpacity(0.85),
+                AppColors.info,
               ],
             ),
           ),
           child: Column(
             children: [
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxl),
               Container(
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: AppColors.white.withOpacity(0.24),
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
+                  border: Border.all(color: AppColors.white, width: 2),
                 ),
                 child: Center(
                   child: Text(
@@ -67,28 +69,28 @@ class StaffDetailsBottomSheet extends StatelessWidget {
                         ? staffData['name']!.substring(0, 1).toUpperCase()
                         : 'S',
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.base),
               Text(
                 staffData['name'] ?? 'Staff Member',
                 style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
+                  color: AppColors.white,
+                  fontSize: AppTypography.fontSize3XL,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxl),
             ],
           ),
         ),
         Positioned(
-          top: 16,
+          top: AppSpacing.base,
           left: 0,
           right: 0,
           child: Center(
@@ -96,7 +98,7 @@ class StaffDetailsBottomSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.3),
+                color: AppColors.white.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -108,7 +110,7 @@ class StaffDetailsBottomSheet extends StatelessWidget {
 
   Widget _buildContent(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         children: [
           _detailRow('Name', staffData['name'] ?? 'N/A'),
@@ -124,16 +126,16 @@ class StaffDetailsBottomSheet extends StatelessWidget {
                     .split(' ')[0]
                 : 'N/A',
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.base),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 ),
               ),
               child: const Text('Close'),
@@ -146,7 +148,7 @@ class StaffDetailsBottomSheet extends StatelessWidget {
 
   Widget _detailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

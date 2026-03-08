@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../components/common/app_bar_builder.dart';
+import '../components/common/app_loading.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_decorations.dart';
+import '../utils/app_spacing.dart';
+import '../utils/app_typography.dart';
 import '../utils/app_toast.dart';
 
 class WithdrawMaterialScreen extends StatefulWidget {
@@ -186,42 +191,11 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        leading: Container(
-          margin: const EdgeInsets.all(8),
-          child: IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.grey100,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: AppColors.textSecondary,
-                size: 20,
-              ),
-            ),
-          ),
-        ),
-        title: Text(
-          'Withdraw Material',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0.5,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: AppColors.shadowLight,
-        centerTitle: true,
+      appBar: buildAppBar(
+        title: 'Withdraw Material',
         actions: [
           Container(
-            margin: const EdgeInsets.only(right: 16),
+            margin: const EdgeInsets.only(right: AppSpacing.base),
             child: IconButton(
               onPressed: () {
                 setState(() {
@@ -230,10 +204,10 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                 _fetchAvailableMaterials();
               },
               icon: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: AppColors.primaryWithLowOpacity,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 ),
                 child: Icon(
                   Icons.refresh_rounded,
@@ -247,10 +221,8 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
         ],
       ),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
+          ? const Center(
+              child: AppLoading(),
             )
           : Column(
               children: [
@@ -259,11 +231,11 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                   width: double.infinity,
                   color: AppColors.surface,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xxl),
                     child: Column(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(AppSpacing.lg),
                           decoration: BoxDecoration(
                             color: AppColors.primaryWithLowOpacity,
                             shape: BoxShape.circle,
@@ -274,21 +246,16 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                             color: AppColors.primary,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.base),
                         Text(
                           'Withdraw Material',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
-                          ),
+                          style: AppTypography.displayLargeStyle,
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.sm),
                         Text(
                           'Request materials for your project',
-                          style: TextStyle(
-                            fontSize: 16,
+                          style: AppTypography.subheadingStyle.copyWith(
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.w500,
                           ),
@@ -306,17 +273,17 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                     child: Form(
                       key: _formKey,
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(24.0),
+                        padding: const EdgeInsets.all(AppSpacing.xl),
                         physics: const AlwaysScrollableScrollPhysics(),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _buildMaterialSelectionCard(),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: AppSpacing.xl),
                             _buildProjectDetailsCard(),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: AppSpacing.xl),
                             _buildRequestDetailsCard(),
-                            const SizedBox(height: 32),
+                            const SizedBox(height: AppSpacing.xxl),
                             // Submit Button
                             Container(
                               width: double.infinity,
@@ -328,7 +295,7 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                                     AppColors.warning.withValues(alpha: 0.8)
                                   ],
                                 ),
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
                                 boxShadow: [
                                   BoxShadow(
                                     color: AppColors.warning
@@ -342,13 +309,12 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                                 color: Colors.transparent,
                                 child: InkWell(
                                   onTap: _submitWithdrawRequest,
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
                                   child: Center(
                                     child: Text(
                                       'SUBMIT REQUEST',
-                                      style: TextStyle(
-                                        color: AppColors.textOnDark,
-                                        fontSize: 16,
+                                      style: AppTypography.subheadingStyle.copyWith(
+                                        color: AppColors.textOnPrimary,
                                         fontWeight: FontWeight.bold,
                                         letterSpacing: 1.2,
                                       ),
@@ -357,7 +323,7 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: AppSpacing.xl),
                           ],
                         ),
                       ),
@@ -371,25 +337,21 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
 
   Widget _buildSectionHeader(String title, IconData icon) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: AppSpacing.base),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: AppColors.primaryWithLowOpacity,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
             child: Icon(icon, color: AppColors.primary, size: 24),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Text(
             title,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+            style: AppTypography.titleStyle,
           ),
         ],
       ),
@@ -398,23 +360,13 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
 
   Widget _buildMaterialSelectionCard() {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.cardShadow,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.modernCardDecoration,
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           children: [
             _buildSectionHeader('Material Selection', Icons.inventory_outlined),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
 
             // Material Dropdown
             _isLoadingMaterials
@@ -422,7 +374,7 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                     height: 60,
                     decoration: BoxDecoration(
                       color: AppColors.grey50,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                       border: Border.all(color: AppColors.grey300, width: 1),
                     ),
                     child: Center(
@@ -438,7 +390,7 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                                   AppColors.primary),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: AppSpacing.md),
                           Text(
                             'Loading materials...',
                             style: TextStyle(color: AppColors.textSecondary),
@@ -452,7 +404,7 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                         height: 60,
                         decoration: BoxDecoration(
                           color: AppColors.grey50,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                           border:
                               Border.all(color: AppColors.grey300, width: 1),
                         ),
@@ -462,13 +414,13 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                             children: [
                               Icon(Icons.inventory_outlined,
                                   color: AppColors.textSecondary),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: AppSpacing.sm),
                               Text(
                                 'No materials available',
                                 style:
                                     TextStyle(color: AppColors.textSecondary),
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: AppSpacing.md),
                               TextButton.icon(
                                 onPressed: _fetchAvailableMaterials,
                                 icon: Icon(Icons.refresh,
@@ -496,19 +448,19 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                       ),
 
             if (_selectedMaterial != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: AppColors.info.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                   border:
                       Border.all(color: AppColors.info.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
                     Icon(Icons.info_outline, color: AppColors.info, size: 20),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       _getAvailableQuantity(),
                       style: TextStyle(
@@ -521,7 +473,7 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
               ),
             ],
 
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.base),
 
             // Quantity
             _buildTextField(
@@ -545,24 +497,14 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
 
   Widget _buildProjectDetailsCard() {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.cardShadow,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.modernCardDecoration,
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           children: [
             _buildSectionHeader(
                 'Project Details', Icons.business_center_outlined),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
 
             // Project Code
             _buildTextField(
@@ -572,7 +514,7 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
               validator: (value) =>
                   value?.isEmpty ?? true ? 'Project code is required' : null,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.base),
 
             // Purpose
             _buildTextField(
@@ -591,23 +533,13 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
 
   Widget _buildRequestDetailsCard() {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.cardShadow,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.modernCardDecoration,
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           children: [
             _buildSectionHeader('Request Details', Icons.schedule_outlined),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
 
             // Priority
             _buildDropdown(
@@ -619,18 +551,18 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
               validator: (value) =>
                   value == null ? 'Please select priority' : null,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.base),
 
             // Required Date
             Container(
               decoration: BoxDecoration(
                 color: AppColors.grey50,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 border: Border.all(color: AppColors.grey300, width: 1),
               ),
               child: InkWell(
                 onTap: _selectRequiredDate,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 child: InputDecorator(
                   decoration: InputDecoration(
                     labelText: 'Required Date',
@@ -638,7 +570,7 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                     prefixIcon: Icon(Icons.calendar_today_outlined,
                         color: AppColors.primary),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
@@ -657,7 +589,7 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.base),
 
             // Remarks
             _buildTextField(
@@ -681,16 +613,14 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
     String? Function(String?)? validator,
   }) {
     return Container(
-      decoration: AppColors.modernCardDecoration,
+      decoration: AppDecorations.modernCardDecoration,
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
         maxLines: maxLines,
         validator: validator,
-        style: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
+        style: AppTypography.bodyMediumStyle.copyWith(
+          fontSize: AppTypography.fontSizeLG,
         ),
         decoration: InputDecoration(
           labelText: label,
@@ -699,11 +629,11 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
             fontWeight: FontWeight.w500,
           ),
           prefixIcon: Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(8),
+            margin: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: AppColors.primaryWithLowOpacity,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
             child: Icon(
               icon,
@@ -712,16 +642,13 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
             ),
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
             borderSide: BorderSide.none,
           ),
           filled: true,
           fillColor: AppColors.surface,
           alignLabelWithHint: maxLines > 1,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 20,
-          ),
+          contentPadding: const EdgeInsets.all(AppSpacing.lg),
         ),
       ),
     );
@@ -736,14 +663,12 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
     String? Function(String?)? validator,
   }) {
     return Container(
-      decoration: AppColors.modernCardDecoration,
+      decoration: AppDecorations.modernCardDecoration,
       child: DropdownButtonFormField<String>(
         value: value,
         validator: validator,
-        style: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
+        style: AppTypography.bodyMediumStyle.copyWith(
+          fontSize: AppTypography.fontSizeLG,
         ),
         decoration: InputDecoration(
           labelText: label,
@@ -752,11 +677,11 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
             fontWeight: FontWeight.w500,
           ),
           prefixIcon: Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(8),
+            margin: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: AppColors.primaryWithLowOpacity,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
             child: Icon(
               icon,
@@ -765,25 +690,20 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
             ),
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
             borderSide: BorderSide.none,
           ),
           filled: true,
           fillColor: AppColors.surface,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 20,
-          ),
+          contentPadding: const EdgeInsets.all(AppSpacing.lg),
         ),
         items: items
             .map((item) => DropdownMenuItem(
                   value: item,
                   child: Text(
                     item,
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                    style: AppTypography.bodyMediumStyle.copyWith(
+                      fontSize: AppTypography.fontSizeLG,
                     ),
                   ),
                 ))
@@ -791,7 +711,7 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
         onChanged: onChanged,
         dropdownColor: AppColors.surface,
         icon: Container(
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(AppSpacing.xs),
           decoration: BoxDecoration(
             color: AppColors.grey200,
             borderRadius: BorderRadius.circular(6),

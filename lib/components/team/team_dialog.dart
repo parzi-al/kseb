@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_spacing.dart';
+import '../../utils/app_typography.dart';
 import '../../utils/app_toast.dart';
 import '../../models/team_model.dart';
 import '../../models/user_model.dart';
@@ -209,12 +211,12 @@ class _TeamDialogState extends State<TeamDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
       ),
       backgroundColor: AppColors.surface,
       child: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           child: Form(
             key: _formKey,
             child: Column(
@@ -225,10 +227,10 @@ class _TeamDialogState extends State<TeamDialog> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
                         color: AppColors.primaryWithLowOpacity,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                       ),
                       child: Icon(
                         isEditing ? Icons.edit_rounded : Icons.group_add_rounded,
@@ -236,7 +238,7 @@ class _TeamDialogState extends State<TeamDialog> {
                         size: 28,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: AppSpacing.base),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,7 +246,7 @@ class _TeamDialogState extends State<TeamDialog> {
                           Text(
                             isEditing ? 'Edit Team' : 'Create New Team',
                             style: TextStyle(
-                              fontSize: 22,
+                              fontSize: AppTypography.fontSize2XL,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
                             ),
@@ -254,7 +256,7 @@ class _TeamDialogState extends State<TeamDialog> {
                                 ? 'Update team information'
                                 : 'Add a new team to your organization',
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: AppTypography.fontSizeSM,
                               color: AppColors.textSecondary,
                             ),
                           ),
@@ -263,7 +265,7 @@ class _TeamDialogState extends State<TeamDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.xl),
 
                 // Team Name
                 TextFormField(
@@ -273,7 +275,7 @@ class _TeamDialogState extends State<TeamDialog> {
                     hintText: 'e.g., Team 01',
                     prefixIcon: Icon(Icons.label_rounded, color: AppColors.primary),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     ),
                     filled: true,
                     fillColor: AppColors.background,
@@ -285,7 +287,7 @@ class _TeamDialogState extends State<TeamDialog> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.base),
 
                 // Area Code
                 TextFormField(
@@ -295,7 +297,7 @@ class _TeamDialogState extends State<TeamDialog> {
                     hintText: 'e.g., AREA_001',
                     prefixIcon: Icon(Icons.location_on_rounded, color: AppColors.primary),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     ),
                     filled: true,
                     fillColor: AppColors.background,
@@ -307,17 +309,17 @@ class _TeamDialogState extends State<TeamDialog> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.base),
 
                 // Supervisor Dropdown
                 _isLoadingUsers
                     ? const Center(child: CircularProgressIndicator())
                     : _supervisors.isEmpty
                         ? Container(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(AppSpacing.base),
                             decoration: BoxDecoration(
                               color: AppColors.background,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                               border: Border.all(
                                 color: AppColors.grey300,
                                 width: 1.5,
@@ -330,13 +332,13 @@ class _TeamDialogState extends State<TeamDialog> {
                                   color: AppColors.textSecondary,
                                   size: 20,
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: AppSpacing.md),
                                 Expanded(
                                   child: Text(
                                     'No supervisors available',
                                     style: TextStyle(
                                       color: AppColors.textSecondary,
-                                      fontSize: 14,
+                                      fontSize: AppTypography.fontSizeBase,
                                     ),
                                   ),
                                 ),
@@ -355,7 +357,7 @@ class _TeamDialogState extends State<TeamDialog> {
                                 text: user['name'],
                                 subtitle: (user['role'] as UserRole).displayName,
                                 icon: Icons.badge_rounded,
-                                iconColor: Colors.blue,
+                                iconColor: AppColors.info,
                               );
                             }).toList(),
                             onChanged: (value) {
@@ -370,17 +372,17 @@ class _TeamDialogState extends State<TeamDialog> {
                               return null;
                             },
                           ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.base),
 
                 // Manager Dropdown (Optional)
                 _isLoadingUsers
                     ? const SizedBox()
                     : _managers.isEmpty
                         ? Container(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(AppSpacing.base),
                             decoration: BoxDecoration(
                               color: AppColors.background,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                               border: Border.all(
                                 color: AppColors.grey300,
                                 width: 1.5,
@@ -393,13 +395,13 @@ class _TeamDialogState extends State<TeamDialog> {
                                   color: AppColors.textSecondary,
                                   size: 20,
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: AppSpacing.md),
                                 Expanded(
                                   child: Text(
                                     'No managers available',
                                     style: TextStyle(
                                       color: AppColors.textSecondary,
-                                      fontSize: 14,
+                                      fontSize: AppTypography.fontSizeBase,
                                     ),
                                   ),
                                 ),
@@ -416,7 +418,7 @@ class _TeamDialogState extends State<TeamDialog> {
                                 value: '',
                                 text: 'None',
                                 icon: Icons.block_rounded,
-                                iconColor: Colors.grey,
+                                iconColor: AppColors.grey500,
                               ),
                               ..._managers.map((user) {
                                 return ModernDropdownItem.create<String>(
@@ -434,25 +436,25 @@ class _TeamDialogState extends State<TeamDialog> {
                               });
                             },
                           ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.base),
 
                 // Staff Members Section
                 if (!_isLoadingUsers) ...[
                   Text(
                     'Staff Members',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: AppTypography.fontSizeBase,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   _allStaff.isEmpty
                       ? Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(AppSpacing.base),
                           decoration: BoxDecoration(
                             color: AppColors.background,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                             border: Border.all(
                               color: AppColors.grey300,
                               width: 1.5,
@@ -465,13 +467,13 @@ class _TeamDialogState extends State<TeamDialog> {
                                 color: AppColors.textSecondary,
                                 size: 20,
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: AppSpacing.md),
                               Expanded(
                                 child: Text(
                                   'No staff members available',
                                   style: TextStyle(
                                     color: AppColors.textSecondary,
-                                    fontSize: 14,
+                                    fontSize: AppTypography.fontSizeBase,
                                   ),
                                 ),
                               ),
@@ -482,7 +484,7 @@ class _TeamDialogState extends State<TeamDialog> {
                           constraints: const BoxConstraints(maxHeight: 200),
                           decoration: BoxDecoration(
                             color: AppColors.background,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                             border: Border.all(
                               color: AppColors.grey300,
                               width: 1.5,
@@ -518,7 +520,7 @@ class _TeamDialogState extends State<TeamDialog> {
                             staff['name'],
                             style: TextStyle(
                               color: AppColors.textPrimary,
-                              fontSize: 14,
+                              fontSize: AppTypography.fontSizeBase,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -526,7 +528,7 @@ class _TeamDialogState extends State<TeamDialog> {
                             (staff['role'] as UserRole).displayName,
                             style: TextStyle(
                               color: AppColors.textSecondary,
-                              fontSize: 12,
+                              fontSize: AppTypography.fontSizeSM,
                             ),
                           ),
                           secondary: Icon(
@@ -537,7 +539,7 @@ class _TeamDialogState extends State<TeamDialog> {
                           activeColor: AppColors.primary,
                           controlAffinity: ListTileControlAffinity.leading,
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
+                            horizontal: AppSpacing.md,
                             vertical: 0,
                           ),
                         );
@@ -545,17 +547,17 @@ class _TeamDialogState extends State<TeamDialog> {
                     ),
                   ),
                   if (_allStaff.isNotEmpty) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       '${_selectedStaffIds.length} staff member(s) selected',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: AppTypography.fontSizeSM,
                         color: AppColors.textSecondary,
                       ),
                     ),
                   ],
                 ],
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.xl),
 
                 // Action Buttons
                 Row(
@@ -566,9 +568,9 @@ class _TeamDialogState extends State<TeamDialog> {
                             ? null
                             : () => Navigator.of(context).pop(),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.base),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                           ),
                           side: BorderSide(color: AppColors.grey300),
                         ),
@@ -581,16 +583,16 @@ class _TeamDialogState extends State<TeamDialog> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _saveTeam,
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.base),
                           backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
+                          foregroundColor: AppColors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                           ),
                         ),
                         child: _isLoading
@@ -598,7 +600,7 @@ class _TeamDialogState extends State<TeamDialog> {
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
-                                  color: Colors.white,
+                                  color: AppColors.white,
                                   strokeWidth: 2,
                                 ),
                               )
@@ -606,7 +608,7 @@ class _TeamDialogState extends State<TeamDialog> {
                                 isEditing ? 'Update' : 'Create',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: AppTypography.fontSizeLG,
                                 ),
                               ),
                       ),

@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../../firebase_options.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_spacing.dart';
+import '../../utils/app_typography.dart';
 import '../../utils/app_toast.dart';
 import '../../models/user_model.dart';
 
@@ -35,7 +37,7 @@ class StaffFormDialog extends StatefulWidget {
     VoidCallback? onStaffSaved,
   }) {
     showDialog(
-      barrierColor: Colors.black.withValues(alpha: 0.5),
+      barrierColor: AppColors.black.withValues(alpha: 0.5),
       context: context,
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
@@ -131,16 +133,16 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.error_outline, color: Colors.white),
-                const SizedBox(width: 8),
+                const Icon(Icons.error_outline, color: AppColors.white),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(child: Text(message)),
               ],
             ),
-            backgroundColor: Colors.red.shade600,
+            backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.all(16),
+            margin: const EdgeInsets.all(AppSpacing.base),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
             ),
             duration: const Duration(seconds: 4),
           ),
@@ -291,8 +293,8 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.check_circle, color: Colors.white),
-                  const SizedBox(width: 8),
+                  const Icon(Icons.check_circle, color: AppColors.white),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       widget.isEditMode
@@ -304,9 +306,9 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
               ),
               backgroundColor: AppColors.success,
               behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(16),
+              margin: const EdgeInsets.all(AppSpacing.base),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
               ),
               duration: const Duration(seconds: 3),
             ),
@@ -327,15 +329,15 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+      insetPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.page),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 600),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: AppColors.black.withValues(alpha: 0.1),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -357,7 +359,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -375,18 +377,18 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(16),
+              color: AppColors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
             ),
             child: Icon(
               widget.isEditMode ? Icons.edit_rounded : Icons.person_add_rounded,
-              color: Colors.white,
+              color: AppColors.white,
               size: 28,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.base),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,19 +396,19 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                 Text(
                   widget.isEditMode ? 'Edit Staff Member' : 'Add New Staff',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   widget.isEditMode
                       ? 'Update staff information'
                       : 'Create a new staff profile',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 14,
+                    color: AppColors.white.withValues(alpha: 0.9),
+                    fontSize: AppTypography.fontSizeBase,
                   ),
                 ),
               ],
@@ -414,7 +416,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
           ),
           IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.close_rounded, color: Colors.white),
+            icon: const Icon(Icons.close_rounded, color: AppColors.white),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
@@ -427,7 +429,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -440,7 +442,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
               validator: (value) =>
                   value?.isEmpty ?? true ? 'Name is required' : null,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
             _buildTextField(
               controller: _emailController,
               label: 'Email Address',
@@ -458,7 +460,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                 return null;
               },
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
             _buildTextField(
               controller: _phoneController,
               label: 'Phone Number',
@@ -476,16 +478,16 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                 return null;
               },
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
 
             // Password field - only shown when adding new staff
             if (!widget.isEditMode) ...[
               _buildPasswordField(),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
             ],
 
             _buildTeamDropdown(),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
             _buildTextField(
               controller: _areaCodeController,
               label: 'Area Code',
@@ -497,11 +499,11 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
             // Role dropdown - only visible for COO and Director
             if (widget.currentUserRole == UserRole.coo ||
                 widget.currentUserRole == UserRole.director) ...[
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
               _buildRoleDropdown(),
             ],
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
             _buildInfoBox(),
           ],
         ),
@@ -526,21 +528,21 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
             Text(
               label,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: AppTypography.fontSizeBase,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: AppColors.textPrimary,
               ),
             ),
             if (required) ...[
-              const SizedBox(width: 4),
+              const SizedBox(width: AppSpacing.xs),
               const Text(
                 '*',
-                style: TextStyle(color: Colors.red, fontSize: 14),
+                style: TextStyle(color: AppColors.error, fontSize: AppTypography.fontSizeBase),
               ),
             ],
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
@@ -550,34 +552,34 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
             prefixIcon: Icon(icon, color: AppColors.primary, size: 22),
             hintText: 'Enter $label',
             hintStyle: TextStyle(
-              color: Colors.grey.shade400,
-              fontSize: 14,
+              color: AppColors.grey400,
+              fontSize: AppTypography.fontSizeBase,
             ),
             filled: true,
-            fillColor: Colors.grey.shade50,
+            fillColor: AppColors.grey50,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+              borderSide: BorderSide(color: AppColors.grey300),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+              borderSide: BorderSide(color: AppColors.grey300),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Colors.red, width: 1),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+              borderSide: const BorderSide(color: AppColors.error, width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+              borderSide: const BorderSide(color: AppColors.error, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
+              horizontal: AppSpacing.base,
+              vertical: AppSpacing.base,
             ),
           ),
         ),
@@ -594,19 +596,19 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
             const Text(
               'Password',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: AppTypography.fontSizeBase,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: AppSpacing.xs),
             const Text(
               '*',
-              style: TextStyle(color: Colors.red, fontSize: 14),
+              style: TextStyle(color: AppColors.error, fontSize: AppTypography.fontSizeBase),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: _passwordController,
           obscureText: _obscurePassword,
@@ -627,7 +629,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                 _obscurePassword
                     ? Icons.visibility_off_rounded
                     : Icons.visibility_rounded,
-                color: Colors.grey.shade600,
+                color: AppColors.grey600,
                 size: 20,
               ),
               onPressed: () {
@@ -638,34 +640,34 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
             ),
             hintText: 'Enter password (min. 6 characters)',
             hintStyle: TextStyle(
-              color: Colors.grey.shade400,
-              fontSize: 14,
+              color: AppColors.grey400,
+              fontSize: AppTypography.fontSizeBase,
             ),
             filled: true,
-            fillColor: Colors.grey.shade50,
+            fillColor: AppColors.grey50,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+              borderSide: BorderSide(color: AppColors.grey300),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+              borderSide: BorderSide(color: AppColors.grey300),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Colors.red, width: 1),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+              borderSide: const BorderSide(color: AppColors.error, width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+              borderSide: const BorderSide(color: AppColors.error, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
+              horizontal: AppSpacing.base,
+              vertical: AppSpacing.base,
             ),
           ),
         ),
@@ -680,19 +682,19 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
         const Text(
           'Team',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: AppTypography.fontSizeBase,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         _loadingTeams
             ? Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.base),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade300),
+                  color: AppColors.grey50,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                  border: Border.all(color: AppColors.grey300),
                 ),
                 child: const Row(
                   children: [
@@ -701,7 +703,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    SizedBox(width: 12),
+                    SizedBox(width: AppSpacing.md),
                     Text('Loading teams...'),
                   ],
                 ),
@@ -713,27 +715,27 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                       color: AppColors.primary, size: 22),
                   hintText: 'Select a team (optional)',
                   hintStyle: TextStyle(
-                    color: Colors.grey.shade400,
-                    fontSize: 14,
+                    color: AppColors.grey400,
+                    fontSize: AppTypography.fontSizeBase,
                   ),
                   filled: true,
-                  fillColor: Colors.grey.shade50,
+                  fillColor: AppColors.grey50,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                    borderSide: BorderSide(color: AppColors.grey300),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                    borderSide: BorderSide(color: AppColors.grey300),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
                     borderSide:
                         const BorderSide(color: AppColors.primary, width: 2),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
+                    horizontal: AppSpacing.base,
+                    vertical: AppSpacing.base,
                   ),
                 ),
                 items: [
@@ -767,16 +769,16 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
             const Text(
               'Role',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: AppTypography.fontSizeBase,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.orange.shade100,
+                color: AppColors.warning.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
@@ -784,13 +786,13 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: Colors.orange.shade700,
+                  color: AppColors.warning,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         DropdownButtonFormField<UserRole>(
           value: _selectedRole,
           decoration: InputDecoration(
@@ -801,26 +803,26 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
             ),
             hintText: 'Select role',
             hintStyle: TextStyle(
-              color: Colors.grey.shade400,
-              fontSize: 14,
+              color: AppColors.grey400,
+              fontSize: AppTypography.fontSizeBase,
             ),
             filled: true,
-            fillColor: Colors.grey.shade50,
+            fillColor: AppColors.grey50,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+              borderSide: BorderSide(color: AppColors.grey300),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+              borderSide: BorderSide(color: AppColors.grey300),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
+              horizontal: AppSpacing.base,
+              vertical: AppSpacing.base,
             ),
           ),
           items: widget.currentUserRole.manageableRoles.map((role) {
@@ -830,9 +832,9 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                 children: [
                   Icon(_getRoleIcon(role),
                       size: 18, color: _getRoleColor(role)),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Text(role.displayName),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -883,15 +885,15 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
   Color _getRoleColor(UserRole role) {
     switch (role) {
       case UserRole.staff:
-        return Colors.blue;
+        return AppColors.info;
       case UserRole.supervisor:
-        return Colors.green;
+        return AppColors.success;
       case UserRole.manager:
-        return Colors.orange;
+        return AppColors.warning;
       case UserRole.coo:
-        return Colors.purple;
+        return Colors.purple; // DS-EXCEPTION: role color
       case UserRole.director:
-        return Colors.red;
+        return AppColors.error;
     }
   }
 
@@ -907,7 +909,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.base),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -915,7 +917,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
             AppColors.info.withValues(alpha: 0.05),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
         border: Border.all(
           color: AppColors.info.withValues(alpha: 0.3),
           width: 1,
@@ -925,10 +927,10 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: AppColors.info.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
             child: Icon(
               Icons.info_outline_rounded,
@@ -936,7 +938,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
               size: 20,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               message,
@@ -955,9 +957,9 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
 
   Widget _buildActions() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppColors.grey50,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(28),
           bottomRight: Radius.circular(28),
@@ -969,31 +971,31 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
             child: OutlinedButton(
               onPressed: _isLoading ? null : () => Navigator.pop(context),
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.base),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
                 ),
-                side: BorderSide(color: Colors.grey.shade300, width: 2),
+                side: BorderSide(color: AppColors.grey300, width: 2),
               ),
               child: Text(
                 'Cancel',
                 style: TextStyle(
-                  color: Colors.grey.shade700,
-                  fontSize: 16,
+                  color: AppColors.grey700,
+                  fontSize: AppTypography.fontSizeLG,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.base),
           Expanded(
             child: ElevatedButton(
               onPressed: _isLoading ? null : _saveStaff,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.base),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
                 ),
                 elevation: 0,
               ),
@@ -1003,13 +1005,13 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                       width: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                       ),
                     )
                   : Text(
                       widget.isEditMode ? 'Update Staff' : 'Add Staff',
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: AppTypography.fontSizeLG,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
