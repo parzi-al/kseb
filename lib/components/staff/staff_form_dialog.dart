@@ -783,7 +783,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
               padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.sm, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.2),
+                color: AppColors.warning.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(

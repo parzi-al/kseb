@@ -174,12 +174,12 @@
 
 ### Final Audit & Cleanup
 
-- [ ] T063 [US5] Grep audit all lib/screens/ and lib/components/ files for raw `Colors.` references — replace with AppColors tokens
-- [ ] T064 [US5] Grep audit all lib/screens/ and lib/components/ files for inline `TextStyle(` constructors — replace with AppTypography tokens
-- [ ] T065 [US5] Grep audit all lib/screens/ and lib/components/ files for magic-number `SizedBox(height:` and `SizedBox(width:` — replace with AppSpacing tokens
-- [ ] T066 [US5] Grep audit all lib/screens/ and lib/components/ files for `Color.withOpacity(` — replace with `Color.withValues(alpha:)` per FR-018
-- [ ] T067 [US5] Add `// DS-EXCEPTION:` comments for any legitimate one-off values that cannot use tokens (per quickstart.md escape hatch pattern)
-- [ ] T068 [US5] Run full test suite and verify no regressions after cleanup pass
+- [x] T063 [US5] Grep audit all lib/screens/ and lib/components/ files for raw `Colors.` references — replace with AppColors tokens
+- [x] T064 [US5] Grep audit all lib/screens/ and lib/components/ files for inline `TextStyle(` constructors — replace with AppTypography tokens
+- [x] T065 [US5] Grep audit all lib/screens/ and lib/components/ files for magic-number `SizedBox(height:` and `SizedBox(width:` — replace with AppSpacing tokens
+- [x] T066 [US5] Grep audit all lib/screens/ and lib/components/ files for `Color.withOpacity(` — replace with `Color.withValues(alpha:)` per FR-018
+- [x] T067 [US5] Add `// DS-EXCEPTION:` comments for any legitimate one-off values that cannot use tokens (per quickstart.md escape hatch pattern)
+- [x] T068 [US5] Run full test suite and verify no regressions after cleanup pass
 
 **Checkpoint**: All inline styling eliminated. Codebase passes static audit. User Story 5 is complete.
 

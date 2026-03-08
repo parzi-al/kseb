@@ -412,14 +412,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: _isMarkedToday
-                ? [Colors.grey, Colors.grey.shade600]
+                ? [Colors.grey, Colors.grey.shade600] // DS-EXCEPTION: disabled state
                 : [AppColors.primary, AppColors.primaryLight],
           ),
           borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
           boxShadow: [
             BoxShadow(
               color: _isMarkedToday
-                  ? Colors.grey.withValues(alpha: 0.3)
+                  ? Colors.grey.withValues(alpha: 0.3) // DS-EXCEPTION: disabled state
                   : AppColors.primary.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),

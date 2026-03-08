@@ -108,7 +108,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       elevation: 0,
-      backgroundColor: AppColors.white.withOpacity(0.9),
+      backgroundColor: AppColors.white.withValues(alpha: 0.9),
       foregroundColor: AppColors.textPrimary,
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
@@ -117,10 +117,10 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.white.withOpacity(0.8),
+              color: AppColors.white.withValues(alpha: 0.8),
               border: Border(
                 bottom: BorderSide(
-                  color: AppColors.grey500.withOpacity(0.1),
+                  color: AppColors.grey500.withValues(alpha: 0.1),
                   width: 1,
                 ),
               ),
@@ -155,7 +155,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                     borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.info.withOpacity(0.3),
+                        color: AppColors.info.withValues(alpha: 0.3),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -200,13 +200,13 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           child: Container(
             decoration: BoxDecoration(
               color: _isSearching
-                  ? AppColors.info.withOpacity(0.1)
-                  : AppColors.grey500.withOpacity(0.1),
+                  ? AppColors.info.withValues(alpha: 0.1)
+                  : AppColors.grey500.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
               border: Border.all(
                 color: _isSearching
-                    ? AppColors.info.withOpacity(0.3)
-                    : AppColors.grey500.withOpacity(0.2),
+                    ? AppColors.info.withValues(alpha: 0.3)
+                    : AppColors.grey500.withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
@@ -294,7 +294,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppColors.info.withOpacity(0.05),
+            AppColors.info.withValues(alpha: 0.05),
             AppColors.white,
             AppColors.grey50,
           ],
@@ -392,7 +392,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppColors.info.withOpacity(0.05),
+            AppColors.info.withValues(alpha: 0.05),
             AppColors.white,
             AppColors.grey50,
           ],
@@ -409,7 +409,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           child: Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              color: AppColors.white.withOpacity(0.1),
+              color: AppColors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(AppSpacing.xl),
                 topRight: Radius.circular(AppSpacing.xl),
@@ -424,10 +424,10 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                     padding: EdgeInsets.symmetric(
                         horizontal: AppSpacing.base, vertical: AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: AppColors.info.withOpacity(0.08),
+                      color: AppColors.info.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                       border: Border.all(
-                          color: AppColors.info.withOpacity(0.3), width: 1),
+                          color: AppColors.info.withValues(alpha: 0.3), width: 1),
                     ),
                     child: Row(
                       children: [
@@ -621,7 +621,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        AppColors.purple.withOpacity(0.8),
+                        AppColors.purple.withValues(alpha: 0.8),
                         AppColors.purple
                       ], // DS-EXCEPTION: role color
                     ),

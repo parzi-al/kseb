@@ -440,7 +440,7 @@ class _TeamDialogState extends State<TeamDialog> {
                                   subtitle:
                                       (user['role'] as UserRole).displayName,
                                   icon: Icons.manage_accounts_rounded,
-                                  iconColor: Colors.purple,
+                                  iconColor: Colors.purple, // DS-EXCEPTION: role color
                                 );
                               }).toList(),
                             ],

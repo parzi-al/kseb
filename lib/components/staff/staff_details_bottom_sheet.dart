@@ -48,7 +48,7 @@ class StaffDetailsBottomSheet extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.info.withOpacity(0.85),
+                AppColors.info.withValues(alpha: 0.85),
                 AppColors.info,
               ],
             ),
@@ -60,7 +60,7 @@ class StaffDetailsBottomSheet extends StatelessWidget {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: AppColors.white.withOpacity(0.24),
+                  color: AppColors.white.withValues(alpha: 0.24),
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.white, width: 2),
                 ),
@@ -99,7 +99,7 @@ class StaffDetailsBottomSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.white.withOpacity(0.3),
+                color: AppColors.white.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

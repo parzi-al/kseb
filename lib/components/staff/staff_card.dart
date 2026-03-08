@@ -28,21 +28,21 @@ class StaffCard extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColors.white.withOpacity(0.95),
+          color: AppColors.white.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
           border: Border.all(
-            color: AppColors.white.withOpacity(0.3),
+            color: AppColors.white.withValues(alpha: 0.3),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(0.08),
+              color: AppColors.black.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, 4),
               spreadRadius: -2,
             ),
             BoxShadow(
-              color: AppColors.black.withOpacity(0.05),
+              color: AppColors.black.withValues(alpha: 0.05),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -162,7 +162,7 @@ class StaffCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.info.withOpacity(0.8),
+            AppColors.info.withValues(alpha: 0.8),
             AppColors.info,
           ],
           begin: Alignment.topLeft,
@@ -171,7 +171,7 @@ class StaffCard extends StatelessWidget {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: AppColors.info.withOpacity(0.3),
+            color: AppColors.info.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -206,10 +206,10 @@ class StaffCard extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
+            color: color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
