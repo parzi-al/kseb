@@ -295,8 +295,11 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   width: double.infinity,
                   color: AppColors.surface,
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(context.responsivePadding(AppSpacing.xl),
-                        context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xxl)),
+                    padding: EdgeInsets.fromLTRB(
+                        context.responsivePadding(AppSpacing.xl),
+                        context.responsivePadding(AppSpacing.xl),
+                        context.responsivePadding(AppSpacing.xl),
+                        context.responsivePadding(AppSpacing.xxl)),
                     child: Column(
                       children: [
                         Container(
@@ -340,14 +343,18 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   child: Form(
                     key: _formKey,
                     child: SingleChildScrollView(
-                      padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
+                      padding: EdgeInsets.all(
+                          context.responsivePadding(AppSpacing.lg)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _buildProjectDetailsCard(),
-                          SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
+                          SizedBox(
+                              height: context.responsiveSpacing(AppSpacing.xl)),
                           _buildDocumentationCard(),
-                          SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
+                          SizedBox(
+                              height:
+                                  context.responsiveSpacing(AppSpacing.xxl)),
                           // Submit Button
                           Container(
                             width: double.infinity,

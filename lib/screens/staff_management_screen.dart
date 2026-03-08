@@ -427,7 +427,8 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                       color: AppColors.info.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                       border: Border.all(
-                          color: AppColors.info.withValues(alpha: 0.3), width: 1),
+                          color: AppColors.info.withValues(alpha: 0.3),
+                          width: 1),
                     ),
                     child: Row(
                       children: [

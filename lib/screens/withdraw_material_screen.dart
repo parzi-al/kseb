@@ -231,7 +231,6 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                   width: double.infinity,
                   color: AppColors.surface,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(AppSpacing.xl,
                     padding: EdgeInsets.fromLTRB(context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xxl)),
                     child: Column(
                       children: [

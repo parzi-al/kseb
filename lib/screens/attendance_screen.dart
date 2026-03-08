@@ -305,7 +305,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       width: double.infinity,
       color: AppColors.surface,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(
         padding: EdgeInsets.fromLTRB(context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xl), context.responsivePadding(AppSpacing.xxl)),
         child: Column(
           children: [

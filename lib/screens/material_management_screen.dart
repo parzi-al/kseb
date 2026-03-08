@@ -67,7 +67,8 @@ class MaterialManagementScreen extends StatelessWidget {
 
             // Modern Content Section
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: context.responsivePadding(AppSpacing.lg)),
+              padding: EdgeInsets.symmetric(
+                  horizontal: context.responsivePadding(AppSpacing.lg)),
               child: Column(
                 children: [
                   _buildManagementCard(

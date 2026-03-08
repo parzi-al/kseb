@@ -53,8 +53,7 @@ void main() {
                 accentColor: AppColors.primary,
                 child: Column(
                   children: [
-                    Text('Card Title',
-                        style: AppTypography.subheadingStyle),
+                    Text('Card Title', style: AppTypography.subheadingStyle),
                     SizedBox(height: AppSpacing.sm),
                     Text('Card body', style: AppTypography.bodyStyle),
                   ],
@@ -129,8 +128,7 @@ void main() {
       expect(find.text('Something went wrong'), findsOneWidget);
     });
 
-    testWidgets('responsive extensions scale with screen size',
-        (tester) async {
+    testWidgets('responsive extensions scale with screen size', (tester) async {
       late double padding360;
       late double padding600;
 
