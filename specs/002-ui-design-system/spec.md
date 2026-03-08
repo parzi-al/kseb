@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "Implement uniform UI design system taking inspiration from the homescreen and attendance screen. Ensure all screens follow the same visual system used in Homepage and Attendance."
 
+## Clarifications
+
+### Session 2026-03-08
+
+- Q: Does standardization mean fixing visual inconsistencies (screens may look different than today) or preserving each screen's current appearance pixel-for-pixel while only centralizing code? → A: Fix inconsistencies — screens change appearance to match the homepage standard.
+- Q: How should the monolithic AppColors file (colors + typography + spacing + responsive helpers + decorations) be split? → A: 4 files — colors, typography, spacing (radius + elevation), decorations (responsive helpers + card presets).
+- Q: Should screen migration happen all-at-once or incrementally? → A: Incremental — each screen migrated individually as a separate verifiable step.
+- Q: When the homepage and attendance screen differ on a specific style value, which screen takes precedence? → A: Homepage always takes precedence.
+- Q: Should the shared error-state widget be a persistent inline display (complementing the existing toast system) or replace it? → A: Complement, not replace.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Consistent Visual Identity Across All Screens (Priority: P1)
@@ -116,15 +126,16 @@ As a code reviewer, when I review any screen file, I see zero inline `TextStyle`
 - **FR-010**: The app MUST provide a shared text input field widget that renders with the standard border, focus color, label style, hint style, error style, and border radius.
 - **FR-011**: The app MUST provide a shared loading indicator widget with variants for full-page, inline, and overlay contexts — all using the standard spinner color and style.
 - **FR-012**: The app MUST provide a shared empty-state widget displaying a centered icon, title, subtitle, and optional action button.
-- **FR-013**: The app MUST provide a shared error-state widget displaying an error icon, message, and retry button with consistent styling.
+- **FR-013**: The app MUST provide a shared error-state widget displaying an error icon, message, and retry button with consistent styling. This widget is a persistent inline display for section/page-level failures (e.g., "failed to load data — tap to retry") and complements the existing transient toast/snackbar system (`AppToast`), which remains unchanged.
 - **FR-014**: The app MUST provide a shared page scaffold widget that applies standard page padding, background color, and optional scroll behavior so every screen has uniform outer spacing.
 
 #### Screen Migration
 
-- **FR-015**: All existing screens (Home, Attendance, Login, Staff Management, Worksheet, Material Management, Bonus Management, and their sub-screens) MUST be updated to use the shared design tokens and reusable widgets — removing all inline styling for standardized elements.
+- **FR-015**: All existing screens (Home, Attendance, Login, Staff Management, Worksheet, Material Management, Bonus Management, and their sub-screens) MUST be updated to use the shared design tokens and reusable widgets — removing all inline styling for standardized elements. Screens MUST converge on the homepage visual standard (border radius, shadow, padding, color usage); existing per-screen visual deviations are intentionally corrected, not preserved.
 - **FR-016**: The app's root theme configuration MUST be updated so that the primary color swatch matches the design token primary color (currently orange `#FF6B35`), resolving the existing conflict with teal.
 - **FR-017**: All responsive helpers (responsive padding, spacing, font sizing) MUST be applied consistently across every screen — not just Home and Login.
 - **FR-018**: All uses of deprecated styling APIs (e.g., `Color.withOpacity()`) MUST be replaced with current equivalents (e.g., `Color.withValues(alpha:)`).
+- **FR-019**: Screen migration MUST be performed incrementally — each screen (and its sub-components) is migrated as an individually verifiable step. The design token system and shared widget library MUST be completed before screen migration begins.
 
 ### Key Entities
 
@@ -155,4 +166,5 @@ As a code reviewer, when I review any screen file, I see zero inline `TextStyle`
 - **A-004**: Dark mode is out of scope for this feature. However, the token system should be structured so that adding dark mode later requires only defining an alternate token set — not restructuring the architecture.
 - **A-005**: Accessibility compliance (WCAG contrast ratios, minimum touch target sizes) is out of scope but the design system should not introduce new violations.
 - **A-006**: Third-party widgets (e.g., TableCalendar) will be themed via wrapper widgets or configuration overrides to match the design system as closely as the library allows.
-- **A-007**: The `AppColors` utility file will be refactored and split into focused modules (colors, typography, spacing, decorations) rather than remaining a single overloaded file.
+- **A-007**: The `AppColors` utility file will be refactored and split into 4 focused modules: (1) colors, (2) typography, (3) spacing including radius and elevation constants, (4) decorations including responsive helpers and card presets. Each module has a single responsibility.
+- **A-008**: When style values conflict between the homepage and the attendance screen, the homepage value is the authoritative standard. The homepage is the primary visual reference for the design system; the attendance screen is secondary.
