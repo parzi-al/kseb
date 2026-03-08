@@ -38,7 +38,26 @@ See **[SETUP_GUIDE.md](SETUP_GUIDE.md)** for complete setup instructions.
 | [UPDATE_SUMMARY.md](UPDATE_SUMMARY.md) | Recent changes and updates |
 | [firestore.rules.new](firestore.rules.new) | Security rules to deploy |
 
-## 🏗️ Architecture
+## � Design System
+
+The app uses a centralized design-token architecture. All colors, typography, spacing, and decorations are defined once and consumed everywhere via a barrel export.
+
+```dart
+import 'package:kseb/utils/design_tokens.dart';
+```
+
+| Token file | Contents |
+|------------|----------|
+| `lib/utils/app_colors.dart` | Primary palette, semantic, status, grey scale, opacity variants |
+| `lib/utils/app_typography.dart` | 8 TextStyle presets + font-size constants (Google Fonts Poppins) |
+| `lib/utils/app_spacing.dart` | Spacing scale, border radii, elevation shadows |
+| `lib/utils/app_decorations.dart` | Card decorations, responsive `BuildContext` extensions |
+
+**Shared widgets** (`lib/components/common/`): `AppButton`, `AppCard`, `AppTextField`, `AppLoading`, `AppEmptyState`, `AppErrorState`, `AppPageWrapper`, `buildAppBar()`.
+
+> **Quickstart guide →** [specs/002-ui-design-system/quickstart.md](specs/002-ui-design-system/quickstart.md) covers token imports, widget usage, responsive helpers, and migration patterns.
+
+## �🏗️ Architecture
 
 ### Database Structure (Firestore)
 ```
@@ -65,7 +84,13 @@ lib/
 │   └── staff_service.dart
 ├── screens/         # UI screens
 ├── components/      # Reusable widgets
-└── utils/          # Utilities
+│   └── common/      # Design-system widgets (AppButton, AppCard, etc.)
+└── utils/           # Utilities & design tokens
+    ├── app_colors.dart
+    ├── app_typography.dart
+    ├── app_spacing.dart
+    ├── app_decorations.dart
+    └── design_tokens.dart  # Barrel export
 ```
 
 ## 🎯 Features

@@ -189,11 +189,11 @@
 
 **Purpose**: Final validation, documentation, and cleanup across all user stories
 
-- [ ] T069 [P] Remove lib/screens/staff_management_screen.dart.new (stale file in repository)
-- [ ] T070 Run quickstart.md validation — build a minimal test screen using only shared widgets and tokens, confirm zero inline styling needed
-- [ ] T071 Verify all success criteria SC-001 through SC-010 from spec.md are met
-- [ ] T072 Update README.md with design system usage reference (link to quickstart.md)
-- [ ] T073 Run full test suite — all tests must pass (token tests, widget tests, existing tests)
+- [x] T069 [P] Remove lib/screens/staff_management_screen.dart.new (stale file in repository)
+- [x] T070 Run quickstart.md validation — build a minimal test screen using only shared widgets and tokens, confirm zero inline styling needed
+- [x] T071 Verify all success criteria SC-001 through SC-010 from spec.md are met
+- [x] T072 Update README.md with design system usage reference (link to quickstart.md)
+- [x] T073 Run full test suite — all tests must pass (token tests, widget tests, existing tests)
 
 ---
 
