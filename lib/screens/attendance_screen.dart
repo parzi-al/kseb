@@ -6,14 +6,20 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:local_auth/local_auth.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_typography.dart';
+import '../utils/app_spacing.dart';
+import '../utils/app_decorations.dart';
+import '../components/common/app_bar_builder.dart';
+import '../components/common/fade_in_widget.dart';
+import '../components/common/skeleton_loader.dart';
 import '../utils/app_toast.dart';
 import '../utils/app_constants.dart';
 import '../services/attendance_service.dart';
 import '../models/attendance_model.dart';
 import '../models/user_model.dart';
-import 'components/attendance_stats_card.dart';
-import 'components/attendance_calendar.dart';
-import 'components/attendance_history_list.dart';
+import '../components/attendance/attendance_stats_card.dart';
+import '../components/attendance/attendance_calendar.dart';
+import '../components/attendance/attendance_history_list.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -60,11 +66,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
     final user = _firebaseAuth.currentUser;
     if (user == null) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _userName = 'Not Logged In';
           _isLoading = false;
         });
+      }
       return;
     }
 
@@ -219,21 +226,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Attendance',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0.5,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: AppColors.shadowLight,
-        centerTitle: true,
+      appBar: buildAppBar(
+        title: 'Attendance',
         actions: [
           if (_attendanceRecords.isNotEmpty)
             IconButton(
@@ -247,14 +241,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         ],
       ),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
-            )
+          ? const AttendanceScreenSkeleton()
           : _showHistory
-              ? _buildHistoryView()
-              : _buildMainView(),
+              ? FadeInWidget(child: _buildHistoryView())
+              : FadeInWidget(child: _buildMainView()),
     );
   }
 
@@ -270,17 +260,21 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         Expanded(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+            padding: EdgeInsets.fromLTRB(
+                context.responsivePadding(AppSpacing.xl),
+                context.responsivePadding(AppSpacing.xl),
+                context.responsivePadding(AppSpacing.xl),
+                100),
             child: Column(
               children: [
-                const SizedBox(height: 20),
+                SizedBox(height: AppSpacing.lg),
                 // Stats via extracted widget (T010)
                 AttendanceStatsCard(
                   thisMonth: _thisMonthPresent,
                   thisYear: _thisYearPresent,
                   isMarkedToday: _isMarkedToday,
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: AppSpacing.lg),
                 // Calendar via extracted widget (T011)
                 AttendanceCalendar(
                   attendanceMap: _attendanceMap,
@@ -295,14 +289,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   },
                   onPageChanged: (focused) => _focusedDay = focused,
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: AppSpacing.lg),
                 _buildProgressCard(attendancePercentage),
-                const SizedBox(height: 24),
+                SizedBox(height: AppSpacing.xl),
                 _buildMarkButton(),
-                const SizedBox(height: 16),
+                SizedBox(height: AppSpacing.md),
                 // Debug test button — only in kDebugMode (FR-012)
                 if (kDebugMode && !_isMarkedToday) _buildDebugButton(),
-                const SizedBox(height: 24),
+                SizedBox(height: AppSpacing.xl),
               ],
             ),
           ),
@@ -316,11 +310,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       width: double.infinity,
       color: AppColors.surface,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+        padding: EdgeInsets.fromLTRB(
+            context.responsivePadding(AppSpacing.xl),
+            context.responsivePadding(AppSpacing.xl),
+            context.responsivePadding(AppSpacing.xl),
+            context.responsivePadding(AppSpacing.xxl)),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 color: AppColors.primaryWithLowOpacity,
                 shape: BoxShape.circle,
@@ -328,22 +326,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               child: Icon(Icons.person_rounded,
                   size: 60, color: AppColors.primary),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppSpacing.md),
             Text(
               _userName,
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
-              ),
+              style: AppTypography.displayLargeStyle,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: AppSpacing.sm),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md, vertical: AppSpacing.sm),
               decoration: BoxDecoration(
                 color: AppColors.primaryWithLowOpacity,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
                 border: Border.all(
                   color: AppColors.primary.withValues(alpha: 0.2),
                   width: 1,
@@ -353,7 +348,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 _userRole?.displayName ?? 'KSEB Staff',
                 style: TextStyle(
                   color: AppColors.primary,
-                  fontSize: 14,
+                  fontSize: AppTypography.fontSizeBase,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -367,10 +362,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Widget _buildProgressCard(double attendancePercentage) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         boxShadow: [
           BoxShadow(
             color: AppColors.cardShadow,
@@ -383,13 +378,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         children: [
           Text(
             'Yearly Progress',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+            style: AppTypography.subheadingStyle,
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: AppSpacing.xl),
           CircularPercentIndicator(
             radius: 80.0,
             lineWidth: 10.0,
@@ -398,7 +389,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               '${(attendancePercentage * 100).toStringAsFixed(0)}%',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 20.0,
+                fontSize: AppTypography.fontSizeXL,
                 color: AppColors.textPrimary,
               ),
             ),
@@ -406,12 +397,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             progressColor: AppColors.primary,
             backgroundColor: AppColors.primaryWithLowOpacity,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppSpacing.md),
           Text(
             '$_thisYearPresent / ${AttendanceConstants.workingDaysInYear} Working Days',
             style: TextStyle(
               fontWeight: FontWeight.w600,
-              fontSize: 16.0,
+              fontSize: AppTypography.fontSizeLG,
               color: AppColors.textSecondary,
             ),
           ),
@@ -429,14 +420,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: _isMarkedToday
-                ? [Colors.grey, Colors.grey.shade600]
+                ? [
+                    Colors.grey,
+                    Colors.grey.shade600
+                  ] // DS-EXCEPTION: disabled state
                 : [AppColors.primary, AppColors.primaryLight],
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
           boxShadow: [
             BoxShadow(
               color: _isMarkedToday
-                  ? Colors.grey.withValues(alpha: 0.3)
+                  ? Colors.grey
+                      .withValues(alpha: 0.3) // DS-EXCEPTION: disabled state
                   : AppColors.primary.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
@@ -447,7 +442,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           color: Colors.transparent,
           child: InkWell(
             onTap: _isMarkedToday ? null : _authenticateAndMarkAttendance,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -455,15 +450,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   _isMarkedToday
                       ? Icons.check_circle_rounded
                       : Icons.fingerprint_rounded,
-                  color: AppColors.textOnDark,
+                  color: AppColors.textOnPrimary,
                   size: 28,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: AppSpacing.base),
                 Text(
                   _isMarkedToday ? 'Already Marked Today' : 'Mark Attendance',
                   style: TextStyle(
-                    color: AppColors.textOnDark,
-                    fontSize: 18,
+                    color: AppColors.textOnPrimary,
+                    fontSize: AppTypography.fontSizeXL,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -481,25 +476,25 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       height: 50,
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.warning, width: 2),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
         color: AppColors.warning.withValues(alpha: 0.1),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: _recordAttendance,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.bug_report_rounded,
                   color: AppColors.warning, size: 20),
-              const SizedBox(width: 8),
+              SizedBox(width: AppSpacing.sm),
               Text(
                 'Test Mode - Mark Without Biometric',
                 style: TextStyle(
                   color: AppColors.warning,
-                  fontSize: 14,
+                  fontSize: AppTypography.fontSizeBase,
                   fontWeight: FontWeight.w600,
                 ),
               ),

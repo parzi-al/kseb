@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/attendance_model.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_typography.dart';
+import '../../utils/app_spacing.dart';
+import '../common/app_empty_state.dart';
+import '../common/staggered_list_item.dart';
 
 /// Extracted widget: scrollable list of attendance records with empty-state.
 ///
@@ -21,9 +25,12 @@ class AttendanceHistoryList extends StatelessWidget {
     if (records.isEmpty) return _buildEmptyState();
 
     final child = ListView.builder(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(AppSpacing.xl),
       itemCount: records.length,
-      itemBuilder: (context, index) => _buildRecordTile(records[index]),
+      itemBuilder: (context, index) => StaggeredListItem(
+        index: index,
+        child: _buildRecordTile(records[index]),
+      ),
     );
 
     return onRefresh != null
@@ -40,11 +47,11 @@ class AttendanceHistoryList extends StatelessWidget {
     final isThisWeek = _isThisWeek(record.timestamp);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.only(bottom: AppSpacing.md),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
           border:
               isToday ? Border.all(color: AppColors.success, width: 2) : null,
           boxShadow: [
@@ -56,16 +63,16 @@ class AttendanceHistoryList extends StatelessWidget {
           ],
         ),
         child: ListTile(
-          contentPadding: const EdgeInsets.all(16),
+          contentPadding: EdgeInsets.all(AppSpacing.md),
           leading: Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(AppSpacing.base),
             decoration: BoxDecoration(
               color: isToday
                   ? AppColors.success.withValues(alpha: 0.1)
                   : isThisWeek
                       ? AppColors.primary.withValues(alpha: 0.1)
                       : AppColors.grey300.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
             ),
             child: Icon(
               isToday
@@ -81,39 +88,32 @@ class AttendanceHistoryList extends StatelessWidget {
           ),
           title: Text(
             DateFormat('EEEE, MMMM d, y').format(record.timestamp),
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
+            style: AppTypography.bodyMediumStyle
+                .copyWith(fontWeight: FontWeight.w600),
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 4),
+              SizedBox(height: AppSpacing.xs),
               Text(
                 DateFormat('h:mm a').format(record.timestamp),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                ),
+                style: AppTypography.bodyStyle
+                    .copyWith(color: AppColors.textSecondary),
               ),
               if (isToday) ...[
-                const SizedBox(height: 4),
+                SizedBox(height: AppSpacing.xs),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm, vertical: 2),
                   decoration: BoxDecoration(
                     color: AppColors.success,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppSpacing.base),
                   ),
                   child: Text(
                     'Today',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textOnDark,
-                    ),
+                    style: AppTypography.captionStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textOnPrimary),
                   ),
                 ),
               ],
@@ -121,11 +121,7 @@ class AttendanceHistoryList extends StatelessWidget {
           ),
           trailing: Text(
             _getRelativeTime(record.timestamp),
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
+            style: AppTypography.captionStyle,
           ),
         ),
       ),
@@ -133,39 +129,10 @@ class AttendanceHistoryList extends StatelessWidget {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.primaryWithLowOpacity,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.event_busy_rounded,
-                  size: 64, color: AppColors.primary),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'No Attendance Records',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Start marking your attendance to see your history here.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
-            ),
-          ],
-        ),
-      ),
+    return const AppEmptyState(
+      icon: Icons.event_busy_rounded,
+      title: 'No Attendance Records',
+      subtitle: 'Start marking your attendance to see your history here.',
     );
   }
 

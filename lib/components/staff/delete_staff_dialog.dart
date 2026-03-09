@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import '../../utils/app_toast.dart';
 import '../../services/staff_service.dart';
 
@@ -7,10 +8,10 @@ class DeleteStaffDialog extends StatefulWidget {
   final VoidCallback? onStaffDeleted;
 
   const DeleteStaffDialog({
-    Key? key,
+    super.key,
     required this.staffId,
     this.onStaffDeleted,
-  }) : super(key: key);
+  });
 
   static void show(
     BuildContext context,
@@ -46,7 +47,9 @@ class _DeleteStaffDialogState extends State<DeleteStaffDialog> {
         AppToast.showSuccess(context, 'Staff member deleted successfully');
       }
     } catch (e) {
-      AppToast.showError(context, 'Error deleting staff member: $e');
+      if (mounted) {
+        AppToast.showError(context, 'Error deleting staff member: $e');
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -64,14 +67,15 @@ class _DeleteStaffDialogState extends State<DeleteStaffDialog> {
         ),
         TextButton(
           onPressed: _isLoading ? null : _deleteStaff,
-          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          style: TextButton.styleFrom(foregroundColor: AppColors.error),
           child: _isLoading
               ? const SizedBox(
                   height: 20,
                   width: 20,
+                  // DS-EXCEPTION: Inline button spinner — AppLoading is for page/section loading
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.error),
                   ),
                 )
               : const Text('Delete'),

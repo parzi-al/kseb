@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_typography.dart';
+import '../utils/app_spacing.dart';
+import '../utils/app_decorations.dart';
+import '../components/common/app_bar_builder.dart';
+import '../components/common/app_card.dart';
+import '../utils/page_transitions.dart';
 import 'add_material_screen.dart';
 import 'withdraw_material_screen.dart';
 
@@ -10,40 +16,7 @@ class MaterialManagementScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        leading: Container(
-          margin: const EdgeInsets.all(8),
-          child: IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.grey100,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: AppColors.textSecondary,
-                size: 20,
-              ),
-            ),
-          ),
-        ),
-        title: Text(
-          'Material Management',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: AppColors.fontSizeLG,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0.5,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: AppColors.shadowLight,
-        centerTitle: true,
-      ),
+      appBar: buildAppBar(title: 'Material Management'),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -52,11 +25,16 @@ class MaterialManagementScreen extends StatelessWidget {
               width: double.infinity,
               color: AppColors.surface,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
+                padding: EdgeInsets.fromLTRB(
+                  context.responsivePadding(AppSpacing.xl),
+                  context.responsivePadding(AppSpacing.page),
+                  context.responsivePadding(AppSpacing.xl),
+                  context.responsivePadding(AppSpacing.page),
+                ),
                 child: Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: EdgeInsets.all(AppSpacing.lg),
                       decoration: BoxDecoration(
                         color: AppColors.primaryWithLowOpacity,
                         shape: BoxShape.circle,
@@ -67,23 +45,17 @@ class MaterialManagementScreen extends StatelessWidget {
                         color: AppColors.primary,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: AppSpacing.lg),
                     Text(
                       'Material Management',
-                      style: TextStyle(
-                        fontSize: AppColors.fontSize2XL,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: AppTypography.displayStyle,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: AppSpacing.sm),
                     Text(
                       'Manage inventory and material requests',
-                      style: TextStyle(
-                        fontSize: AppColors.fontSizeBase,
+                      style: AppTypography.bodyStyle.copyWith(
                         color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -92,11 +64,12 @@ class MaterialManagementScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 40),
+            SizedBox(height: context.responsiveSpacing(AppSpacing.page)),
 
             // Modern Content Section
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              padding: EdgeInsets.symmetric(
+                  horizontal: context.responsivePadding(AppSpacing.lg)),
               child: Column(
                 children: [
                   _buildManagementCard(
@@ -108,13 +81,13 @@ class MaterialManagementScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        AppRoute(
                           builder: (context) => const AddMaterialScreen(),
                         ),
                       );
                     },
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
                   _buildManagementCard(
                     context,
                     label: 'WITHDRAW MATERIAL',
@@ -124,13 +97,13 @@ class MaterialManagementScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        AppRoute(
                           builder: (context) => const WithdrawMaterialScreen(),
                         ),
                       );
                     },
                   ),
-                  const SizedBox(height: 40),
+                  SizedBox(height: AppSpacing.page),
                 ],
               ),
             ),
@@ -148,71 +121,47 @@ class MaterialManagementScreen extends StatelessWidget {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Container(
-      width: double.infinity,
-      decoration: AppColors.modernCardDecorationWithColor(color),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
+    return AppCard(
+      accentColor: color,
+      padding: EdgeInsets.all(AppSpacing.xl),
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+            ),
+            child: Icon(icon, size: 28, color: color),
+          ),
+          SizedBox(width: AppSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(
-                    icon,
-                    size: 28,
-                    color: color,
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: AppColors.fontSizeLG,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        description,
-                        style: TextStyle(
-                          fontSize: AppColors.fontSizeSM,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.grey200,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: AppColors.textSecondary,
-                    size: 16,
-                  ),
+                Text(label, style: AppTypography.subheadingStyle),
+                SizedBox(height: AppSpacing.xs),
+                Text(
+                  description,
+                  style: AppTypography.captionStyle,
                 ),
               ],
             ),
           ),
-        ),
+          Container(
+            padding: EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: AppColors.grey200,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            ),
+            child: Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: AppColors.textSecondary,
+              size: 16,
+            ),
+          ),
+        ],
       ),
     );
   }

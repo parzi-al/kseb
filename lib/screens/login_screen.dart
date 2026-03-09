@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../utils/app_colors.dart';
+import '../utils/app_typography.dart';
+import '../utils/app_spacing.dart';
+import '../utils/app_decorations.dart';
 import '../utils/app_toast.dart';
+import '../components/common/app_button.dart';
+import '../components/common/app_loading.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -67,69 +72,64 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding:
-              EdgeInsets.all(AppColors.getResponsivePadding(context, 24.0)),
+          padding: EdgeInsets.all(context.responsivePadding(AppSpacing.xl)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: AppColors.getResponsiveSpacing(context, 60)),
+              SizedBox(height: context.responsiveSpacing(60)),
               // Clean Modern Header
               Column(
                 children: [
                   Container(
                     padding: EdgeInsets.all(
-                        AppColors.getResponsivePadding(context, 20)),
+                        context.responsivePadding(AppSpacing.lg)),
                     decoration: BoxDecoration(
                       color: AppColors.primaryWithLowOpacity,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.bolt_rounded,
-                      size: AppColors.getResponsiveHeight(context, 40),
+                      size: context.responsiveHeight(40),
                       color: AppColors.primary,
                     ),
                   ),
-                  SizedBox(height: AppColors.getResponsiveSpacing(context, 24)),
+                  SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
                   Text(
                     'KSEB',
-                    style: AppColors.displayLargeStyle,
+                    style: AppTypography.displayLargeStyle,
                   ),
-                  SizedBox(height: AppColors.getResponsiveSpacing(context, 8)),
+                  SizedBox(height: context.responsiveSpacing(AppSpacing.sm)),
                   Text(
                     'Worker Portal',
-                    style: AppColors.bodyStyle.copyWith(
+                    style: AppTypography.bodyStyle.copyWith(
                       color: AppColors.textSecondary,
                     ),
                   ),
                 ],
               ),
 
-              SizedBox(height: AppColors.getResponsiveSpacing(context, 48)),
+              SizedBox(height: context.responsiveSpacing(48)),
               Text(
                 'Welcome Back',
-                style: AppColors.displayStyle,
+                style: AppTypography.displayStyle,
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: AppColors.getResponsiveSpacing(context, 8)),
+              SizedBox(height: context.responsiveSpacing(AppSpacing.sm)),
               Text(
                 'Sign in to continue',
-                style: AppColors.bodyStyle.copyWith(
+                style: AppTypography.bodyStyle.copyWith(
                   color: AppColors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: AppColors.getResponsiveSpacing(context, 48)),
+              SizedBox(height: context.responsiveSpacing(48)),
               // Modern Email Field
               Container(
-                decoration: AppColors.modernCardDecoration,
+                decoration: AppDecorations.modernCardDecoration,
                 child: TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: AppTypography.bodyMediumStyle,
                   decoration: InputDecoration(
                     labelText: 'Email Address',
                     labelStyle: TextStyle(
@@ -137,43 +137,41 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                     prefixIcon: Container(
-                      margin: const EdgeInsets.all(12),
-                      padding: const EdgeInsets.all(8),
+                      margin: EdgeInsets.all(AppSpacing.md),
+                      padding: EdgeInsets.all(AppSpacing.sm),
                       decoration: BoxDecoration(
                         color: AppColors.primaryWithLowOpacity,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusSm),
                       ),
                       child: Icon(
                         Icons.email_outlined,
                         color: AppColors.primary,
-                        size: AppColors.getResponsiveHeight(context, 20),
+                        size: context.responsiveHeight(20),
                       ),
                     ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusDefault),
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
                     fillColor: AppColors.surface,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 20,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                      vertical: AppSpacing.lg,
                     ),
                   ),
                 ),
               ),
-              SizedBox(height: AppColors.getResponsiveSpacing(context, 20)),
+              SizedBox(height: context.responsiveSpacing(AppSpacing.lg)),
               // Modern Password Field
               Container(
-                decoration: AppColors.modernCardDecoration,
+                decoration: AppDecorations.modernCardDecoration,
                 child: TextField(
                   controller: _passwordController,
                   obscureText: true,
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: AppTypography.bodyMediumStyle,
                   decoration: InputDecoration(
                     labelText: 'Password',
                     labelStyle: TextStyle(
@@ -181,78 +179,42 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                     prefixIcon: Container(
-                      margin: const EdgeInsets.all(12),
-                      padding: const EdgeInsets.all(8),
+                      margin: EdgeInsets.all(AppSpacing.md),
+                      padding: EdgeInsets.all(AppSpacing.sm),
                       decoration: BoxDecoration(
                         color: AppColors.primaryWithLowOpacity,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusSm),
                       ),
                       child: Icon(
                         Icons.lock_outline,
                         color: AppColors.primary,
-                        size: AppColors.getResponsiveHeight(context, 20),
+                        size: context.responsiveHeight(20),
                       ),
                     ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusDefault),
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
                     fillColor: AppColors.surface,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 20,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                      vertical: AppSpacing.lg,
                     ),
                   ),
                 ),
               ),
-              SizedBox(height: AppColors.getResponsiveSpacing(context, 32)),
+              SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
               // Modern Login Button
               _isLoading
-                  ? Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        child: CircularProgressIndicator(
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(AppColors.primary),
-                          strokeWidth: 3,
-                        ),
-                      ),
-                    )
-                  : Container(
-                      width: double.infinity,
-                      height: AppColors.getResponsiveHeight(context, 56),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.25),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: _signIn,
-                          borderRadius: BorderRadius.circular(16),
-                          child: Center(
-                            child: Text(
-                              'SIGN IN',
-                              style: TextStyle(
-                                color: AppColors.white,
-                                fontSize: AppColors.fontSizeBase,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                  ? const AppLoading(variant: AppLoadingVariant.inline)
+                  : AppButton(
+                      label: 'SIGN IN',
+                      onPressed: _signIn,
                     ),
-              SizedBox(height: AppColors.getResponsiveSpacing(context, 32)),
+              SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
               // Modern Footer links
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -265,14 +227,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusSm),
                       ),
                     ),
                     child: Text(
                       'Forgot Password?',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
                   Text(
@@ -290,19 +251,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusSm),
                       ),
                     ),
                     child: Text(
                       'Sign Up',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: AppColors.getResponsiveSpacing(context, 24)),
+              SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
             ],
           ),
         ),

@@ -4,7 +4,9 @@ import '../utils/app_colors.dart';
 import '../utils/app_toast.dart';
 import '../models/attendance_model.dart';
 import '../services/attendance_service.dart';
-import 'components/attendance_history_list.dart';
+import '../components/common/app_bar_builder.dart';
+import '../components/common/skeleton_loader.dart';
+import '../components/attendance/attendance_history_list.dart';
 
 /// Standalone attendance history screen.
 ///
@@ -60,28 +62,9 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Attendance History',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0.5,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: AppColors.shadowLight,
-        centerTitle: true,
-      ),
+      appBar: buildAppBar(title: 'Attendance History'),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
-            )
+          ? const ListScreenSkeleton()
           : AttendanceHistoryList(
               records: _attendanceRecords,
               onRefresh: _fetchAttendanceHistory,
@@ -89,7 +72,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context).pop(),
         backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.textOnDark,
+        foregroundColor: AppColors.textOnPrimary,
         icon: const Icon(Icons.add_rounded),
         label: const Text('Mark Attendance'),
       ),

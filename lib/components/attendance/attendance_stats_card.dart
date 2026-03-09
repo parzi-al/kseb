@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_constants.dart';
+import '../../utils/app_typography.dart';
+import '../../utils/app_spacing.dart';
 
 /// Displays attendance statistics in a 2x2 grid of cards.
 ///
@@ -38,7 +40,7 @@ class AttendanceStatsCard extends StatelessWidget {
                 Colors.blue,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: AppSpacing.base),
             Expanded(
               child: _buildStatCard(
                 'This Year',
@@ -49,7 +51,7 @@ class AttendanceStatsCard extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: AppSpacing.base),
         Row(
           children: [
             Expanded(
@@ -60,7 +62,7 @@ class AttendanceStatsCard extends StatelessWidget {
                 Colors.purple,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: AppSpacing.base),
             Expanded(
               child: _buildStatCard(
                 'Status',
@@ -82,10 +84,10 @@ class AttendanceStatsCard extends StatelessWidget {
     Color color,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
         boxShadow: [
           BoxShadow(
             color: AppColors.cardShadow,
@@ -97,10 +99,10 @@ class AttendanceStatsCard extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(AppSpacing.base),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
             ),
             child: Icon(
               icon,
@@ -108,23 +110,16 @@ class AttendanceStatsCard extends StatelessWidget {
               size: 24,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.base),
           Text(
             title,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+            style: AppTypography.captionStyle,
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: AppSpacing.xs),
           Text(
             value,
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTypography.bodyMediumStyle
+                .copyWith(fontWeight: FontWeight.bold),
           ),
         ],
       ),
