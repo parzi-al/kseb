@@ -3,9 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../components/common/app_bar_builder.dart';
-import '../components/common/app_loading.dart';
 import '../components/common/app_error_state.dart';
 import '../components/common/app_empty_state.dart';
+import '../components/common/staggered_list_item.dart';
+import '../components/common/fade_in_widget.dart';
+import '../components/common/skeleton_loader.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_decorations.dart';
@@ -121,9 +123,8 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   _isLoadingUsers
-                      ? const Center(
-                          child: AppLoading(),
-                        )
+                      ? const ListScreenSkeleton(
+                          itemCount: 1, padding: EdgeInsets.zero)
                       : _buildUserDropdown(),
                 ],
               ),
@@ -273,9 +274,7 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: AppLoading(),
-          );
+          return const BonusHistorySkeleton();
         }
 
         if (snapshot.hasError) {
@@ -305,189 +304,198 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
           return bTime.compareTo(aTime); // Descending order (newest first)
         });
 
-        return ListView.builder(
-          padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
-          itemCount: bonuses.length,
-          itemBuilder: (context, index) {
-            final bonus = bonuses[index].data() as Map<String, dynamic>;
-            final points = bonus['points'] ?? 0;
-            final amount = (bonus['amount'] ?? 0).toDouble();
-            final reason = bonus['reason'] as String?;
-            final updatedAt = (bonus['updatedAt'] as Timestamp?)?.toDate();
-            final updatedBy = bonus['updatedBy'] as String?;
+        return FadeInWidget(
+          child: ListView.builder(
+            padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
+            itemCount: bonuses.length,
+            itemBuilder: (context, index) {
+              final bonus = bonuses[index].data() as Map<String, dynamic>;
+              final points = bonus['points'] ?? 0;
+              final amount = (bonus['amount'] ?? 0).toDouble();
+              final reason = bonus['reason'] as String?;
+              final updatedAt = (bonus['updatedAt'] as Timestamp?)?.toDate();
+              final updatedBy = bonus['updatedBy'] as String?;
 
-            final isPositive = points >= 0 || amount >= 0;
+              final isPositive = points >= 0 || amount >= 0;
 
-            return FutureBuilder<DocumentSnapshot>(
-              future: updatedBy != null
-                  ? _firestore.collection('users').doc(updatedBy).get()
-                  : null,
-              builder: (context, userSnapshot) {
-                String updatedByName = 'Unknown';
-                if (userSnapshot.hasData && userSnapshot.data!.exists) {
-                  final userData =
-                      userSnapshot.data!.data() as Map<String, dynamic>;
-                  updatedByName = userData['name'] ?? 'Unknown';
-                }
+              return StaggeredListItem(
+                index: index,
+                child: FutureBuilder<DocumentSnapshot>(
+                  future: updatedBy != null
+                      ? _firestore.collection('users').doc(updatedBy).get()
+                      : null,
+                  builder: (context, userSnapshot) {
+                    String updatedByName = 'Unknown';
+                    if (userSnapshot.hasData && userSnapshot.data!.exists) {
+                      final userData =
+                          userSnapshot.data!.data() as Map<String, dynamic>;
+                      updatedByName = userData['name'] ?? 'Unknown';
+                    }
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: AppSpacing.base),
-                  padding: const EdgeInsets.all(AppSpacing.base),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusDefault),
-                    border: Border.all(
-                      color: isPositive
-                          ? AppColors.success.withValues(alpha: 0.3)
-                          : AppColors.error.withValues(alpha: 0.3),
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.cardShadow,
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: isPositive
-                                  ? AppColors.success.withValues(alpha: 0.1)
-                                  : AppColors.error.withValues(alpha: 0.1),
-                              borderRadius:
-                                  BorderRadius.circular(AppSpacing.radiusMd),
-                            ),
-                            child: Icon(
-                              isPositive
-                                  ? Icons.add_circle_rounded
-                                  : Icons.remove_circle_rounded,
-                              color: isPositive
-                                  ? AppColors.success
-                                  : AppColors.error,
-                              size: 28,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.base),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  isPositive ? 'Bonus Added' : 'Bonus Removed',
-                                  style: AppTypography.subheadingStyle.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.xs),
-                                Text(
-                                  'By $updatedByName',
-                                  style: AppTypography.captionStyle,
-                                ),
-                              ],
-                            ),
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: AppSpacing.base),
+                      padding: const EdgeInsets.all(AppSpacing.base),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusDefault),
+                        border: Border.all(
+                          color: isPositive
+                              ? AppColors.success.withValues(alpha: 0.3)
+                              : AppColors.error.withValues(alpha: 0.3),
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.cardShadow,
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppSpacing.base),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (points != 0)
-                            _buildBonusValue(
-                              'Points',
-                              '${points >= 0 ? '+' : ''}$points',
-                              Icons.star_rounded,
-                              Colors.amber, // DS-EXCEPTION: status color
-                            ),
-                          if (amount != 0)
-                            _buildBonusValue(
-                              'Amount',
-                              '${amount >= 0 ? '+' : ''}₹${amount.abs().toStringAsFixed(2)}',
-                              Icons.currency_rupee_rounded,
-                              Colors.green, // DS-EXCEPTION: status color
-                            ),
-                        ],
-                      ),
-                      if (reason != null && reason.isNotEmpty) ...[
-                        const SizedBox(height: AppSpacing.md),
-                        Container(
-                          padding: const EdgeInsets.all(AppSpacing.md),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryWithLowOpacity,
-                            borderRadius:
-                                BorderRadius.circular(AppSpacing.radiusSm),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          Row(
                             children: [
-                              Icon(
-                                Icons.info_outline_rounded,
-                                size: 16,
-                                color: AppColors.primary,
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: isPositive
+                                      ? AppColors.success.withValues(alpha: 0.1)
+                                      : AppColors.error.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(
+                                      AppSpacing.radiusMd),
+                                ),
+                                child: Icon(
+                                  isPositive
+                                      ? Icons.add_circle_rounded
+                                      : Icons.remove_circle_rounded,
+                                  color: isPositive
+                                      ? AppColors.success
+                                      : AppColors.error,
+                                  size: 28,
+                                ),
                               ),
-                              const SizedBox(width: AppSpacing.sm),
+                              const SizedBox(width: AppSpacing.base),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Reason',
-                                      style:
-                                          AppTypography.captionStyle.copyWith(
-                                        fontSize: AppTypography.fontSizeXS,
+                                      isPositive
+                                          ? 'Bonus Added'
+                                          : 'Bonus Removed',
+                                      style: AppTypography.subheadingStyle
+                                          .copyWith(
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors.primary,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
+                                    const SizedBox(height: AppSpacing.xs),
                                     Text(
-                                      reason,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: AppColors.textPrimary,
-                                      ),
+                                      'By $updatedByName',
+                                      style: AppTypography.captionStyle,
                                     ),
                                   ],
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                      if (updatedAt != null) ...[
-                        const SizedBox(height: AppSpacing.md),
-                        Divider(color: AppColors.grey300),
-                        const SizedBox(height: AppSpacing.sm),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.access_time_rounded,
-                              size: 14,
-                              color: AppColors.textSecondary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              DateFormat('MMM dd, yyyy • h:mm a')
-                                  .format(updatedAt),
-                              style: AppTypography.captionStyle,
+                          const SizedBox(height: AppSpacing.base),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              if (points != 0)
+                                _buildBonusValue(
+                                  'Points',
+                                  '${points >= 0 ? '+' : ''}$points',
+                                  Icons.star_rounded,
+                                  Colors.amber, // DS-EXCEPTION: status color
+                                ),
+                              if (amount != 0)
+                                _buildBonusValue(
+                                  'Amount',
+                                  '${amount >= 0 ? '+' : ''}₹${amount.abs().toStringAsFixed(2)}',
+                                  Icons.currency_rupee_rounded,
+                                  Colors.green, // DS-EXCEPTION: status color
+                                ),
+                            ],
+                          ),
+                          if (reason != null && reason.isNotEmpty) ...[
+                            const SizedBox(height: AppSpacing.md),
+                            Container(
+                              padding: const EdgeInsets.all(AppSpacing.md),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryWithLowOpacity,
+                                borderRadius:
+                                    BorderRadius.circular(AppSpacing.radiusSm),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    Icons.info_outline_rounded,
+                                    size: 16,
+                                    color: AppColors.primary,
+                                  ),
+                                  const SizedBox(width: AppSpacing.sm),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Reason',
+                                          style: AppTypography.captionStyle
+                                              .copyWith(
+                                            fontSize: AppTypography.fontSizeXS,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          reason,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
-                        ),
-                      ],
-                    ],
-                  ),
-                );
-              },
-            );
-          },
+                          if (updatedAt != null) ...[
+                            const SizedBox(height: AppSpacing.md),
+                            Divider(color: AppColors.grey300),
+                            const SizedBox(height: AppSpacing.sm),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.access_time_rounded,
+                                  size: 14,
+                                  color: AppColors.textSecondary,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  DateFormat('MMM dd, yyyy • h:mm a')
+                                      .format(updatedAt),
+                                  style: AppTypography.captionStyle,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
         );
       },
     );

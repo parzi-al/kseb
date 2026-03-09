@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 
 /// Service for managing users in the new database structure
@@ -22,7 +23,7 @@ class UserService {
 
       return UserModel.fromFirestore(querySnapshot.docs.first);
     } catch (e) {
-      print('Error getting user by email: $e');
+      debugPrint('Error getting user by email: $e');
       return null;
     }
   }
@@ -39,7 +40,7 @@ class UserService {
 
       return UserModel.fromFirestore(doc);
     } catch (e) {
-      print('Error getting user by ID: $e');
+      debugPrint('Error getting user by ID: $e');
       return null;
     }
   }
@@ -82,7 +83,7 @@ class UserService {
           await _firestore.collection(_usersCollection).add(user.toMap());
       return docRef.id;
     } catch (e) {
-      print('Error creating user: $e');
+      debugPrint('Error creating user: $e');
       rethrow;
     }
   }
@@ -92,7 +93,7 @@ class UserService {
     try {
       await _firestore.collection(_usersCollection).doc(userId).update(updates);
     } catch (e) {
-      print('Error updating user: $e');
+      debugPrint('Error updating user: $e');
       rethrow;
     }
   }
@@ -105,7 +106,7 @@ class UserService {
           .doc(user.id)
           .update(user.toMap());
     } catch (e) {
-      print('Error updating user model: $e');
+      debugPrint('Error updating user model: $e');
       rethrow;
     }
   }
@@ -115,7 +116,7 @@ class UserService {
     try {
       await _firestore.collection(_usersCollection).doc(userId).delete();
     } catch (e) {
-      print('Error deleting user: $e');
+      debugPrint('Error deleting user: $e');
       rethrow;
     }
   }
@@ -132,7 +133,7 @@ class UserService {
           .map((doc) => UserModel.fromFirestore(doc))
           .toList();
     } catch (e) {
-      print('Error searching users by phone: $e');
+      debugPrint('Error searching users by phone: $e');
       return [];
     }
   }
@@ -159,7 +160,7 @@ class UserService {
         'bonusAmount': FieldValue.increment(amount),
       });
     } catch (e) {
-      print('Error updating user bonus: $e');
+      debugPrint('Error updating user bonus: $e');
       rethrow;
     }
   }

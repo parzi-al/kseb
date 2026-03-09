@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:kseb/utils/app_colors.dart';
 import 'package:kseb/utils/app_typography.dart';
 import 'package:kseb/utils/app_spacing.dart';
+import 'package:kseb/utils/page_transitions.dart';
 
 /// Disable GoogleFonts network fetching for test environments.
 void setupTestEnvironment() {
@@ -106,6 +107,15 @@ ThemeData createTestTheme() {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
       ),
+    ),
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: AppPageTransition(),
+        TargetPlatform.iOS: AppPageTransition(),
+        TargetPlatform.windows: AppPageTransition(),
+        TargetPlatform.macOS: AppPageTransition(),
+        TargetPlatform.linux: AppPageTransition(),
+      },
     ),
   );
 }

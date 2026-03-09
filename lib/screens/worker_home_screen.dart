@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
@@ -13,8 +14,10 @@ import '../utils/app_typography.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_decorations.dart';
 import '../utils/app_toast.dart';
+import '../utils/page_transitions.dart';
 import '../services/user_service.dart';
 import '../models/user_model.dart';
+import '../components/common/skeleton_loader.dart';
 
 class WorkerHomeScreen extends StatefulWidget {
   const WorkerHomeScreen({super.key});
@@ -108,18 +111,18 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
         await _fetchBonusData(workerId!);
 
         // DEBUG: Print role and visibility info
-        print('═══════════════════════════════════════════════════════');
-        print('DEBUG: Staff Management Visibility Check');
-        print('User Email: ${user.email}');
-        print('User ID: $workerId');
-        print('User Name: $workerName');
-        print('User Role (enum): ${userModel.role.name}');
-        print('User Role (display): $workerRole');
-        print('Team ID: $teamId');
-        print('isSupervisor: $isSupervisor');
-        print(
+        debugPrint('═══════════════════════════════════════════════════════');
+        debugPrint('DEBUG: Staff Management Visibility Check');
+        debugPrint('User Email: ${user.email}');
+        debugPrint('User ID: $workerId');
+        debugPrint('User Name: $workerName');
+        debugPrint('User Role (enum): ${userModel.role.name}');
+        debugPrint('User Role (display): $workerRole');
+        debugPrint('Team ID: $teamId');
+        debugPrint('isSupervisor: $isSupervisor');
+        debugPrint(
             'Should show Staff Management: ${isSupervisor && teamId != null}');
-        print('═══════════════════════════════════════════════════════');
+        debugPrint('═══════════════════════════════════════════════════════');
 
         if (userModel.dob != null) {
           workerDob = userModel.dob;
@@ -138,7 +141,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
         _birthdayController.forward();
       }
     } catch (e) {
-      print('Error fetching worker data: $e');
+      debugPrint('Error fetching worker data: $e');
       setState(() {
         isLoading = false;
       });
@@ -172,7 +175,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
         }
       });
     } catch (e) {
-      print('Error fetching bonus data: $e');
+      debugPrint('Error fetching bonus data: $e');
       setState(() {
         bonusPoints = 0;
         bonusAmount = 0.0;
@@ -292,436 +295,420 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
       }
     }
 
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(
-          elevation: 0.5,
-          backgroundColor: AppColors.surface,
-          foregroundColor: AppColors.textPrimary,
-          surfaceTintColor: Colors.transparent,
-          shadowColor: AppColors.shadowLight,
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.sm),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryWithLowOpacity,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                ),
-                child: Icon(
-                  Icons.bolt_rounded,
-                  color: AppColors.primary,
-                  size: context.responsiveHeight(20),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.base),
-              Text(
-                'KSEB Portal',
-                style: context.responsiveTextStyle(AppTypography.headingStyle),
-              ),
-            ],
-          ),
-          actions: [
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        elevation: 0.5,
+        backgroundColor: AppColors.surface,
+        foregroundColor: AppColors.textPrimary,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: AppColors.shadowLight,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: AppColors.surface,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
+        title: Row(
+          children: [
             Container(
-              margin: const EdgeInsets.only(right: AppSpacing.md),
-              child: IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(AppSpacing.sm),
-                  decoration: BoxDecoration(
-                    color: AppColors.grey100,
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                  ),
-                  child: Icon(
-                    Icons.logout_rounded,
-                    size: 20,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                onPressed: () => _showLogoutDialog(context),
-                tooltip: 'Logout',
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: AppColors.primaryWithLowOpacity,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
               ),
+              child: Icon(
+                Icons.bolt_rounded,
+                color: AppColors.primary,
+                size: context.responsiveHeight(20),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.base),
+            Text(
+              'KSEB Portal',
+              style: context.responsiveTextStyle(AppTypography.headingStyle),
             ),
           ],
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Modern Welcome Section
-              Container(
-                width: double.infinity,
-                color: AppColors.surface,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                      context.responsivePadding(AppSpacing.xl),
-                      context.responsivePadding(AppSpacing.xl),
-                      context.responsivePadding(AppSpacing.xl),
-                      context.responsivePadding(AppSpacing.xxl)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: AppSpacing.md),
+            child: IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: AppColors.grey100,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                ),
+                child: Icon(
+                  Icons.logout_rounded,
+                  size: 20,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              onPressed: () => _showLogoutDialog(context),
+              tooltip: 'Logout',
+            ),
+          ),
+        ],
+      ),
+      body: isLoading
+          ? const HomeScreenSkeleton()
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Modern Welcome Section
+                  Container(
+                    width: double.infinity,
+                    color: AppColors.surface,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                          context.responsivePadding(AppSpacing.xl),
+                          context.responsivePadding(AppSpacing.xl),
+                          context.responsivePadding(AppSpacing.xl),
+                          context.responsivePadding(AppSpacing.xxl)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                AnimatedBuilder(
-                                  animation: _scaleAnimation,
-                                  builder: (context, child) {
-                                    return Transform.scale(
-                                      scale: isBirthday
-                                          ? _scaleAnimation.value
-                                          : 1.0,
-                                      child: Text(
-                                        greeting,
-                                        style: TextStyle(
-                                          color: isBirthday
-                                              ? AppColors.primary
-                                              : AppColors.textSecondary,
-                                          fontSize: context.responsiveFontSize(
-                                              isBirthday
-                                                  ? AppTypography.fontSizeLG
-                                                  : AppTypography.fontSizeBase),
-                                          fontWeight: isBirthday
-                                              ? FontWeight.w600
-                                              : FontWeight.w500,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                SizedBox(
-                                    height: context
-                                        .responsiveSpacing(AppSpacing.xs)),
-                                AnimatedBuilder(
-                                  animation: _scaleAnimation,
-                                  builder: (context, child) {
-                                    return Transform.scale(
-                                      scale: isBirthday
-                                          ? _scaleAnimation.value
-                                          : 1.0,
-                                      child: Text(
-                                        isLoading ? 'Loading...' : workerName,
-                                        style: context
-                                            .responsiveTextStyle(
-                                                AppTypography.displayStyle)
-                                            .copyWith(
-                                              fontWeight: FontWeight.w800,
-                                            ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                if (workerRole.isNotEmpty) ...[
-                                  SizedBox(
-                                      height: context
-                                          .responsiveSpacing(AppSpacing.xs)),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: AppSpacing.base,
-                                        vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary
-                                          .withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(
-                                          AppSpacing.radiusMd),
-                                      border: Border.all(
-                                        color: AppColors.primary
-                                            .withValues(alpha: 0.2),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          _getRoleIcon(workerRole),
-                                          size: 14,
-                                          color: AppColors.primary,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          workerRole,
-                                          style: context
-                                              .responsiveTextStyle(
-                                                  AppTypography.captionStyle)
-                                              .copyWith(
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                                if (isBirthday) ...[
-                                  SizedBox(
-                                      height: context
-                                          .responsiveSpacing(AppSpacing.sm)),
-                                  AnimatedBuilder(
-                                    animation: _confettiAnimation,
-                                    builder: (context, child) {
-                                      return Opacity(
-                                        opacity: _confettiAnimation.value,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: AppSpacing.base,
-                                              vertical: AppSpacing.sm),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primary
-                                                .withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(
-                                                AppSpacing.radiusLg),
-                                            border: Border.all(
-                                              color: AppColors.primary
-                                                  .withValues(alpha: 0.2),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    AnimatedBuilder(
+                                      animation: _scaleAnimation,
+                                      builder: (context, child) {
+                                        return Transform.scale(
+                                          scale: isBirthday
+                                              ? _scaleAnimation.value
+                                              : 1.0,
+                                          child: Text(
+                                            greeting,
+                                            style: TextStyle(
+                                              color: isBirthday
+                                                  ? AppColors.primary
+                                                  : AppColors.textSecondary,
+                                              fontSize: context
+                                                  .responsiveFontSize(isBirthday
+                                                      ? AppTypography.fontSizeLG
+                                                      : AppTypography
+                                                          .fontSizeBase),
+                                              fontWeight: isBirthday
+                                                  ? FontWeight.w600
+                                                  : FontWeight.w500,
                                             ),
                                           ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                '🎂',
-                                                style: TextStyle(
-                                                    fontSize: AppTypography
-                                                        .fontSizeLG),
-                                              ),
-                                              const SizedBox(
-                                                  width: AppSpacing.sm),
-                                              Flexible(
-                                                child: Text(
-                                                  'Have a wonderful day!',
-                                                  style: context
-                                                      .responsiveTextStyle(
-                                                          AppTypography
-                                                              .bodyMediumStyle)
-                                                      .copyWith(
-                                                        color:
-                                                            AppColors.primary,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
+                                        );
+                                      },
+                                    ),
+                                    SizedBox(
+                                        height: context
+                                            .responsiveSpacing(AppSpacing.xs)),
+                                    AnimatedBuilder(
+                                      animation: _scaleAnimation,
+                                      builder: (context, child) {
+                                        return Transform.scale(
+                                          scale: isBirthday
+                                              ? _scaleAnimation.value
+                                              : 1.0,
+                                          child: Text(
+                                            isLoading
+                                                ? 'Loading...'
+                                                : workerName,
+                                            style: context
+                                                .responsiveTextStyle(
+                                                    AppTypography.displayStyle)
+                                                .copyWith(
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    if (workerRole.isNotEmpty) ...[
+                                      SizedBox(
+                                          height: context.responsiveSpacing(
+                                              AppSpacing.xs)),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: AppSpacing.base,
+                                            vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary
+                                              .withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(
+                                              AppSpacing.radiusMd),
+                                          border: Border.all(
+                                            color: AppColors.primary
+                                                .withValues(alpha: 0.2),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              _getRoleIcon(workerRole),
+                                              size: 14,
+                                              color: AppColors.primary,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              workerRole,
+                                              style: context
+                                                  .responsiveTextStyle(
+                                                      AppTypography
+                                                          .captionStyle)
+                                                  .copyWith(
+                                                    color: AppColors.primary,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                    if (isBirthday) ...[
+                                      SizedBox(
+                                          height: context.responsiveSpacing(
+                                              AppSpacing.sm)),
+                                      AnimatedBuilder(
+                                        animation: _confettiAnimation,
+                                        builder: (context, child) {
+                                          return Opacity(
+                                            opacity: _confettiAnimation.value,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal:
+                                                          AppSpacing.base,
+                                                      vertical: AppSpacing.sm),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primary
+                                                    .withValues(alpha: 0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        AppSpacing.radiusLg),
+                                                border: Border.all(
+                                                  color: AppColors.primary
+                                                      .withValues(alpha: 0.2),
                                                 ),
                                               ),
-                                              const SizedBox(
-                                                  width: AppSpacing.xs),
-                                              Text(
-                                                '🎉',
-                                                style: TextStyle(
-                                                    fontSize: AppTypography
-                                                        .fontSizeBase),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Text(
+                                                    '🎂',
+                                                    style: TextStyle(
+                                                        fontSize: AppTypography
+                                                            .fontSizeLG),
+                                                  ),
+                                                  const SizedBox(
+                                                      width: AppSpacing.sm),
+                                                  Flexible(
+                                                    child: Text(
+                                                      'Have a wonderful day!',
+                                                      style: context
+                                                          .responsiveTextStyle(
+                                                              AppTypography
+                                                                  .bodyMediumStyle)
+                                                          .copyWith(
+                                                            color: AppColors
+                                                                .primary,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(
+                                                      width: AppSpacing.xs),
+                                                  Text(
+                                                    '🎉',
+                                                    style: TextStyle(
+                                                        fontSize: AppTypography
+                                                            .fontSizeBase),
+                                                  ),
+                                                ],
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.md,
-                                vertical: AppSpacing.sm),
-                            decoration: BoxDecoration(
-                              color: AppColors.success.withValues(alpha: 0.1),
-                              borderRadius:
-                                  BorderRadius.circular(AppSpacing.xl),
-                              border: Border.all(
-                                color: AppColors.success.withValues(alpha: 0.2),
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.success,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.sm),
-                                Text(
-                                  'Active',
-                                  style: context
-                                      .responsiveTextStyle(
-                                          AppTypography.bodyMediumStyle)
-                                      .copyWith(
-                                        color: AppColors.success,
-                                        fontWeight: FontWeight.w600,
+                                            ),
+                                          );
+                                        },
                                       ),
+                                    ],
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.md,
+                                    vertical: AppSpacing.sm),
+                                decoration: BoxDecoration(
+                                  color:
+                                      AppColors.success.withValues(alpha: 0.1),
+                                  borderRadius:
+                                      BorderRadius.circular(AppSpacing.xl),
+                                  border: Border.all(
+                                    color: AppColors.success
+                                        .withValues(alpha: 0.2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.success,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppSpacing.sm),
+                                    Text(
+                                      'Active',
+                                      style: context
+                                          .responsiveTextStyle(
+                                              AppTypography.bodyMediumStyle)
+                                          .copyWith(
+                                            color: AppColors.success,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
 
-              SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
+                  SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
 
-              // Modern Quick Stats Section
-              Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: context.responsivePadding(AppSpacing.lg)),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        'Bonus Points',
-                        isLoading ? '--' : bonusPoints.toString(),
-                        Icons.star_rounded,
-                        AppColors.statColors[0],
-                      ),
-                    ),
-                    SizedBox(width: context.responsiveSpacing(AppSpacing.md)),
-                    Expanded(
-                      child: _buildStatCard(
-                        'Bonus Amount',
-                        isLoading ? '--' : '₹${bonusAmount.toStringAsFixed(2)}',
-                        Icons.currency_rupee_rounded,
-                        AppColors.statColors[1],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
-
-              // Modern Menu Section
-              Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: context.responsivePadding(AppSpacing.lg)),
-                child: Text(
-                  'Quick Actions',
-                  style: context.responsiveTextStyle(AppTypography.titleStyle),
-                ),
-              ),
-              SizedBox(height: context.responsiveSpacing(AppSpacing.lg)),
-
-              // Modern Dashboard Cards
-              Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: context.responsivePadding(AppSpacing.lg)),
-                child: GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  crossAxisSpacing: context.responsiveSpacing(AppSpacing.md),
-                  mainAxisSpacing: context.responsiveSpacing(AppSpacing.md),
-                  childAspectRatio: MediaQuery.of(context).size.height < 700
-                      ? 1.25
-                      : (MediaQuery.of(context).size.height < 800 ? 1.15 : 1.0),
-                  children: [
-                    if (isSupervisor && teamId != null)
-                      _buildDashboardCard(
-                        context,
-                        icon: Icons.people_rounded,
-                        label: 'Staff Management',
-                        color: AppColors.dashboardCardColors[2],
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => StaffManagementScreen(
-                                teamId: teamId,
-                                currentUserRole: UserRole.fromString(
-                                    workerRole.toLowerCase()),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    if (isCooOrDirector)
-                      _buildDashboardCard(
-                        context,
-                        icon: Icons.card_giftcard_rounded,
-                        label: 'Bonus Management',
-                        color: Colors.purple, // DS-EXCEPTION: decorative color
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const BonusManagementScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    if (!isCooOrDirector)
-                      _buildDashboardCard(
-                        context,
-                        icon: Icons.history_rounded,
-                        label: 'My Bonus History',
-                        color:
-                            Colors.deepPurple, // DS-EXCEPTION: decorative color
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const BonusHistoryScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    _buildDashboardCard(
-                      context,
-                      icon: Icons.fingerprint,
-                      label: 'Attendance',
-                      color: AppColors.dashboardCardColors[0],
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const AttendanceScreen(),
+                  // Modern Quick Stats Section
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: context.responsivePadding(AppSpacing.lg)),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatCard(
+                            'Bonus Points',
+                            isLoading ? '--' : bonusPoints.toString(),
+                            Icons.star_rounded,
+                            AppColors.statColors[0],
                           ),
-                        );
-                      },
-                    ),
-                    _buildDashboardCard(
-                      context,
-                      icon: Icons.assignment_rounded,
-                      label: 'Daily Worksheet',
-                      color: AppColors.dashboardCardColors[1],
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const WorksheetScreen(),
+                        ),
+                        SizedBox(
+                            width: context.responsiveSpacing(AppSpacing.md)),
+                        Expanded(
+                          child: _buildStatCard(
+                            'Bonus Amount',
+                            isLoading
+                                ? '--'
+                                : '₹${bonusAmount.toStringAsFixed(2)}',
+                            Icons.currency_rupee_rounded,
+                            AppColors.statColors[1],
                           ),
-                        );
-                      },
+                        ),
+                      ],
                     ),
-                    _buildDashboardCard(
-                      context,
-                      icon: Icons.inventory_2_rounded,
-                      label: 'Material Request',
-                      color: AppColors.dashboardCardColors[2],
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const MaterialManagementScreen(),
+                  ),
+
+                  SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
+
+                  // Modern Menu Section
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: context.responsivePadding(AppSpacing.lg)),
+                    child: Text(
+                      'Quick Actions',
+                      style:
+                          context.responsiveTextStyle(AppTypography.titleStyle),
+                    ),
+                  ),
+                  SizedBox(height: context.responsiveSpacing(AppSpacing.lg)),
+
+                  // Modern Dashboard Cards
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: context.responsivePadding(AppSpacing.lg)),
+                    child: GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      crossAxisSpacing:
+                          context.responsiveSpacing(AppSpacing.md),
+                      mainAxisSpacing: context.responsiveSpacing(AppSpacing.md),
+                      childAspectRatio: MediaQuery.of(context).size.height < 700
+                          ? 1.25
+                          : (MediaQuery.of(context).size.height < 800
+                              ? 1.15
+                              : 1.0),
+                      children: [
+                        if (isSupervisor && teamId != null)
+                          _buildDashboardCard(
+                            context,
+                            icon: Icons.people_rounded,
+                            label: 'Staff Management',
+                            color: AppColors.dashboardCardColors[2],
+                            destination: StaffManagementScreen(
+                              teamId: teamId,
+                              currentUserRole:
+                                  UserRole.fromString(workerRole.toLowerCase()),
+                            ),
                           ),
-                        );
-                      },
+                        if (isCooOrDirector)
+                          _buildDashboardCard(
+                            context,
+                            icon: Icons.card_giftcard_rounded,
+                            label: 'Bonus Management',
+                            color:
+                                Colors.purple, // DS-EXCEPTION: decorative color
+                            destination: const BonusManagementScreen(),
+                          ),
+                        if (!isCooOrDirector)
+                          _buildDashboardCard(
+                            context,
+                            icon: Icons.history_rounded,
+                            label: 'My Bonus History',
+                            color: Colors
+                                .deepPurple, // DS-EXCEPTION: decorative color
+                            destination: const BonusHistoryScreen(),
+                          ),
+                        _buildDashboardCard(
+                          context,
+                          icon: Icons.fingerprint,
+                          label: 'Attendance',
+                          color: AppColors.dashboardCardColors[0],
+                          destination: const AttendanceScreen(),
+                        ),
+                        _buildDashboardCard(
+                          context,
+                          icon: Icons.assignment_rounded,
+                          label: 'Daily Worksheet',
+                          color: AppColors.dashboardCardColors[1],
+                          destination: const WorksheetScreen(),
+                        ),
+                        _buildDashboardCard(
+                          context,
+                          icon: Icons.inventory_2_rounded,
+                          label: 'Material Request',
+                          color: AppColors.dashboardCardColors[2],
+                          destination: const MaterialManagementScreen(),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
+                ],
               ),
-              SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
@@ -730,52 +717,72 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
     required IconData icon,
     required String label,
     required Color color,
-    required VoidCallback onTap,
+    required Widget destination,
   }) {
-    return Container(
-      decoration: AppDecorations.modernCardDecorationWithColor(color),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(
-              MediaQuery.of(context).size.height < 700
-                  ? AppSpacing.radiusMd
-                  : AppSpacing.radiusDefault),
-          child: Padding(
-            padding: EdgeInsets.all(context.responsivePadding(AppSpacing.base)),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding:
-                      EdgeInsets.all(context.responsivePadding(AppSpacing.sm)),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(
-                        MediaQuery.of(context).size.height < 700
-                            ? AppSpacing.radiusSm
-                            : AppSpacing.radiusMd),
-                  ),
-                  child: Icon(
-                    icon,
-                    size: context.responsiveHeight(20),
-                    color: color,
-                  ),
-                ),
-                SizedBox(height: context.responsiveSpacing(AppSpacing.sm)),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: context
-                      .responsiveTextStyle(AppTypography.bodyMediumStyle)
-                      .copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+    void navigate(BuildContext cardContext) {
+      final box = cardContext.findRenderObject() as RenderBox?;
+      Rect? sourceRect;
+      if (box != null && box.hasSize) {
+        final offset = box.localToGlobal(Offset.zero);
+        sourceRect = offset & box.size;
+      }
+      Navigator.of(context).push(
+        AppRoute(
+          builder: (_) => destination,
+          sourceRect: sourceRect,
+        ),
+      );
+    }
+
+    return RepaintBoundary(
+      child: Container(
+        decoration: AppDecorations.modernCardDecorationWithColor(color),
+        child: Material(
+          color: Colors.transparent,
+          child: Builder(
+            builder: (cardContext) => InkWell(
+              onTap: () => navigate(cardContext),
+              borderRadius: BorderRadius.circular(
+                  MediaQuery.of(context).size.height < 700
+                      ? AppSpacing.radiusMd
+                      : AppSpacing.radiusDefault),
+              child: Padding(
+                padding:
+                    EdgeInsets.all(context.responsivePadding(AppSpacing.base)),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(
+                          context.responsivePadding(AppSpacing.sm)),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(
+                            MediaQuery.of(context).size.height < 700
+                                ? AppSpacing.radiusSm
+                                : AppSpacing.radiusMd),
                       ),
+                      child: Icon(
+                        icon,
+                        size: context.responsiveHeight(20),
+                        color: color,
+                      ),
+                    ),
+                    SizedBox(height: context.responsiveSpacing(AppSpacing.sm)),
+                    Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: context
+                          .responsiveTextStyle(AppTypography.bodyMediumStyle)
+                          .copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -807,7 +814,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
           ),
           SizedBox(height: context.responsiveSpacing(AppSpacing.md)),
           value == '--'
-              ? Container(
+              ? SizedBox(
                   width: 40,
                   height: 28,
                   child: LinearProgressIndicator(

@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../components/common/app_bar_builder.dart';
-import '../components/common/app_loading.dart';
+import '../components/common/skeleton_loader.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_decorations.dart';
 import '../utils/app_typography.dart';
 import '../utils/app_toast.dart';
+import '../utils/page_transitions.dart';
 import '../models/user_model.dart';
 import 'bonus_history_screen.dart';
 
@@ -230,7 +231,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
+                AppRoute(
                   builder: (context) => const BonusHistoryScreen(),
                 ),
               );
@@ -239,9 +240,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(
-              child: AppLoading(),
-            )
+          ? const BonusManagementSkeleton()
           : SingleChildScrollView(
               padding: EdgeInsets.all(context.responsivePadding(AppSpacing.xl)),
               child: Form(

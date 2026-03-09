@@ -14,9 +14,9 @@ class TeamDialog extends StatefulWidget {
   final TeamModel? team; // null for creating new team, TeamModel for editing
 
   const TeamDialog({
-    Key? key,
+    super.key,
     this.team,
-  }) : super(key: key);
+  });
 
   @override
   State<TeamDialog> createState() => _TeamDialogState();
@@ -443,7 +443,7 @@ class _TeamDialogState extends State<TeamDialog> {
                                   iconColor:
                                       Colors.purple, // DS-EXCEPTION: role color
                                 );
-                              }).toList(),
+                              }),
                             ],
                             onChanged: (value) {
                               setState(() {

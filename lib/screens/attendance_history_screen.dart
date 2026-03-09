@@ -5,8 +5,8 @@ import '../utils/app_toast.dart';
 import '../models/attendance_model.dart';
 import '../services/attendance_service.dart';
 import '../components/common/app_bar_builder.dart';
-import '../components/common/app_loading.dart';
-import 'components/attendance_history_list.dart';
+import '../components/common/skeleton_loader.dart';
+import '../components/attendance/attendance_history_list.dart';
 
 /// Standalone attendance history screen.
 ///
@@ -64,7 +64,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
       backgroundColor: AppColors.background,
       appBar: buildAppBar(title: 'Attendance History'),
       body: _isLoading
-          ? const AppLoading()
+          ? const ListScreenSkeleton()
           : AttendanceHistoryList(
               records: _attendanceRecords,
               onRefresh: _fetchAttendanceHistory,

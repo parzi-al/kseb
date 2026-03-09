@@ -426,7 +426,7 @@ void main() {
       );
 
       expect(result, hasLength(2));
-      expect(result.every((r) => r is AttendanceModel), true);
+      expect(result, everyElement(isA<AttendanceModel>()));
     });
 
     test('normalises date to midnight', () async {

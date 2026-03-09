@@ -5,6 +5,7 @@ import '../utils/app_spacing.dart';
 import '../utils/app_decorations.dart';
 import '../components/common/app_bar_builder.dart';
 import '../components/common/app_card.dart';
+import '../utils/page_transitions.dart';
 import 'add_material_screen.dart';
 import 'withdraw_material_screen.dart';
 
@@ -80,7 +81,7 @@ class MaterialManagementScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        AppRoute(
                           builder: (context) => const AddMaterialScreen(),
                         ),
                       );
@@ -96,7 +97,7 @@ class MaterialManagementScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        AppRoute(
                           builder: (context) => const WithdrawMaterialScreen(),
                         ),
                       );
