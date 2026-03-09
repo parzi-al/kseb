@@ -26,6 +26,32 @@ service cloud.firestore {
       return userRole == 'director';
     }
     
+    // Auth audit events — append-only log (FR-018, FR-019)
+    match /auth_events/{eventId} {
+      // Any authenticated user can create audit events (app writes on their behalf)
+      allow create: if request.auth != null
+        && request.resource.data.eventType in ['login_success', 'login_failure', 'logout', 'idle_timeout', 'force_logout']
+        && request.resource.data.timestamp == request.time;
+      
+      // Only managers and above can read audit events (admin visibility)
+      allow read: if request.auth != null && isManagerOrAbove();
+      
+      // No updates or deletes — append-only
+      allow update, delete: if false;
+    }
+    
+    // App settings — admin-configurable (idle timeout, etc.)
+    match /app_settings/{settingId} {
+      // All authenticated users can read settings
+      allow read: if request.auth != null;
+      
+      // Only managers and above can create/update settings
+      allow create, update: if request.auth != null && isManagerOrAbove();
+      
+      // Only directors can delete settings
+      allow delete: if request.auth != null && isDirector();
+    }
+    
     // Users collection - role-based access
     match /users/{userId} {
       // Users can read their own profile

@@ -33,11 +33,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 [P] Create AuthAuditService in lib/services/auth_audit_service.dart
-- [ ] T006 [P] Create SessionService in lib/services/session_service.dart
-- [ ] T007 [P] Create IdleTimeoutService in lib/services/idle_timeout_service.dart
-- [ ] T008 Create AuthService (orchestrator) in lib/services/auth_service.dart
-- [ ] T009 Update Firestore security rules for auth_events, app_settings collections in firestore.rules
+- [X] T005 [P] Create AuthAuditService in lib/services/auth_audit_service.dart
+- [X] T006 [P] Create SessionService in lib/services/session_service.dart
+- [X] T007 [P] Create IdleTimeoutService in lib/services/idle_timeout_service.dart
+- [X] T008 Create AuthService (orchestrator) in lib/services/auth_service.dart
+- [X] T009 Update Firestore security rules for auth_events, app_settings collections in firestore.rules
 - [ ] T010 [P] Create unit tests for AuthEventModel in test/models/auth_event_model_test.dart
 - [ ] T011 [P] Create unit tests for LoginRateLimiter in test/services/login_rate_limiter_test.dart
 - [ ] T012 [P] Create unit tests for AuthAuditService in test/services/auth_audit_service_test.dart
