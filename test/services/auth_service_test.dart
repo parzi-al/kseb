@@ -60,12 +60,10 @@ void main() {
         );
 
         // Verify both side-effects
-        final userDoc =
-            await fakeFirestore.collection('users').doc('u1').get();
+        final userDoc = await fakeFirestore.collection('users').doc('u1').get();
         expect(userDoc.data()!['activeSessionToken'], token);
 
-        final events =
-            await fakeFirestore.collection('auth_events').get();
+        final events = await fakeFirestore.collection('auth_events').get();
         expect(events.docs.length, 1);
         expect(events.docs.first.data()['eventType'], 'login_success');
       });
@@ -91,8 +89,7 @@ void main() {
         );
 
         // Verify
-        final userDoc =
-            await fakeFirestore.collection('users').doc('u1').get();
+        final userDoc = await fakeFirestore.collection('users').doc('u1').get();
         expect(userDoc.data()!['activeSessionToken'], isNull);
 
         // Session should be invalid now

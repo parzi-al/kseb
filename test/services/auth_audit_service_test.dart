@@ -22,8 +22,7 @@ void main() {
           sessionToken: 'sess_123',
         );
 
-        final snapshot =
-            await fakeFirestore.collection('auth_events').get();
+        final snapshot = await fakeFirestore.collection('auth_events').get();
         expect(snapshot.docs.length, 1);
 
         final data = snapshot.docs.first.data();
@@ -40,8 +39,7 @@ void main() {
           metadata: {'errorCode': 'user-not-found'},
         );
 
-        final snapshot =
-            await fakeFirestore.collection('auth_events').get();
+        final snapshot = await fakeFirestore.collection('auth_events').get();
         expect(snapshot.docs.length, 1);
 
         final data = snapshot.docs.first.data();
@@ -58,8 +56,7 @@ void main() {
           );
         }
 
-        final snapshot =
-            await fakeFirestore.collection('auth_events').get();
+        final snapshot = await fakeFirestore.collection('auth_events').get();
         expect(snapshot.docs.length, AuthEventType.values.length);
       });
 

@@ -94,8 +94,7 @@ void main() {
         await service.createSession('user1');
         await service.clearSession('user1');
 
-        final isValid =
-            await service.isSessionValid('user1', 'any_token');
+        final isValid = await service.isSessionValid('user1', 'any_token');
         expect(isValid, isFalse);
       });
     });

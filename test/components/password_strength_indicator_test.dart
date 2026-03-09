@@ -15,7 +15,8 @@ void main() {
       });
 
       test('short lowercase only = 0 (less than 6 chars)', () {
-        expect(PasswordStrengthIndicator.calculateScore('abc'), 1); // lowercase only
+        expect(PasswordStrengthIndicator.calculateScore('abc'),
+            1); // lowercase only
       });
 
       test('6 chars all lowercase = 2 (Weak)', () {

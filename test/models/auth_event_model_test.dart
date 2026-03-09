@@ -165,8 +165,9 @@ void main() {
         );
 
         // Write to fake Firestore
-        final docRef =
-            await fakeFirestore.collection('auth_events').add(event.toTestMap());
+        final docRef = await fakeFirestore
+            .collection('auth_events')
+            .add(event.toTestMap());
 
         // Read back
         final doc = await docRef.get();

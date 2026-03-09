@@ -350,8 +350,7 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                   decoration: BoxDecoration(
                     color: AppColors.error.withValues(alpha: 0.1),
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusSm),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -376,8 +375,7 @@ class _LoginScreenState extends State<LoginScreen>
                   ? const AppLoading(variant: AppLoadingVariant.inline)
                   : AppButton(
                       label: 'SIGN IN',
-                      onPressed:
-                          _cooldownRemaining > 0 ? null : _signIn,
+                      onPressed: _cooldownRemaining > 0 ? null : _signIn,
                     ),
               SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
               // Modern Footer links
