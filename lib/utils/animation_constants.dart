@@ -64,6 +64,22 @@ abstract final class AnimationConstants {
   // ── Configurable Strings ────────────────────────────────────────
   /// Application name displayed on the splash screen.
   static const String appName = 'KSEB';
+
+  // ── Login Icon Animation ────────────────────────────────────────
+  /// Total duration of the login icon scale-in + glow entrance animation.
+  static const Duration loginIconScaleDuration = Duration(milliseconds: 800);
+
+  /// Curve for the login icon scale-in (overshoot then settle).
+  static const Curve loginIconScaleCurve = Curves.easeOutBack;
+
+  /// Maximum opacity of the glow shadow around the login icon.
+  static const double loginIconGlowMaxOpacity = 0.4;
+
+  /// Maximum spread radius of the glow shadow around the login icon.
+  static const double loginIconGlowMaxSpread = 12.0;
+
+  /// Maximum blur radius of the glow shadow around the login icon.
+  static const double loginIconGlowMaxBlur = 20.0;
 }
 
 /// Returns [Duration.zero] when the platform reduce-motion setting is active,

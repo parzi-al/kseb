@@ -92,6 +92,8 @@ class UserModel {
   final double bonusAmount;
   final DateTime? dob;
   final DateTime createdAt;
+  final String? activeSessionToken;
+  final DateTime? lastLoginAt;
 
   UserModel({
     required this.id,
@@ -107,6 +109,8 @@ class UserModel {
     this.bonusAmount = 0.0,
     this.dob,
     required this.createdAt,
+    this.activeSessionToken,
+    this.lastLoginAt,
   });
 
   /// Create UserModel from Firestore document
@@ -128,6 +132,10 @@ class UserModel {
       createdAt: data['createdAt'] != null
           ? (data['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
+      activeSessionToken: data['activeSessionToken'] as String?,
+      lastLoginAt: data['lastLoginAt'] != null
+          ? (data['lastLoginAt'] as Timestamp).toDate()
+          : null,
     );
   }
 
@@ -149,6 +157,10 @@ class UserModel {
       createdAt: data['createdAt'] != null
           ? (data['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
+      activeSessionToken: data['activeSessionToken'] as String?,
+      lastLoginAt: data['lastLoginAt'] != null
+          ? (data['lastLoginAt'] as Timestamp).toDate()
+          : null,
     );
   }
 
@@ -167,6 +179,9 @@ class UserModel {
       'bonusAmount': bonusAmount,
       'dob': dob != null ? Timestamp.fromDate(dob!) : null,
       'createdAt': Timestamp.fromDate(createdAt),
+      'activeSessionToken': activeSessionToken,
+      'lastLoginAt':
+          lastLoginAt != null ? Timestamp.fromDate(lastLoginAt!) : null,
     };
   }
 
@@ -215,6 +230,8 @@ class UserModel {
     double? bonusAmount,
     DateTime? dob,
     DateTime? createdAt,
+    String? activeSessionToken,
+    DateTime? lastLoginAt,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -230,6 +247,8 @@ class UserModel {
       bonusAmount: bonusAmount ?? this.bonusAmount,
       dob: dob ?? this.dob,
       createdAt: createdAt ?? this.createdAt,
+      activeSessionToken: activeSessionToken ?? this.activeSessionToken,
+      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
     );
   }
 }

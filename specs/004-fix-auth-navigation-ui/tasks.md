@@ -20,10 +20,10 @@
 
 **Purpose**: New model and utility files, animation constants update, no behavioral changes yet
 
-- [ ] T001 [P] Create AuthEventModel and AuthEventType enum in lib/models/auth_event_model.dart
-- [ ] T002 [P] Add activeSessionToken and lastLoginAt fields to UserModel in lib/models/user_model.dart
-- [ ] T003 [P] Add login icon animation constants to lib/utils/animation_constants.dart
-- [ ] T004 [P] Create LoginRateLimiter utility class in lib/services/login_rate_limiter.dart
+- [X] T001 [P] Create AuthEventModel and AuthEventType enum in lib/models/auth_event_model.dart
+- [X] T002 [P] Add activeSessionToken and lastLoginAt fields to UserModel in lib/models/user_model.dart
+- [X] T003 [P] Add login icon animation constants to lib/utils/animation_constants.dart
+- [X] T004 [P] Create LoginRateLimiter utility class in lib/services/login_rate_limiter.dart
 
 ---
 
