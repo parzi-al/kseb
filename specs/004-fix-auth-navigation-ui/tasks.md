@@ -57,14 +57,14 @@
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Create AuthGate widget with StreamBuilder on authStateChanges() in lib/screens/auth_gate.dart
-- [ ] T017 [US1] Update main.dart to use AuthGate as MaterialApp home instead of SplashScreen in lib/main.dart
-- [ ] T018 [US1] Refactor SplashScreen to pure animation widget (remove auth logic) in lib/screens/splash_screen.dart
-- [ ] T019 [P] [US1] Create PasswordStrengthIndicator widget in lib/components/common/password_strength_indicator.dart
-- [ ] T020 [US1] Update LoginScreen: integrate AuthService.signIn, add password strength indicator, add rate limiting UI, add password min-length validation in lib/screens/login_screen.dart
-- [ ] T021 [US1] Wire login to create session token and write audit event via AuthService in lib/screens/login_screen.dart
-- [ ] T022 [P] [US1] Create unit tests for PasswordStrengthIndicator in test/components/password_strength_indicator_test.dart
-- [ ] T023 [US1] Create widget tests for LoginScreen (sign-in flow, validation, rate limiting UI) in test/screens/login_screen_test.dart
+- [X] T016 [US1] Create AuthGate widget with StreamBuilder on authStateChanges() in lib/screens/auth_gate.dart
+- [X] T017 [US1] Update main.dart to use AuthGate as MaterialApp home instead of SplashScreen in lib/main.dart
+- [X] T018 [US1] Refactor SplashScreen to pure animation widget (remove auth logic) in lib/screens/splash_screen.dart
+- [X] T019 [P] [US1] Create PasswordStrengthIndicator widget in lib/components/common/password_strength_indicator.dart
+- [X] T020 [US1] Update LoginScreen: integrate AuthService.signIn, add password strength indicator, add rate limiting UI, add password min-length validation in lib/screens/login_screen.dart
+- [X] T021 [US1] Wire login to create session token and write audit event via AuthService in lib/screens/login_screen.dart
+- [X] T022 [P] [US1] Create unit tests for PasswordStrengthIndicator in test/components/password_strength_indicator_test.dart
+- [X] T023 [US1] Create widget tests for LoginScreen (sign-in flow, validation, rate limiting UI) in test/screens/login_screen_test.dart
 
 **Checkpoint**: Login flow works end-to-end. User signs in → AuthGate detects auth state → Worker Home Screen shown. Back button cannot return to login. Password strength and rate limiting visible.
 
