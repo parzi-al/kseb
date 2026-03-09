@@ -1,38 +1,175 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow authenticated users to read/write their own worker profile
+    
+    // Helper function to check if user is supervisor or above
+    function isSupervisorOrAbove() {
+      let userRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return userRole in ['supervisor', 'manager', 'coo', 'director'];
+    }
+    
+    // Helper function to check if user is manager or above
+    function isManagerOrAbove() {
+      let userRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return userRole in ['manager', 'coo', 'director'];
+    }
+    
+    // Helper function to check if user is COO or director
+    function isCOOOrDirector() {
+      let userRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return userRole in ['coo', 'director'];
+    }
+    
+    // Helper function to check if user is director
+    function isDirector() {
+      let userRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return userRole == 'director';
+    }
+    
+    // Users collection - role-based access
+    match /users/{userId} {
+      // Users can read their own profile
+      allow read: if request.auth != null && request.auth.uid == userId;
+      // Supervisors and above can read all users
+      allow read: if request.auth != null && isSupervisorOrAbove();
+      // Users can update their own profile (limited fields)
+      allow update: if request.auth != null && 
+        request.auth.uid == userId &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email']);
+      // Only managers and above can create users
+      allow create: if request.auth != null && isManagerOrAbove();
+      // Only managers and above can delete users
+      allow delete: if request.auth != null && isManagerOrAbove();
+    }
+    
+    // Attendance collection - flat structure
+    match /attendance/{attendanceId} {
+      // Users can read their own attendance
+      allow read: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      // Supervisors and above can read all attendance
+      allow read: if request.auth != null && isSupervisorOrAbove();
+      // Users can create their own attendance (only once per day)
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.date.toMillis() == request.time.date().toMillis();
+      // Supervisors can update attendance status
+      allow update: if request.auth != null && 
+        isSupervisorOrAbove() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'verifiedBy']);
+      // Managers and above can delete attendance
+      allow delete: if request.auth != null && isManagerOrAbove();
+    }
+    
+    // Teams collection
+    match /teams/{teamId} {
+      // Supervisors and above can read teams
+      allow read: if request.auth != null && isSupervisorOrAbove();
+      // Managers and above can create/update/delete teams
+      allow create, update, delete: if request.auth != null && isManagerOrAbove();
+    }
+    
+    // Worksheets collection
+    match /worksheets/{worksheetId} {
+      // Supervisors and above can read all worksheets
+      allow read: if request.auth != null && isSupervisorOrAbove();
+      // Supervisors can create worksheets
+      allow create: if request.auth != null && 
+        isSupervisorOrAbove() &&
+        request.resource.data.createdBy == request.auth.uid;
+      // Creators can update their own pending worksheets
+      allow update: if request.auth != null && 
+        resource.data.createdBy == request.auth.uid &&
+        resource.data.status == 'pending';
+      // Managers can approve/reject worksheets
+      allow update: if request.auth != null && 
+        isManagerOrAbove() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'approvedBy']);
+      // Managers and above can delete worksheets
+      allow delete: if request.auth != null && isManagerOrAbove();
+    }
+    
+    // Materials collection
+    match /materials/{materialId} {
+      // All authenticated users can read materials
+      allow read: if request.auth != null;
+      // Supervisors and above can create materials
+      allow create: if request.auth != null && isSupervisorOrAbove();
+      // Managers and above can update/delete materials
+      allow update, delete: if request.auth != null && isManagerOrAbove();
+    }
+    
+    // Assets collection
+    match /assets/{assetId} {
+      // All authenticated users can read assets
+      allow read: if request.auth != null;
+      // Supervisors and above can create assets
+      allow create: if request.auth != null && isSupervisorOrAbove();
+      // Managers and above can update/delete assets
+      allow update, delete: if request.auth != null && isManagerOrAbove();
+    }
+    
+    // Insurance collection
+    match /insurance/{insuranceId} {
+      // Users can read their own insurance
+      allow read: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      // Managers and above can read all insurance
+      allow read: if request.auth != null && isManagerOrAbove();
+      // Managers and above can create/update insurance
+      allow create, update: if request.auth != null && isManagerOrAbove();
+      // Only managers and above can delete insurance
+      allow delete: if request.auth != null && isManagerOrAbove();
+    }
+    
+    // Bonuses collection
+    match /bonuses/{bonusId} {
+      // Users can read their own bonuses
+      allow read: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      // Supervisors and above can read all bonuses
+      allow read: if request.auth != null && isSupervisorOrAbove();
+      // Supervisors and above can create bonuses
+      allow create: if request.auth != null && 
+        isSupervisorOrAbove() &&
+        request.resource.data.updatedBy == request.auth.uid;
+      // Only the person who created can update
+      allow update: if request.auth != null && 
+        resource.data.updatedBy == request.auth.uid;
+      // Managers and above can delete bonuses
+      allow delete: if request.auth != null && isManagerOrAbove();
+    }
+    
+    // Cashbook collection (Director only)
+    match /cashbook/{cashbookId} {
+      // Only directors can read cashbook
+      allow read: if request.auth != null && isDirector();
+      // COO and Director can create entries
+      allow create: if request.auth != null && isCOOOrDirector();
+      // Only creator or director can update
+      allow update: if request.auth != null && 
+        (resource.data.enteredBy == request.auth.uid || isDirector());
+      // Only director can delete
+      allow delete: if request.auth != null && isDirector();
+    }
+    
+    // Legacy: Allow authenticated users to read/write their own worker profile (for migration)
     match /workers/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
       
-      // Allow access to attendance subcollection
+      // Old attendance subcollection (deprecated - use flat attendance collection instead)
       match /attendance/{attendanceId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
     
-    // Allow authenticated users to create/read worksheets
-    match /worksheets/{worksheetId} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // Material management rules
-    match /materials/{materialId} {
-      // Allow all authenticated users to read materials
-      allow read: if request.auth != null;
-      // Only allow adding materials if user is authenticated
-      allow create: if request.auth != null && 
-        request.resource.data.addedBy == request.auth.uid;
-      // Allow updates and deletes by the user who added the material
-      allow update, delete: if request.auth != null && 
-        resource.data.addedBy == request.auth.uid;
-    }
-    
-    // Material request rules
+    // Material request rules (legacy)
     match /material_requests/{requestId} {
       // Allow users to read their own requests
       allow read: if request.auth != null && 
         resource.data.requestedBy == request.auth.uid;
+      // Managers can read all requests
+      allow read: if request.auth != null && isManagerOrAbove();
       // Allow users to create their own requests
       allow create: if request.auth != null && 
         request.resource.data.requestedBy == request.auth.uid;
@@ -40,6 +177,8 @@ service cloud.firestore {
       allow update: if request.auth != null && 
         resource.data.requestedBy == request.auth.uid &&
         resource.data.status == 'Pending';
+      // Managers can update any request
+      allow update: if request.auth != null && isManagerOrAbove();
     }
     
     // Deny all other requests by default

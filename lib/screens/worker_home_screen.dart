@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 import 'attendance_screen.dart';
-import 'attendance_history_screen.dart';
 import 'material_management_screen.dart';
 import 'worksheet_screen.dart';
 import 'staff_management_screen.dart';
+import 'bonus_management_screen.dart';
+import 'bonus_history_screen.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_toast.dart';
+import '../services/user_service.dart';
+import '../models/user_model.dart';
 
 class WorkerHomeScreen extends StatefulWidget {
   const WorkerHomeScreen({super.key});
@@ -18,15 +22,22 @@ class WorkerHomeScreen extends StatefulWidget {
 
 class _WorkerHomeScreenState extends State<WorkerHomeScreen>
     with TickerProviderStateMixin {
+  final UserService _userService = UserService();
+
   String workerName = 'Worker';
+  String workerRole = '';
   DateTime? workerDob;
-  double todayHours = 0.0;
+  int bonusPoints = 0;
+  double bonusAmount = 0.0;
   int monthlyHours = 0;
   int workingDaysThisMonth = 0;
   bool isLoading = true;
   bool isBirthday = false;
   bool isSupervisor = false;
+  bool isCooOrDirector = false;
   String? workerId;
+  String? teamId;
+  StreamSubscription<DocumentSnapshot>? _bonusSubscription;
 
   late AnimationController _birthdayController;
   late Animation<double> _confettiAnimation;
@@ -42,6 +53,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
   @override
   void dispose() {
     _birthdayController.dispose();
+    _bonusSubscription?.cancel();
     super.dispose();
   }
 
@@ -73,20 +85,41 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
-      // Fetch worker info
-      final workerDoc = await FirebaseFirestore.instance
-          .collection('worker_info')
-          .where('email', isEqualTo: user.email)
-          .get();
+      // Fetch user info from new 'users' collection
+      final userModel = await _userService.getUserByEmail(user.email!);
 
-      if (workerDoc.docs.isNotEmpty) {
-        final workerData = workerDoc.docs.first.data();
-        workerId = workerDoc.docs.first.id;
-        workerName = workerData['name'] ?? 'Worker';
-        isSupervisor = true; // Always treat as supervisor
+      if (userModel != null) {
+        workerId = userModel.id;
+        workerName = userModel.name;
+        workerRole = userModel.role.displayName;
+        teamId = userModel.teamId;
 
-        if (workerData['dob'] != null) {
-          workerDob = (workerData['dob'] as Timestamp).toDate();
+        // Check if user is supervisor or higher
+        isSupervisor = userModel.isSupervisor;
+
+        // Check if user is COO or Director
+        isCooOrDirector = userModel.role == UserRole.coo ||
+            userModel.role == UserRole.director;
+
+        // Fetch bonus points and amount
+        await _fetchBonusData(workerId!);
+
+        // DEBUG: Print role and visibility info
+        print('═══════════════════════════════════════════════════════');
+        print('DEBUG: Staff Management Visibility Check');
+        print('User Email: ${user.email}');
+        print('User ID: $workerId');
+        print('User Name: $workerName');
+        print('User Role (enum): ${userModel.role.name}');
+        print('User Role (display): $workerRole');
+        print('Team ID: $teamId');
+        print('isSupervisor: $isSupervisor');
+        print(
+            'Should show Staff Management: ${isSupervisor && teamId != null}');
+        print('═══════════════════════════════════════════════════════');
+
+        if (userModel.dob != null) {
+          workerDob = userModel.dob;
           _checkBirthday();
         }
       }
@@ -102,6 +135,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
         _birthdayController.forward();
       }
     } catch (e) {
+      print('Error fetching worker data: $e');
       setState(() {
         isLoading = false;
       });
@@ -115,61 +149,39 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
     isBirthday = now.month == workerDob!.month && now.day == workerDob!.day;
   }
 
+  Future<void> _fetchBonusData(String userId) async {
+    try {
+      // Cancel existing subscription if any
+      await _bonusSubscription?.cancel();
+
+      // Set up real-time listener for bonus updates
+      _bonusSubscription = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .snapshots()
+          .listen((snapshot) {
+        if (snapshot.exists && mounted) {
+          final data = snapshot.data() as Map<String, dynamic>;
+          setState(() {
+            bonusPoints = data['bonusPoints'] ?? 0;
+            bonusAmount = (data['bonusAmount'] ?? 0).toDouble();
+          });
+        }
+      });
+    } catch (e) {
+      print('Error fetching bonus data: $e');
+      setState(() {
+        bonusPoints = 0;
+        bonusAmount = 0.0;
+      });
+    }
+  }
+
   Future<void> _fetchAttendanceStats(String email) async {
     final now = DateTime.now();
 
-    // Today's hours
-    final todayStart = DateTime(now.year, now.month, now.day);
-    final todayEnd = todayStart.add(const Duration(days: 1));
-
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-
-    final todayAttendance = await FirebaseFirestore.instance
-        .collection('workers')
-        .doc(user.uid)
-        .collection('attendance')
-        .where('timestamp',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(todayStart))
-        .where('timestamp', isLessThan: Timestamp.fromDate(todayEnd))
-        .orderBy('timestamp', descending: false)
-        .get();
-
-    // Calculate today's hours
-    double totalHoursToday = 0.0;
-
-    if (todayAttendance.docs.isNotEmpty) {
-      List<DateTime> timestamps = [];
-
-      // Parse all attendance records for today - just get timestamps
-      for (var doc in todayAttendance.docs) {
-        final data = doc.data();
-        final timestamp = (data['timestamp'] as Timestamp).toDate();
-        timestamps.add(timestamp);
-      }
-
-      // Sort by timestamp
-      timestamps.sort();
-
-      // Calculate working hours - pair timestamps (check-in, check-out, check-in, check-out...)
-      for (int i = 0; i < timestamps.length - 1; i += 2) {
-        if (i + 1 < timestamps.length) {
-          final checkIn = timestamps[i];
-          final checkOut = timestamps[i + 1];
-          final duration = checkOut.difference(checkIn);
-          totalHoursToday += duration.inMinutes / 60.0;
-        }
-      }
-
-      // If odd number of timestamps, user is still checked in
-      if (timestamps.length % 2 == 1) {
-        final lastCheckIn = timestamps.last;
-        final currentSessionDuration = now.difference(lastCheckIn);
-        totalHoursToday += currentSessionDuration.inMinutes / 60.0;
-      }
-    }
-
-    todayHours = totalHoursToday;
 
     // Monthly hours
     final monthStart = DateTime(now.year, now.month, 1);
@@ -243,11 +255,25 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
     workingDaysThisMonth = workingDays;
   }
 
+  IconData _getRoleIcon(String role) {
+    switch (role.toLowerCase()) {
+      case 'director':
+        return Icons.account_balance_rounded;
+      case 'coo':
+        return Icons.business_center_rounded;
+      case 'manager':
+        return Icons.manage_accounts_rounded;
+      case 'supervisor':
+        return Icons.supervisor_account_rounded;
+      case 'staff':
+        return Icons.person_rounded;
+      default:
+        return Icons.badge_rounded;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isSmallScreen = screenHeight < 700;
-
     String greeting = '';
 
     if (isBirthday) {
@@ -387,6 +413,47 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                     );
                                   },
                                 ),
+                                if (workerRole.isNotEmpty) ...[
+                                  SizedBox(
+                                      height: AppColors.getResponsiveSpacing(
+                                          context, 4)),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary
+                                          .withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: AppColors.primary
+                                            .withValues(alpha: 0.2),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _getRoleIcon(workerRole),
+                                          size: 14,
+                                          color: AppColors.primary,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          workerRole,
+                                          style:
+                                              AppColors.getResponsiveTextStyle(
+                                                      context,
+                                                      AppColors.captionStyle)
+                                                  .copyWith(
+                                            color: AppColors.primary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                                 if (isBirthday) ...[
                                   SizedBox(
                                       height: AppColors.getResponsiveSpacing(
@@ -504,9 +571,9 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                   children: [
                     Expanded(
                       child: _buildStatCard(
-                        'Today\'s Hours',
-                        isLoading ? '--' : todayHours.toStringAsFixed(1),
-                        Icons.access_time_rounded,
+                        'Bonus Points',
+                        isLoading ? '--' : bonusPoints.toString(),
+                        Icons.star_rounded,
                         AppColors.statColors[0],
                       ),
                     ),
@@ -514,9 +581,9 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                         width: AppColors.getResponsiveSpacing(context, 16)),
                     Expanded(
                       child: _buildStatCard(
-                        'Working Days',
-                        isLoading ? '--' : workingDaysThisMonth.toString(),
-                        Icons.calendar_month_rounded,
+                        'Bonus Amount',
+                        isLoading ? '--' : '₹${bonusAmount.toStringAsFixed(2)}',
+                        Icons.currency_rupee_rounded,
                         AppColors.statColors[1],
                       ),
                     ),
@@ -552,7 +619,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                       ? 1.25
                       : (MediaQuery.of(context).size.height < 800 ? 1.15 : 1.0),
                   children: [
-                    if (isSupervisor)
+                    if (isSupervisor && teamId != null)
                       _buildDashboardCard(
                         context,
                         icon: Icons.people_rounded,
@@ -562,8 +629,39 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => StaffManagementScreen(
-                                supervisorId: workerId!,
+                                teamId: teamId,
+                                currentUserRole: UserRole.fromString(
+                                    workerRole.toLowerCase()),
                               ),
+                            ),
+                          );
+                        },
+                      ),
+                    if (isCooOrDirector)
+                      _buildDashboardCard(
+                        context,
+                        icon: Icons.card_giftcard_rounded,
+                        label: 'Bonus Management',
+                        color: Colors.purple,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const BonusManagementScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    if (!isCooOrDirector)
+                      _buildDashboardCard(
+                        context,
+                        icon: Icons.history_rounded,
+                        label: 'My Bonus History',
+                        color: Colors.deepPurple,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const BonusHistoryScreen(),
                             ),
                           );
                         },
@@ -571,7 +669,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                     _buildDashboardCard(
                       context,
                       icon: Icons.fingerprint,
-                      label: 'Mark Attendance',
+                      label: 'Attendance',
                       color: AppColors.dashboardCardColors[0],
                       onTap: () {
                         Navigator.of(context).push(
@@ -583,23 +681,9 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                     ),
                     _buildDashboardCard(
                       context,
-                      icon: Icons.verified_user_rounded,
-                      label: 'Attendance History',
-                      color: AppColors.dashboardCardColors[1],
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const AttendanceHistoryScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildDashboardCard(
-                      context,
                       icon: Icons.assignment_rounded,
                       label: 'Daily Worksheet',
-                      color: AppColors.dashboardCardColors[2],
+                      color: AppColors.dashboardCardColors[1],
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -612,7 +696,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                       context,
                       icon: Icons.inventory_2_rounded,
                       label: 'Material Request',
-                      color: AppColors.dashboardCardColors[3],
+                      color: AppColors.dashboardCardColors[2],
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
