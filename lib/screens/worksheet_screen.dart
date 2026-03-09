@@ -11,6 +11,7 @@ import '../utils/app_typography.dart';
 import '../utils/app_toast.dart';
 import '../components/common/app_bar_builder.dart';
 import '../components/common/app_loading.dart';
+import '../components/common/skeleton_loader.dart';
 
 class WorksheetScreen extends StatefulWidget {
   const WorksheetScreen({super.key});
@@ -287,7 +288,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
       backgroundColor: AppColors.background,
       appBar: buildAppBar(title: 'Daily Worksheet'),
       body: _isLoading
-          ? const AppLoading()
+          ? const WorksheetSkeleton()
           : Column(
               children: [
                 // Modern Header Section

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../components/common/app_bar_builder.dart';
-import '../components/common/app_loading.dart';
+import '../components/common/skeleton_loader.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_decorations.dart';
 import '../utils/app_spacing.dart';
@@ -221,9 +221,7 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(
-              child: AppLoading(),
-            )
+          ? const WithdrawMaterialSkeleton()
           : Column(
               children: [
                 // Modern Header Section
@@ -384,17 +382,13 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
 
             // Material Dropdown
             _isLoadingMaterials
-                ? Container(
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: AppColors.grey50,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                      border: Border.all(color: AppColors.grey300, width: 1),
-                    ),
-                    child: const Center(
-                      child: AppLoading(
-                        variant: AppLoadingVariant.inline,
-                        message: 'Loading materials...',
+                ? Shimmer(
+                    child: Container(
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: AppColors.grey100,
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusMd),
                       ),
                     ),
                   )

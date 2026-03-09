@@ -19,8 +19,8 @@
 
 **Purpose**: Project initialization — no code logic, just scaffolding
 
-- [ ] T001 Create animation constants file at lib/utils/animation_constants.dart with all timing, curve, and scale constants from data-model.md Entity 1 (splashMinDuration, splashMaxDuration, splashIconScaleDuration, splashTextSlideDuration, splashCrossFadeDuration, pageTransitionDuration, pageTransitionCurve, pressScaleFactor, pressScaleDuration, pressScaleCurve, contentFadeInDuration, staggerDelayPerItem, staggerMaxIndex, staggerItemDuration, staggerSlideOffset, staggerCurve, appName)
-- [ ] T002 [P] Export AnimationConstants from lib/utils/design_tokens.dart barrel file
+- [X] T001 Create animation constants file at lib/utils/animation_constants.dart with all timing, curve, and scale constants from data-model.md Entity 1 (splashMinDuration, splashMaxDuration, splashIconScaleDuration, splashTextSlideDuration, splashCrossFadeDuration, pageTransitionDuration, pageTransitionCurve, pressScaleFactor, pressScaleDuration, pressScaleCurve, contentFadeInDuration, staggerDelayPerItem, staggerMaxIndex, staggerItemDuration, staggerSlideOffset, staggerCurve, appName)
+- [X] T002 [P] Export AnimationConstants from lib/utils/design_tokens.dart barrel file
 
 **Checkpoint**: AnimationConstants available for all subsequent phases
 
@@ -32,8 +32,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 [P] Create reduce-motion helper function in lib/utils/animation_constants.dart — `Duration respectMotion(BuildContext context, Duration normal)` that returns Duration.zero when MediaQuery.disableAnimations is true (FR-015, research R3)
-- [ ] T004 [P] Write unit tests for AnimationConstants values and respectMotion helper in test/utils/animation_constants_test.dart
+- [X] T003 [P] Create reduce-motion helper function in lib/utils/animation_constants.dart — `Duration respectMotion(BuildContext context, Duration normal)` that returns Duration.zero when MediaQuery.disableAnimations is true (FR-015, research R3)
+- [X] T004 [P] Write unit tests for AnimationConstants values and respectMotion helper in test/utils/animation_constants_test.dart
 
 **Checkpoint**: Foundation ready — animation constants and accessibility helper in place. User story implementation can begin.
 
@@ -47,13 +47,13 @@
 
 ### Tests for User Story 1
 
-- [ ] T005 [P] [US1] Write widget tests for SplashScreen in test/screens/splash_screen_test.dart — verify: (a) splash renders icon and "KSEB" text, (b) transitions to home/login after min duration, (c) reduce-motion shows static frame, (d) loading indicator appears if auth takes longer than max duration
+- [X] T005 [P] [US1] Write widget tests for SplashScreen in test/screens/splash_screen_test.dart — verify: (a) splash renders icon and "KSEB" text, (b) transitions to home/login after min duration, (c) reduce-motion shows static frame, (d) loading indicator appears if auth takes longer than max duration
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Create SplashScreen widget in lib/screens/splash_screen.dart — StatefulWidget with AnimationController driving TweenSequence: icon scale-up (0→800ms), text slide-up (800→1300ms), hold to 1500ms min. Coordinate with Firebase auth via StreamBuilder/Future. Cross-fade (400ms) to LoginScreen or WorkerHomeScreen. Show pulsing indicator if auth exceeds 2500ms max. Respect reduce-motion (static frame + Duration.zero). Use AppColors.primary, AppColors.background, AppTypography.displayLargeStyle per design tokens (FR-001 through FR-006)
-- [ ] T007 [US1] Integrate SplashScreen into lib/main.dart — replace `home: SafeArea(child: StreamBuilder<User?>(...))` with `home: const SplashScreen()`. Move auth StreamBuilder logic into SplashScreen's internal state management
-- [ ] T008 [US1] Verify splash_screen_test.dart tests pass and all 194+ existing tests still pass
+- [X] T006 [US1] Create SplashScreen widget in lib/screens/splash_screen.dart — StatefulWidget with AnimationController driving TweenSequence: icon scale-up (0→800ms), text slide-up (800→1300ms), hold to 1500ms min. Coordinate with Firebase auth via StreamBuilder/Future. Cross-fade (400ms) to LoginScreen or WorkerHomeScreen. Show pulsing indicator if auth exceeds 2500ms max. Respect reduce-motion (static frame + Duration.zero). Use AppColors.primary, AppColors.background, AppTypography.displayLargeStyle per design tokens (FR-001 through FR-006)
+- [X] T007 [US1] Integrate SplashScreen into lib/main.dart — replace `home: SafeArea(child: StreamBuilder<User?>(...))` with `home: const SplashScreen()`. Move auth StreamBuilder logic into SplashScreen's internal state management
+- [X] T008 [US1] Verify splash_screen_test.dart tests pass and all 194+ existing tests still pass
 
 **Checkpoint**: User Story 1 complete — app launches with branded splash, then cross-fades to correct screen. MVP shippable.
 
@@ -67,16 +67,16 @@
 
 ### Tests for User Story 2
 
-- [ ] T009 [P] [US2] Write unit tests for AppPageTransition and AppRoute in test/utils/page_transitions_test.dart — verify: (a) AppRoute has correct transitionDuration, (b) AppPageTransition.buildTransitions returns SlideTransition+FadeTransition, (c) reduce-motion returns child directly, (d) reverse animation works
+- [X] T009 [P] [US2] Write unit tests for AppPageTransition and AppRoute in test/utils/page_transitions_test.dart — verify: (a) AppRoute has correct transitionDuration, (b) AppPageTransition.buildTransitions returns SlideTransition+FadeTransition, (c) reduce-motion returns child directly, (d) reverse animation works
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] Create AppPageTransition (PageTransitionsBuilder) and AppRoute (MaterialPageRoute subclass) in lib/utils/page_transitions.dart — AppPageTransition.buildTransitions: SlideTransition Offset(1.0,0.0)→Offset.zero + FadeTransition 0.0→1.0 with easeOutCubic. AppRoute overrides transitionDuration to 300ms. Respect reduce-motion (return child directly). Export from lib/utils/page_transitions.dart (FR-007 through FR-011)
-- [ ] T011 [US2] Register AppPageTransition in ThemeData inside lib/main.dart — add pageTransitionsTheme with AppPageTransition for all TargetPlatforms (android, iOS, windows, macOS, linux) in createAppTheme()
-- [ ] T012 [US2] Migrate 6 MaterialPageRoute calls to AppRoute in lib/screens/worker_home_screen.dart (lines 637, 655, 671, 684, 697, 710)
-- [ ] T013 [P] [US2] Migrate 1 MaterialPageRoute call to AppRoute in lib/screens/bonus_management_screen.dart (line 233)
-- [ ] T014 [P] [US2] Migrate 2 MaterialPageRoute calls to AppRoute in lib/screens/material_management_screen.dart (lines 83, 99)
-- [ ] T015 [US2] Verify page_transitions_test.dart tests pass and all existing tests still pass
+- [X] T010 [US2] Create AppPageTransition (PageTransitionsBuilder) and AppRoute (MaterialPageRoute subclass) in lib/utils/page_transitions.dart — AppPageTransition.buildTransitions: SlideTransition Offset(1.0,0.0)→Offset.zero + FadeTransition 0.0→1.0 with easeOutCubic. AppRoute overrides transitionDuration to 300ms. Respect reduce-motion (return child directly). Export from lib/utils/page_transitions.dart (FR-007 through FR-011)
+- [X] T011 [US2] Register AppPageTransition in ThemeData inside lib/main.dart — add pageTransitionsTheme with AppPageTransition for all TargetPlatforms (android, iOS, windows, macOS, linux) in createAppTheme()
+- [X] T012 [US2] Migrate 6 MaterialPageRoute calls to AppRoute in lib/screens/worker_home_screen.dart (lines 637, 655, 671, 684, 697, 710)
+- [X] T013 [P] [US2] Migrate 1 MaterialPageRoute call to AppRoute in lib/screens/bonus_management_screen.dart (line 233)
+- [X] T014 [P] [US2] Migrate 2 MaterialPageRoute calls to AppRoute in lib/screens/material_management_screen.dart (lines 83, 99)
+- [X] T015 [US2] Verify page_transitions_test.dart tests pass and all existing tests still pass
 
 **Checkpoint**: User Story 2 complete — all 9 navigation routes use branded slide+fade transitions globally.
 
@@ -90,21 +90,21 @@
 
 ### Tests for User Story 3
 
-- [ ] T016 [P] [US3] Write widget tests for PressableScale in test/components/common/pressable_scale_test.dart — verify: (a) scales to 0.96 on tap down, (b) springs back on tap up, (c) forwards onTap callback, (d) reduce-motion disables scale, (e) enabled=false disables animation
-- [ ] T017 [P] [US3] Write widget tests for StaggeredListItem in test/components/common/staggered_list_item_test.dart — verify: (a) applies stagger delay based on index, (b) fade+slide entrance plays, (c) reduce-motion shows instantly, (d) respects staggerMaxIndex cap
-- [ ] T018 [P] [US3] Write widget tests for FadeInWidget in test/components/common/fade_in_widget_test.dart — verify: (a) child fades in over contentFadeInDuration, (b) custom duration override works, (c) reduce-motion shows instantly
+- [X] T016 [P] [US3] Write widget tests for PressableScale in test/components/common/pressable_scale_test.dart — verify: (a) scales to 0.96 on tap down, (b) springs back on tap up, (c) forwards onTap callback, (d) reduce-motion disables scale, (e) enabled=false disables animation
+- [X] T017 [P] [US3] Write widget tests for StaggeredListItem in test/components/common/staggered_list_item_test.dart — verify: (a) applies stagger delay based on index, (b) fade+slide entrance plays, (c) reduce-motion shows instantly, (d) respects staggerMaxIndex cap
+- [X] T018 [P] [US3] Write widget tests for FadeInWidget in test/components/common/fade_in_widget_test.dart — verify: (a) child fades in over contentFadeInDuration, (b) custom duration override works, (c) reduce-motion shows instantly
 
 ### Implementation for User Story 3
 
-- [ ] T019 [P] [US3] Create PressableScale widget in lib/components/common/pressable_scale.dart — StatefulWidget with AnimationController + GestureDetector (onTapDown/Up/Cancel). Transform.scale with easeOutBack spring curve. Respect reduce-motion. Props: child (required), onTap, scaleFactor (default 0.96), enabled (default true) (FR-012)
-- [ ] T020 [P] [US3] Create StaggeredListItem widget in lib/components/common/staggered_list_item.dart — StatefulWidget with per-item AnimationController. Delay = min(index, 8) * 60ms. FadeTransition + SlideTransition (Offset(0, 0.08)→zero). Plays once per lifecycle. Respect reduce-motion (FR-014)
-- [ ] T021 [P] [US3] Create FadeInWidget in lib/components/common/fade_in_widget.dart — StatefulWidget with AnimationController driving FadeTransition. Default 250ms. Respect reduce-motion. Props: child (required), duration (optional) (FR-013)
-- [ ] T022 [US3] Wrap dashboard cards with PressableScale in lib/screens/worker_home_screen.dart — modify _buildDashboardCard method (line 728) to wrap the card content with PressableScale, forwarding the existing onTap callback (FR-012, 6 card usages)
-- [ ] T023 [US3] Wrap primary ListView.builder items with StaggeredListItem in lib/screens/bonus_history_screen.dart (line 308) (FR-014)
-- [ ] T024 [P] [US3] Wrap primary ListView.builder items with StaggeredListItem in lib/screens/staff_management_screen.dart (lines 328, 454) (FR-014)
-- [ ] T025 [P] [US3] Wrap ListView.builder items with StaggeredListItem in lib/screens/components/attendance_history_list.dart (line 26) (FR-014)
-- [ ] T026 [US3] Add FadeInWidget wrapping to content-heavy screens where data loads asynchronously — identify StreamBuilder/FutureBuilder result widgets and wrap with FadeInWidget (FR-013)
-- [ ] T027 [US3] Verify all US3 widget tests pass and all existing tests still pass
+- [X] T019 [P] [US3] Create PressableScale widget in lib/components/common/pressable_scale.dart — StatefulWidget with AnimationController + GestureDetector (onTapDown/Up/Cancel). Transform.scale with easeOutBack spring curve. Respect reduce-motion. Props: child (required), onTap, scaleFactor (default 0.96), enabled (default true) (FR-012)
+- [X] T020 [P] [US3] Create StaggeredListItem widget in lib/components/common/staggered_list_item.dart — StatefulWidget with per-item AnimationController. Delay = min(index, 8) * 60ms. FadeTransition + SlideTransition (Offset(0, 0.08)→zero). Plays once per lifecycle. Respect reduce-motion (FR-014)
+- [X] T021 [P] [US3] Create FadeInWidget in lib/components/common/fade_in_widget.dart — StatefulWidget with AnimationController driving FadeTransition. Default 250ms. Respect reduce-motion. Props: child (required), duration (optional) (FR-013)
+- [X] T022 [US3] Wrap dashboard cards with PressableScale in lib/screens/worker_home_screen.dart — modify _buildDashboardCard method (line 728) to wrap the card content with PressableScale, forwarding the existing onTap callback (FR-012, 6 card usages)
+- [X] T023 [US3] Wrap primary ListView.builder items with StaggeredListItem in lib/screens/bonus_history_screen.dart (line 308) (FR-014)
+- [X] T024 [P] [US3] Wrap primary ListView.builder items with StaggeredListItem in lib/screens/staff_management_screen.dart (lines 328, 454) (FR-014)
+- [X] T025 [P] [US3] Wrap ListView.builder items with StaggeredListItem in lib/screens/components/attendance_history_list.dart (line 26) (FR-014)
+- [X] T026 [US3] Add FadeInWidget wrapping to content-heavy screens where data loads asynchronously — identify StreamBuilder/FutureBuilder result widgets and wrap with FadeInWidget (FR-013)
+- [X] T027 [US3] Verify all US3 widget tests pass and all existing tests still pass
 
 **Checkpoint**: User Story 3 complete — all micro-interactions active: press-scale on 6 dashboard cards, staggered entrance on 4 list views, content fade-in on data-loaded screens.
 
@@ -114,11 +114,11 @@
 
 **Purpose**: Final validation, accessibility audit, and documentation
 
-- [ ] T028 Run full test suite (`flutter test`) — verify all tests pass including new animation tests and all 194+ existing tests (SC-008)
-- [ ] T029 Verify zero new hardcoded color or spacing values introduced — grep for hex codes and pixel values in new files, ensure all use AppColors/AppSpacing/AnimationConstants (SC-007, FR-016)
-- [ ] T030 [P] Verify reduce-motion accessibility — confirm all 6 animation widgets (SplashScreen, AppPageTransition, AppRoute, PressableScale, StaggeredListItem, FadeInWidget) check MediaQuery.disableAnimations and degrade gracefully (SC-006, FR-015)
-- [ ] T031 [P] Run quickstart.md validation — verify all code examples in specs/003-splash-smooth-ui/quickstart.md compile and work correctly with implemented widgets
-- [ ] T032 Final commit and branch readiness check — ensure all tasks complete, no lint warnings, clean build
+- [X] T028 Run full test suite (`flutter test`) — verify all tests pass including new animation tests and all 194+ existing tests (SC-008)
+- [X] T029 Verify zero new hardcoded color or spacing values introduced — grep for hex codes and pixel values in new files, ensure all use AppColors/AppSpacing/AnimationConstants (SC-007, FR-016)
+- [X] T030 [P] Verify reduce-motion accessibility — confirm all 6 animation widgets (SplashScreen, AppPageTransition, AppRoute, PressableScale, StaggeredListItem, FadeInWidget) check MediaQuery.disableAnimations and degrade gracefully (SC-006, FR-015)
+- [X] T031 [P] Run quickstart.md validation — verify all code examples in specs/003-splash-smooth-ui/quickstart.md compile and work correctly with implemented widgets
+- [X] T032 Final commit and branch readiness check — ensure all tasks complete, no lint warnings, clean build
 
 ---
 

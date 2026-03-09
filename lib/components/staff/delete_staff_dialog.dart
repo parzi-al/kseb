@@ -8,10 +8,10 @@ class DeleteStaffDialog extends StatefulWidget {
   final VoidCallback? onStaffDeleted;
 
   const DeleteStaffDialog({
-    Key? key,
+    super.key,
     required this.staffId,
     this.onStaffDeleted,
-  }) : super(key: key);
+  });
 
   static void show(
     BuildContext context,
@@ -47,7 +47,9 @@ class _DeleteStaffDialogState extends State<DeleteStaffDialog> {
         AppToast.showSuccess(context, 'Staff member deleted successfully');
       }
     } catch (e) {
-      AppToast.showError(context, 'Error deleting staff member: $e');
+      if (mounted) {
+        AppToast.showError(context, 'Error deleting staff member: $e');
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

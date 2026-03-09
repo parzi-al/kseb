@@ -19,13 +19,13 @@ class StaffFormDialog extends StatefulWidget {
   final VoidCallback? onStaffSaved;
 
   const StaffFormDialog({
-    Key? key,
+    super.key,
     this.staffId,
     this.staffData,
     this.defaultTeamId,
     required this.currentUserRole,
     this.onStaffSaved,
-  }) : super(key: key);
+  });
 
   bool get isEditMode => staffId != null;
 
@@ -106,7 +106,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
         _loadingTeams = false;
       });
     } catch (e) {
-      print('Error loading teams: $e');
+      debugPrint('Error loading teams: $e');
       setState(() {
         _loadingTeams = false;
       });
@@ -248,7 +248,8 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
               .doc(userCredential.user!.uid)
               .set(userData);
 
-          print('Staff member created with UID: ${userCredential.user!.uid}');
+          debugPrint(
+              'Staff member created with UID: ${userCredential.user!.uid}');
 
           // Clean up secondary app
           await secondaryApp.delete();
@@ -278,7 +279,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
           if (secondaryApp != null) {
             await secondaryApp.delete();
           }
-          throw e;
+          rethrow;
         }
       }
 
@@ -317,7 +318,7 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
         }
       });
     } catch (e) {
-      print('Error saving staff: $e');
+      debugPrint('Error saving staff: $e');
       if (mounted) {
         AppToast.showError(context, 'Error saving staff member: $e');
         setState(() => _isLoading = false);

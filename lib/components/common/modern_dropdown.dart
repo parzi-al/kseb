@@ -14,7 +14,7 @@ class ModernDropdown<T> extends StatelessWidget {
   final bool isRequired;
 
   const ModernDropdown({
-    Key? key,
+    super.key,
     required this.value,
     required this.items,
     required this.label,
@@ -23,7 +23,7 @@ class ModernDropdown<T> extends StatelessWidget {
     this.onChanged,
     this.validator,
     this.isRequired = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

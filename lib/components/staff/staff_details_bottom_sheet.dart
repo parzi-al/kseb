@@ -8,9 +8,9 @@ class StaffDetailsBottomSheet extends StatelessWidget {
   final Map<String, dynamic> staffData;
 
   const StaffDetailsBottomSheet({
-    Key? key,
+    super.key,
     required this.staffData,
-  }) : super(key: key);
+  });
 
   static void show(BuildContext context, Map<String, dynamic> staffData) {
     showModalBottomSheet(

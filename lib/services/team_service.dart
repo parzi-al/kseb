@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/team_model.dart';
 
 /// Service for managing teams in the hierarchical structure
@@ -19,7 +20,7 @@ class TeamService {
 
       return TeamModel.fromFirestore(doc);
     } catch (e) {
-      print('Error getting team by ID: $e');
+      debugPrint('Error getting team by ID: $e');
       return null;
     }
   }
@@ -73,7 +74,7 @@ class TeamService {
           await _firestore.collection(_teamsCollection).add(team.toMap());
       return docRef.id;
     } catch (e) {
-      print('Error creating team: $e');
+      debugPrint('Error creating team: $e');
       rethrow;
     }
   }
@@ -84,7 +85,7 @@ class TeamService {
       updates['lastUpdated'] = FieldValue.serverTimestamp();
       await _firestore.collection(_teamsCollection).doc(teamId).update(updates);
     } catch (e) {
-      print('Error updating team: $e');
+      debugPrint('Error updating team: $e');
       rethrow;
     }
   }
@@ -97,7 +98,7 @@ class TeamService {
         'lastUpdated': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('Error adding member to team: $e');
+      debugPrint('Error adding member to team: $e');
       rethrow;
     }
   }
@@ -110,7 +111,7 @@ class TeamService {
         'lastUpdated': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('Error removing member from team: $e');
+      debugPrint('Error removing member from team: $e');
       rethrow;
     }
   }
@@ -123,7 +124,7 @@ class TeamService {
         'lastUpdated': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('Error adding asset to team: $e');
+      debugPrint('Error adding asset to team: $e');
       rethrow;
     }
   }
@@ -136,7 +137,7 @@ class TeamService {
         'lastUpdated': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('Error removing asset from team: $e');
+      debugPrint('Error removing asset from team: $e');
       rethrow;
     }
   }
@@ -146,7 +147,7 @@ class TeamService {
     try {
       await _firestore.collection(_teamsCollection).doc(teamId).delete();
     } catch (e) {
-      print('Error deleting team: $e');
+      debugPrint('Error deleting team: $e');
       rethrow;
     }
   }

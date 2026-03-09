@@ -10,15 +10,16 @@ import '../utils/app_typography.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_decorations.dart';
 import '../components/common/app_bar_builder.dart';
-import '../components/common/app_loading.dart';
+import '../components/common/fade_in_widget.dart';
+import '../components/common/skeleton_loader.dart';
 import '../utils/app_toast.dart';
 import '../utils/app_constants.dart';
 import '../services/attendance_service.dart';
 import '../models/attendance_model.dart';
 import '../models/user_model.dart';
-import 'components/attendance_stats_card.dart';
-import 'components/attendance_calendar.dart';
-import 'components/attendance_history_list.dart';
+import '../components/attendance/attendance_stats_card.dart';
+import '../components/attendance/attendance_calendar.dart';
+import '../components/attendance/attendance_history_list.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -65,11 +66,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
     final user = _firebaseAuth.currentUser;
     if (user == null) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _userName = 'Not Logged In';
           _isLoading = false;
         });
+      }
       return;
     }
 
@@ -239,10 +241,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         ],
       ),
       body: _isLoading
-          ? const AppLoading()
+          ? const AttendanceScreenSkeleton()
           : _showHistory
-              ? _buildHistoryView()
-              : _buildMainView(),
+              ? FadeInWidget(child: _buildHistoryView())
+              : FadeInWidget(child: _buildMainView()),
     );
   }
 

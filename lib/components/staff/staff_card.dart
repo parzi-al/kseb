@@ -12,14 +12,14 @@ class StaffCard extends StatelessWidget {
   final bool canEdit;
 
   const StaffCard({
-    Key? key,
+    super.key,
     required this.staffData,
     required this.staffId,
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
     this.canEdit = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

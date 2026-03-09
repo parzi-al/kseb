@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../components/common/app_bar_builder.dart';
-import '../components/common/app_loading.dart';
+import '../components/common/skeleton_loader.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_decorations.dart';
 import '../utils/app_spacing.dart';
@@ -135,9 +135,7 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
       backgroundColor: AppColors.background,
       appBar: buildAppBar(title: 'Add Material'),
       body: _isLoading
-          ? const Center(
-              child: AppLoading(),
-            )
+          ? const AddMaterialSkeleton()
           : Column(
               children: [
                 // Modern Header Section
@@ -353,8 +351,9 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value?.isEmpty ?? true) return 'Quantity is required';
-                    if (double.tryParse(value!) == null)
+                    if (double.tryParse(value!) == null) {
                       return 'Invalid number';
+                    }
                     return null;
                   },
                 ),

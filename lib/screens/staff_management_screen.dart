@@ -14,19 +14,20 @@ import '../components/staff/add_staff_dialog.dart';
 import '../components/staff/edit_staff_dialog.dart';
 import '../components/staff/delete_staff_dialog.dart';
 import '../components/team/team_dialog.dart';
-import '../components/common/app_loading.dart';
 import '../components/common/app_error_state.dart';
 import '../components/common/app_empty_state.dart';
+import '../components/common/staggered_list_item.dart';
+import '../components/common/skeleton_loader.dart';
 
 class StaffManagementScreen extends StatefulWidget {
   final String? teamId; // Team ID for supervisor view (optional)
   final UserRole currentUserRole; // Role of the logged-in user
 
   const StaffManagementScreen({
-    Key? key,
+    super.key,
     this.teamId, // Optional for manager+, required for supervisor
     required this.currentUserRole,
-  }) : super(key: key);
+  });
 
   @override
   State<StaffManagementScreen> createState() => _StaffManagementScreenState();
@@ -269,7 +270,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: AppLoading());
+          return const StaffListSkeleton();
         }
 
         // Filter staff based on role hierarchy
@@ -312,7 +313,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: AppLoading());
+            return const TeamListSkeleton();
           }
 
           final teams = snapshot.data?.docs ?? [];
@@ -332,7 +333,10 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
               final teamDoc = teams[index];
               final teamData = teamDoc.data() as Map<String, dynamic>;
 
-              return _buildTeamCard(teamDoc.id, teamData);
+              return StaggeredListItem(
+                index: index,
+                child: _buildTeamCard(teamDoc.id, teamData),
+              );
             },
           );
         },
@@ -470,16 +474,20 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                       final canEditStaff =
                           widget.currentUserRole.canManage(staffRole);
 
-                      return StaffCard(
-                        staffData: staffData,
-                        staffId: staffId,
-                        onTap: () => _showStaffDetails(staffData),
-                        onEdit: canEditStaff
-                            ? () => _editStaff(staffId, staffData)
-                            : () {},
-                        onDelete:
-                            canEditStaff ? () => _deleteStaff(staffId) : () {},
-                        canEdit: canEditStaff,
+                      return StaggeredListItem(
+                        index: index,
+                        child: StaffCard(
+                          staffData: staffData,
+                          staffId: staffId,
+                          onTap: () => _showStaffDetails(staffData),
+                          onEdit: canEditStaff
+                              ? () => _editStaff(staffId, staffData)
+                              : () {},
+                          onDelete: canEditStaff
+                              ? () => _deleteStaff(staffId)
+                              : () {},
+                          canEdit: canEditStaff,
+                        ),
                       );
                     },
                   ),

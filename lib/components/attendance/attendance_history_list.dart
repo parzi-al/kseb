@@ -4,7 +4,8 @@ import '../../models/attendance_model.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_typography.dart';
 import '../../utils/app_spacing.dart';
-import '../../components/common/app_empty_state.dart';
+import '../common/app_empty_state.dart';
+import '../common/staggered_list_item.dart';
 
 /// Extracted widget: scrollable list of attendance records with empty-state.
 ///
@@ -26,7 +27,10 @@ class AttendanceHistoryList extends StatelessWidget {
     final child = ListView.builder(
       padding: EdgeInsets.all(AppSpacing.xl),
       itemCount: records.length,
-      itemBuilder: (context, index) => _buildRecordTile(records[index]),
+      itemBuilder: (context, index) => StaggeredListItem(
+        index: index,
+        child: _buildRecordTile(records[index]),
+      ),
     );
 
     return onRefresh != null
