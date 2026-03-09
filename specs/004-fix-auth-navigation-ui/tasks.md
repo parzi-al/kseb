@@ -78,11 +78,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Update WorkerHomeScreen logout dialog to use AuthService.signOut (clears session, writes audit event) in lib/screens/worker_home_screen.dart
-- [ ] T025 [US2] Add WidgetsBindingObserver to WorkerHomeScreen for session validation on app resume (force-logout detection) in lib/screens/worker_home_screen.dart
-- [ ] T026 [US2] Integrate IdleTimeoutService with Listener widget in AuthGate for inactivity auto-logout in lib/screens/auth_gate.dart
-- [ ] T027 [US2] Read idle timeout config from Firestore app_settings/auth document in lib/services/idle_timeout_service.dart
-- [ ] T028 [US2] Create widget/integration tests for logout flow and session invalidation in test/screens/worker_home_screen_test.dart
+- [X] T024 [US2] Update WorkerHomeScreen logout dialog to use AuthService.signOut (clears session, writes audit event) in lib/screens/worker_home_screen.dart
+- [X] T025 [US2] Add WidgetsBindingObserver to WorkerHomeScreen for session validation on app resume (force-logout detection) in lib/screens/worker_home_screen.dart
+- [X] T026 [US2] Integrate IdleTimeoutService with Listener widget in AuthGate for inactivity auto-logout in lib/screens/auth_gate.dart
+- [X] T027 [US2] Read idle timeout config from Firestore app_settings/auth document in lib/services/idle_timeout_service.dart
+- [X] T028 [US2] Create widget/integration tests for logout flow and session invalidation in test/screens/worker_home_screen_test.dart
 
 **Checkpoint**: Full auth lifecycle works. Login → Home → Logout → Login. Idle timeout triggers auto-logout. Second device login invalidates first device session.
 

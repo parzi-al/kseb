@@ -16,19 +16,24 @@ import '../utils/app_decorations.dart';
 import '../utils/app_toast.dart';
 import '../utils/page_transitions.dart';
 import '../services/user_service.dart';
+import '../services/auth_service.dart';
 import '../models/user_model.dart';
 import '../components/common/skeleton_loader.dart';
 
 class WorkerHomeScreen extends StatefulWidget {
-  const WorkerHomeScreen({super.key});
+  /// Optional [AuthService] for dependency injection (used in tests).
+  final AuthService? authService;
+
+  const WorkerHomeScreen({super.key, this.authService});
 
   @override
   State<WorkerHomeScreen> createState() => _WorkerHomeScreenState();
 }
 
 class _WorkerHomeScreenState extends State<WorkerHomeScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   final UserService _userService = UserService();
+  late final AuthService _authService;
 
   String workerName = 'Worker';
   String workerRole = '';
@@ -52,15 +57,38 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
   @override
   void initState() {
     super.initState();
+    _authService = widget.authService ?? AuthService();
+    WidgetsBinding.instance.addObserver(this);
     _initializeAnimations();
     _fetchWorkerData();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _birthdayController.dispose();
     _bonusSubscription?.cancel();
     super.dispose();
+  }
+
+  /// Validate session when app resumes from background (FR-020 force-logout).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _validateSessionOnResume();
+    }
+  }
+
+  Future<void> _validateSessionOnResume() async {
+    try {
+      final isValid = await _authService.validateSession();
+      if (!isValid && mounted) {
+        // Session was invalidated (e.g., signed in on another device)
+        await _authService.signOut(reason: 'session_invalidated');
+      }
+    } catch (_) {
+      // Network error — gracefully skip validation (stay logged in)
+    }
   }
 
   void _initializeAnimations() {
@@ -899,8 +927,8 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
               onPressed: () async {
                 Navigator.of(context).pop();
                 try {
-                  await FirebaseAuth.instance.signOut();
-                  // The StreamBuilder in main.dart will automatically handle navigation
+                  await _authService.signOut(reason: 'user_initiated');
+                  // AuthGate StreamBuilder handles navigation automatically
                 } catch (e) {
                   if (context.mounted) {
                     AppErrorHandler.handleError(context, e,
