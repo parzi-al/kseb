@@ -290,18 +290,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
 
   Widget _buildTeamManagementTab() {
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.info.withValues(alpha: 0.05),
-            AppColors.white,
-            AppColors.grey50,
-          ],
-          stops: const [0.0, 0.3, 1.0],
-        ),
-      ),
+      color: AppColors.grey50,
       child: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('teams').snapshots(),
         builder: (context, snapshot) {
@@ -391,18 +380,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
     }
 
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.info.withValues(alpha: 0.05),
-            AppColors.white,
-            AppColors.grey50,
-          ],
-          stops: const [0.0, 0.3, 1.0],
-        ),
-      ),
+      color: AppColors.grey50,
       child: ClipRRect(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(AppSpacing.xl),

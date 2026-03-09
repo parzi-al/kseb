@@ -12,7 +12,7 @@ void main() {
       service = SessionService(firestore: fakeFirestore);
     });
 
-    Future<void> _createUserDoc(String userId) async {
+    Future<void> createUserDoc(String userId) async {
       await fakeFirestore.collection('users').doc(userId).set({
         'name': 'Test User',
         'email': 'test@kseb.in',
@@ -23,7 +23,7 @@ void main() {
 
     group('createSession', () {
       test('returns a session token with correct format', () async {
-        await _createUserDoc('user1');
+        await createUserDoc('user1');
         final token = await service.createSession('user1');
 
         expect(token, isNotEmpty);
@@ -31,7 +31,7 @@ void main() {
       });
 
       test('writes token to user document', () async {
-        await _createUserDoc('user1');
+        await createUserDoc('user1');
         final token = await service.createSession('user1');
 
         final doc = await fakeFirestore.collection('users').doc('user1').get();
@@ -39,7 +39,7 @@ void main() {
       });
 
       test('generates unique tokens on each call', () async {
-        await _createUserDoc('user1');
+        await createUserDoc('user1');
         final token1 = await service.createSession('user1');
         // Small delay to ensure different timestamps
         await Future.delayed(const Duration(milliseconds: 10));
@@ -51,7 +51,7 @@ void main() {
 
     group('clearSession', () {
       test('sets activeSessionToken to null', () async {
-        await _createUserDoc('user1');
+        await createUserDoc('user1');
         await service.createSession('user1');
 
         await service.clearSession('user1');
@@ -63,7 +63,7 @@ void main() {
 
     group('isSessionValid', () {
       test('returns true when tokens match', () async {
-        await _createUserDoc('user1');
+        await createUserDoc('user1');
         final token = await service.createSession('user1');
 
         final isValid = await service.isSessionValid('user1', token);
@@ -72,7 +72,7 @@ void main() {
 
       test('returns false when tokens differ (another device logged in)',
           () async {
-        await _createUserDoc('user1');
+        await createUserDoc('user1');
         final token1 = await service.createSession('user1');
         // Simulate another device logging in
         await Future.delayed(const Duration(milliseconds: 10));
@@ -90,7 +90,7 @@ void main() {
 
       test('returns false when activeSessionToken is null (logged out)',
           () async {
-        await _createUserDoc('user1');
+        await createUserDoc('user1');
         await service.createSession('user1');
         await service.clearSession('user1');
 
