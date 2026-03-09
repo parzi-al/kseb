@@ -96,10 +96,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T029 [US3] Center the bolt icon container by wrapping in Center widget within the Column in lib/screens/login_screen.dart
-- [ ] T030 [US3] Add AnimationController with scale-in + glow BoxShadow entrance animation to LoginScreen in lib/screens/login_screen.dart
-- [ ] T031 [US3] Add reduce-motion check (MediaQuery.disableAnimations) to skip animation when enabled in lib/screens/login_screen.dart
-- [ ] T032 [US3] Create widget tests for icon centering, animation behavior, and reduce-motion in test/screens/login_screen_test.dart
+- [X] T029 [US3] Center the bolt icon container by wrapping in Center widget within the Column in lib/screens/login_screen.dart
+- [X] T030 [US3] Add AnimationController with scale-in + glow BoxShadow entrance animation to LoginScreen in lib/screens/login_screen.dart
+- [X] T031 [US3] Add reduce-motion check (MediaQuery.disableAnimations) to skip animation when enabled in lib/screens/login_screen.dart
+- [X] T032 [US3] Create widget tests for icon centering, animation behavior, and reduce-motion in test/screens/login_screen_test.dart
 
 **Checkpoint**: Login screen bolt icon is centered, animated on load, respects accessibility. All visual acceptance criteria met.
 
@@ -109,11 +109,11 @@
 
 **Purpose**: Final validation, cleanup, and cross-story integration testing
 
-- [ ] T033 Verify all existing tests still pass (zero regressions) by running full test suite
+- [X] T033 Verify all existing tests still pass (zero regressions) by running full test suite
 - [ ] T034 Run quickstart.md verification steps 1-9 end-to-end on device/emulator
 - [ ] T035 [P] Deploy updated firestore.rules to Firebase via firebase deploy --only firestore:rules
 - [ ] T036 [P] Create app_settings/auth document in Firestore with idleTimeoutMinutes: 15 default
-- [ ] T037 Code cleanup: remove stale comments referencing non-existent StreamBuilder in login_screen.dart and worker_home_screen.dart
+- [X] T037 Code cleanup: remove stale comments referencing non-existent StreamBuilder in login_screen.dart and worker_home_screen.dart
 
 ---
 
