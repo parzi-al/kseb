@@ -38,12 +38,12 @@
 - [X] T007 [P] Create IdleTimeoutService in lib/services/idle_timeout_service.dart
 - [X] T008 Create AuthService (orchestrator) in lib/services/auth_service.dart
 - [X] T009 Update Firestore security rules for auth_events, app_settings collections in firestore.rules
-- [ ] T010 [P] Create unit tests for AuthEventModel in test/models/auth_event_model_test.dart
-- [ ] T011 [P] Create unit tests for LoginRateLimiter in test/services/login_rate_limiter_test.dart
-- [ ] T012 [P] Create unit tests for AuthAuditService in test/services/auth_audit_service_test.dart
-- [ ] T013 [P] Create unit tests for SessionService in test/services/session_service_test.dart
-- [ ] T014 [P] Create unit tests for IdleTimeoutService in test/services/idle_timeout_service_test.dart
-- [ ] T015 Create unit tests for AuthService in test/services/auth_service_test.dart
+- [X] T010 [P] Create unit tests for AuthEventModel in test/models/auth_event_model_test.dart
+- [X] T011 [P] Create unit tests for LoginRateLimiter in test/services/login_rate_limiter_test.dart
+- [X] T012 [P] Create unit tests for AuthAuditService in test/services/auth_audit_service_test.dart
+- [X] T013 [P] Create unit tests for SessionService in test/services/session_service_test.dart
+- [X] T014 [P] Create unit tests for IdleTimeoutService in test/services/idle_timeout_service_test.dart
+- [X] T015 Create unit tests for AuthService in test/services/auth_service_test.dart
 
 **Checkpoint**: All foundational services built and tested. User story implementation can begin.
 

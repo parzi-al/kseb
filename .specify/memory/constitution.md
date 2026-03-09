@@ -145,6 +145,37 @@ Feature/
 **Rationale**: A uniform structure makes features discoverable,
 reviewable, and auditable without per-feature orientation.
 
+
+### XI. Test-Gated Development
+
+All features — both **new and existing** — MUST include unit tests that validate their functional behavior.
+
+Development MUST follow a **test-gated workflow**:
+
+1. Unit tests MUST be written for the feature.
+2. The implementation MUST satisfy all defined test cases.
+3. All unit tests MUST pass successfully before the feature can proceed to:
+
+   * integration testing
+   * review
+   * merge
+   * deployment
+
+If any unit test fails, the feature MUST be considered **incomplete**, and development MUST NOT proceed until the failure is resolved.
+
+Unit tests SHOULD cover:
+
+* Core logic validation
+* Edge case handling
+* Error conditions
+* Expected outputs
+
+**Rationale**:
+Unit tests act as a verification layer ensuring that features behave exactly as specified. A test-gated workflow prevents regressions, enforces reliability, and guarantees that only validated functionality progresses through the development lifecycle.
+
+Unit tests MUST be implemented using `flutter test` and executed in CI before merge approval.
+
+
 ## Engineering Standards
 
 **Prefer:**
