@@ -372,8 +372,13 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
           }).toList(),
           onChanged: (value) {
             if (value != null) {
-              setState(() {
-                _selectedTeamId = value;
+              // Defer setState to post-frame callback to avoid mouse tracker assertion
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  setState(() {
+                    _selectedTeamId = value;
+                  });
+                }
               });
               _loadEmployeesByTeam(value);
             }
@@ -428,8 +433,13 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
           onChanged: _employees.isEmpty
               ? null
               : (value) {
-                  setState(() {
-                    _selectedEmployeeId = value;
+                  // Defer setState to post-frame callback to avoid mouse tracker assertion
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      setState(() {
+                        _selectedEmployeeId = value;
+                      });
+                    }
                   });
                 },
         ),

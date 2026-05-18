@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 
 // Design system tokens
 import 'utils/app_colors.dart';
@@ -42,16 +42,7 @@ ThemeData createAppTheme() {
       outlineVariant: AppColors.grey200,
       shadow: AppColors.cardShadow,
     ),
-    textTheme: GoogleFonts.interTextTheme().copyWith(
-      displayLarge: AppTypography.displayLargeStyle,
-      displayMedium: AppTypography.displayStyle,
-      titleLarge: AppTypography.titleStyle,
-      titleMedium: AppTypography.headingStyle,
-      titleSmall: AppTypography.subheadingStyle,
-      bodyLarge: AppTypography.bodyMediumStyle,
-      bodyMedium: AppTypography.bodyStyle,
-      bodySmall: AppTypography.captionStyle,
-    ),
+    textTheme: _buildTextTheme(),
     appBarTheme: AppBarTheme(
       backgroundColor: AppColors.surface,
       foregroundColor: AppColors.textPrimary,
@@ -61,7 +52,7 @@ ThemeData createAppTheme() {
       centerTitle: true,
       titleTextStyle: AppTypography.headingStyle,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: AppColors.surface,
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -121,6 +112,21 @@ ThemeData createAppTheme() {
         TargetPlatform.linux: AppPageTransition(),
       },
     ),
+  );
+}
+
+/// Build text theme.
+/// Note: google_fonts disabled due to constant evaluation error on Windows builds.
+TextTheme _buildTextTheme() {
+  return ThemeData.light().textTheme.copyWith(
+    displayLarge: AppTypography.displayLargeStyle,
+    displayMedium: AppTypography.displayStyle,
+    titleLarge: AppTypography.titleStyle,
+    titleMedium: AppTypography.headingStyle,
+    titleSmall: AppTypography.subheadingStyle,
+    bodyLarge: AppTypography.bodyMediumStyle,
+    bodyMedium: AppTypography.bodyStyle,
+    bodySmall: AppTypography.captionStyle,
   );
 }
 

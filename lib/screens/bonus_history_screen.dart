@@ -218,8 +218,13 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
             );
           }).toList(),
           onChanged: (value) {
-            setState(() {
-              _selectedUserId = value;
+            // Defer setState to post-frame callback to avoid mouse tracker assertion
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                setState(() {
+                  _selectedUserId = value;
+                });
+              }
             });
           },
         ),

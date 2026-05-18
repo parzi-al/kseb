@@ -24,7 +24,7 @@ enum UserRole {
   }
 
   static UserRole fromString(String role) {
-    switch (role.toLowerCase()) {
+    switch (role.toLowerCase().trim()) {
       case 'staff':
         return UserRole.staff;
       case 'supervisor':

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:kseb/utils/app_colors.dart';
 import 'package:kseb/utils/app_typography.dart';
 import 'package:kseb/utils/app_spacing.dart';
 import 'package:kseb/utils/page_transitions.dart';
 
-/// Disable GoogleFonts network fetching for test environments.
+/// Setup test environment.
 void setupTestEnvironment() {
-  GoogleFonts.config.allowRuntimeFetching = false;
+  // google_fonts disabled due to Windows build issues
 }
 
 /// Build the app's canonical ThemeData for use in widget tests.
@@ -38,7 +37,7 @@ ThemeData createTestTheme() {
       outlineVariant: AppColors.grey200,
       shadow: AppColors.cardShadow,
     ),
-    textTheme: GoogleFonts.interTextTheme().copyWith(
+    textTheme: ThemeData.light().textTheme.copyWith(
       displayLarge: AppTypography.displayLargeStyle,
       displayMedium: AppTypography.displayStyle,
       titleLarge: AppTypography.titleStyle,
@@ -57,7 +56,7 @@ ThemeData createTestTheme() {
       centerTitle: true,
       titleTextStyle: AppTypography.headingStyle,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: AppColors.surface,
       elevation: 0,
       shape: RoundedRectangleBorder(

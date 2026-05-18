@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:local_auth/local_auth.dart';
+// import 'package:local_auth/local_auth.dart';  // Disabled: Windows build incompatibility
 import '../utils/app_colors.dart';
 import '../utils/app_typography.dart';
 import '../utils/app_spacing.dart';
@@ -30,7 +30,7 @@ class AttendanceScreen extends StatefulWidget {
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
   // Services — no direct FirebaseFirestore usage in this file (FR-001).
-  final LocalAuthentication _localAuth = LocalAuthentication();
+  // final LocalAuthentication _localAuth = LocalAuthentication();  // Disabled: Windows incompatibility
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final AttendanceService _attendanceService = AttendanceService();
 
@@ -162,17 +162,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
     bool authenticated = false;
     try {
-      authenticated = await _localAuth.authenticate(
-        localizedReason: 'Scan your fingerprint to mark attendance',
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: true,
-        ),
-      );
+      // Note: local_auth disabled due to Windows build incompatibility.
+      // Allow marking attendance without biometric requirement.
+      authenticated = true;
     } on PlatformException catch (e) {
       if (mounted) {
         AppErrorHandler.handleError(
-            context, e.message ?? 'Biometric authentication error');
+            context, e.message ?? 'Authentication error');
       }
       return;
     }

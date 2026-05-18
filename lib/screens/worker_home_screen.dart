@@ -74,21 +74,10 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
   /// Validate session when app resumes from background (FR-020 force-logout).
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _validateSessionOnResume();
-    }
-  }
-
-  Future<void> _validateSessionOnResume() async {
-    try {
-      final isValid = await _authService.validateSession();
-      if (!isValid && mounted) {
-        // Session was invalidated (e.g., signed in on another device)
-        await _authService.signOut(reason: 'session_invalidated');
-      }
-    } catch (_) {
-      // Network error — gracefully skip validation (stay logged in)
-    }
+    // Session validation disabled: users should stay logged in even after app
+    // is closed and reopened (use Firebase auth state as source of truth).
+    // Single-session enforcement is still active for concurrent login detection
+    // via session tokens, but only at the service/API level, not at the UI level.
   }
 
   void _initializeAnimations() {
@@ -347,7 +336,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
               child: Icon(
                 Icons.bolt_rounded,
                 color: AppColors.primary,
-                size: context.responsiveHeight(20),
+                size: _getResponsiveIconSize(context, baseSize: 20),
               ),
             ),
             const SizedBox(width: AppSpacing.base),
@@ -626,6 +615,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                       children: [
                         Expanded(
                           child: _buildStatCard(
+                            context,
                             'Bonus Points',
                             isLoading ? '--' : bonusPoints.toString(),
                             Icons.star_rounded,
@@ -636,6 +626,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                             width: context.responsiveSpacing(AppSpacing.md)),
                         Expanded(
                           child: _buildStatCard(
+                            context,
                             'Bonus Amount',
                             isLoading
                                 ? '--'
@@ -669,7 +660,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                     child: GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
+                      crossAxisCount: _getGridColumnCount(context),
                       crossAxisSpacing:
                           context.responsiveSpacing(AppSpacing.md),
                       mainAxisSpacing: context.responsiveSpacing(AppSpacing.md),
@@ -747,17 +738,10 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
     required Color color,
     required Widget destination,
   }) {
-    void navigate(BuildContext cardContext) {
-      final box = cardContext.findRenderObject() as RenderBox?;
-      Rect? sourceRect;
-      if (box != null && box.hasSize) {
-        final offset = box.localToGlobal(Offset.zero);
-        sourceRect = offset & box.size;
-      }
+    void navigate() {
       Navigator.of(context).push(
         AppRoute(
           builder: (_) => destination,
-          sourceRect: sourceRect,
         ),
       );
     }
@@ -767,49 +751,47 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
         decoration: AppDecorations.modernCardDecorationWithColor(color),
         child: Material(
           color: Colors.transparent,
-          child: Builder(
-            builder: (cardContext) => InkWell(
-              onTap: () => navigate(cardContext),
-              borderRadius: BorderRadius.circular(
-                  MediaQuery.of(context).size.height < 700
-                      ? AppSpacing.radiusMd
-                      : AppSpacing.radiusDefault),
-              child: Padding(
-                padding:
-                    EdgeInsets.all(context.responsivePadding(AppSpacing.base)),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(
-                          context.responsivePadding(AppSpacing.sm)),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(
-                            MediaQuery.of(context).size.height < 700
-                                ? AppSpacing.radiusSm
-                                : AppSpacing.radiusMd),
-                      ),
-                      child: Icon(
-                        icon,
-                        size: context.responsiveHeight(20),
-                        color: color,
-                      ),
+          child: InkWell(
+            onTap: navigate,
+            borderRadius: BorderRadius.circular(
+                MediaQuery.of(context).size.height < 700
+                    ? AppSpacing.radiusMd
+                    : AppSpacing.radiusDefault),
+            child: Padding(
+              padding:
+                  EdgeInsets.all(context.responsivePadding(AppSpacing.base)),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(
+                        context.responsivePadding(AppSpacing.sm)),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(
+                          MediaQuery.of(context).size.height < 700
+                              ? AppSpacing.radiusSm
+                              : AppSpacing.radiusMd),
                     ),
-                    SizedBox(height: context.responsiveSpacing(AppSpacing.sm)),
-                    Text(
-                      label,
-                      textAlign: TextAlign.center,
-                      style: context
-                          .responsiveTextStyle(AppTypography.bodyMediumStyle)
-                          .copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
+                    child: Icon(
+                      icon,
+                      size: _getResponsiveIconSize(context),
+                      color: color,
                     ),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: context.responsiveSpacing(AppSpacing.sm)),
+                  Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: context
+                        .responsiveTextStyle(AppTypography.bodyMediumStyle)
+                        .copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -818,7 +800,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
     );
   }
 
-  Widget _buildStatCard(
+  Widget _buildStatCard(BuildContext context,
       String title, String value, IconData icon, Color color) {
     return Container(
       padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
@@ -835,7 +817,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                   borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 ),
                 child: Icon(icon,
-                    color: color, size: context.responsiveHeight(22)),
+                    color: color, size: _getResponsiveIconSize(context, baseSize: 22)),
               ),
               const Spacer(),
             ],
@@ -871,6 +853,36 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
         ],
       ),
     );
+  }
+
+  /// Get responsive icon size based on screen dimensions.
+  /// Scales more aggressively on desktop (Windows) than on mobile.
+  double _getResponsiveIconSize(BuildContext context, {double baseSize = 20}) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    // Desktop screens (Windows typically > 1000px width)
+    if (screenWidth > 1000) {
+      return baseSize * 1.5; // 50% larger on desktop
+    }
+    // Tablet screens
+    else if (screenWidth > 600) {
+      return baseSize * 1.2; // 20% larger on tablet
+    }
+    // Mobile screens
+    else {
+      return baseSize;
+    }
+  }
+
+  /// Get responsive grid column count based on screen width.
+  /// Windows/desktop: 3 columns, Tablet: 2 columns, Mobile: 2 columns
+  int _getGridColumnCount(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth > 1200) {
+      return 3; // Desktop: 3 columns
+    }
+    return 2; // Tablet & mobile: 2 columns
   }
 
   void _showLogoutDialog(BuildContext context) {

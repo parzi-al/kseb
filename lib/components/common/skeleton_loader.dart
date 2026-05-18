@@ -465,11 +465,14 @@ class ListScreenSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer(
-      child: ListView.builder(
-        physics: const NeverScrollableScrollPhysics(),
+      child: SingleChildScrollView(
         padding: padding,
-        itemCount: itemCount,
-        itemBuilder: (_, __) => const _SkeletonListTile(),
+        child: Column(
+          children: List.generate(
+            itemCount,
+            (_) => const _SkeletonListTile(),
+          ),
+        ),
       ),
     );
   }
@@ -806,11 +809,14 @@ class BonusHistorySkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer(
-      child: ListView.builder(
-        physics: const NeverScrollableScrollPhysics(),
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
-        itemCount: itemCount,
-        itemBuilder: (_, __) => const _SkeletonBonusCard(),
+        child: Column(
+          children: List.generate(
+            itemCount,
+            (_) => const _SkeletonBonusCard(),
+          ),
+        ),
       ),
     );
   }

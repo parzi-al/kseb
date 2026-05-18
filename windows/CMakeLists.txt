@@ -2,6 +2,9 @@
 cmake_minimum_required(VERSION 3.14)
 project(kseb LANGUAGES CXX)
 
+# Allow subprojects with legacy cmake_minimum_required to configure under CMake 4.x.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
+
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "kseb")
@@ -39,10 +42,12 @@ add_definitions(-DUNICODE -D_UNICODE)
 # of modifying this function.
 function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
-  target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100")
+  target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100" /wd"4838")
   target_compile_options(${TARGET} PRIVATE /EHsc)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
+  # Suppress coroutine deprecation warnings for local_auth_windows and firebase plugins
+  target_compile_definitions(${TARGET} PRIVATE "_SILENCE_CXX20_COROUTINE_DEPRECATION_WARNING")
 endfunction()
 
 # Flutter library and tool build rules.
