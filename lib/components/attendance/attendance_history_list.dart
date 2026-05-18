@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/attendance_model.dart';
+import '../../models/user_model.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_typography.dart';
 import '../../utils/app_spacing.dart';
@@ -13,11 +14,17 @@ import '../common/staggered_list_item.dart';
 class AttendanceHistoryList extends StatelessWidget {
   final List<AttendanceModel> records;
   final Future<void> Function()? onRefresh;
+  final UserRole? userRole; // For supervisor-only actions
+  final Future<void> Function(AttendanceModel)? onMarkAttendance; // Supervisor action
+  final Future<void> Function(String)? onRemoveAttendance; // Supervisor action
 
   const AttendanceHistoryList({
     super.key,
     required this.records,
     this.onRefresh,
+    this.userRole,
+    this.onMarkAttendance,
+    this.onRemoveAttendance,
   });
 
   @override
@@ -45,6 +52,11 @@ class AttendanceHistoryList extends StatelessWidget {
   Widget _buildRecordTile(AttendanceModel record) {
     final isToday = _isToday(record.timestamp);
     final isThisWeek = _isThisWeek(record.timestamp);
+    final isSupervisor = userRole != null &&
+        (userRole == UserRole.supervisor ||
+            userRole == UserRole.manager ||
+            userRole == UserRole.coo ||
+            userRole == UserRole.director);
 
     return Padding(
       padding: EdgeInsets.only(bottom: AppSpacing.md),
@@ -119,10 +131,51 @@ class AttendanceHistoryList extends StatelessWidget {
               ],
             ],
           ),
-          trailing: Text(
-            _getRelativeTime(record.timestamp),
-            style: AppTypography.captionStyle,
-          ),
+          trailing: isSupervisor
+              ? PopupMenuButton<String>(
+                  onSelected: (value) async {
+                    if (value == 'remove' && onRemoveAttendance != null) {
+                      await onRemoveAttendance!(record.id);
+                    }
+                    // Verify/Unverify options commented out
+                    // else if (value == 'verify' && onMarkAttendance != null) {
+                    //   await onMarkAttendance!(record);
+                    // }
+                  },
+                  itemBuilder: (BuildContext context) => [
+                    PopupMenuItem(
+                      value: 'remove',
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.delete_rounded,
+                              color: AppColors.error, size: 18),
+                          SizedBox(width: AppSpacing.sm),
+                          const Text('Remove'),
+                        ],
+                      ),
+                    ),
+                    // Commented out: Verify/Unverify feature
+                    // PopupMenuItem(
+                    //   value: 'verify',
+                    //   child: Row(
+                    //     mainAxisSize: MainAxisSize.min,
+                    //     children: [
+                    //       Icon(Icons.check_circle_rounded,
+                    //           color: AppColors.success, size: 18),
+                    //       SizedBox(width: AppSpacing.sm),
+                    //       const Text('Verify'),
+                    //     ],
+                    //   ),
+                    // ),
+                  ],
+                  icon: Icon(Icons.more_vert_rounded,
+                      color: AppColors.textSecondary),
+                )
+              : Text(
+                  _getRelativeTime(record.timestamp),
+                  style: AppTypography.captionStyle,
+                ),
         ),
       ),
     );

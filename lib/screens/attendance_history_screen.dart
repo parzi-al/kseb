@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_toast.dart';
 import '../models/attendance_model.dart';
+import '../models/user_model.dart';
 import '../services/attendance_service.dart';
 import '../components/common/app_bar_builder.dart';
 import '../components/common/skeleton_loader.dart';
@@ -27,6 +29,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   List<AttendanceModel> _attendanceRecords = [];
   bool _isLoading = true;
   String? _userId;
+  UserRole? _userRole;
 
   @override
   void initState() {
@@ -46,6 +49,19 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
 
     _userId = user.uid;
     try {
+      // Fetch user role
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_userId)
+          .get();
+
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        _userRole = UserRole.fromString(data?['role'] ?? 'staff');
+      } else {
+        _userRole = UserRole.staff;
+      }
+
       _attendanceRecords =
           await _attendanceService.getAttendanceHistory(_userId!);
     } catch (e) {
@@ -58,6 +74,21 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
     if (mounted) setState(() => _isLoading = false);
   }
 
+  /// Remove attendance record (supervisor only).
+  Future<void> _removeAttendanceRecord(String attendanceId) async {
+    try {
+      await _attendanceService.removeAttendance(attendanceId);
+      if (mounted) {
+        AppToast.showSuccess(context, 'Attendance removed successfully.');
+        await _fetchAttendanceHistory();
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.showError(context, 'Error removing attendance: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,6 +99,8 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
           : AttendanceHistoryList(
               records: _attendanceRecords,
               onRefresh: _fetchAttendanceHistory,
+              userRole: _userRole,
+              onRemoveAttendance: _removeAttendanceRecord,
             ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context).pop(),

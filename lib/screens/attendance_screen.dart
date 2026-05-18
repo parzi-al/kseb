@@ -43,8 +43,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   bool _isMarking = false; // Loading guard for double-tap prevention (FR-005)
   bool _isMarkedToday = false;
   String? _userId;
+  String? _teamId;
   List<AttendanceModel> _attendanceRecords = [];
   bool _showHistory = false;
+  
+  // Supervisor team members
+  List<UserModel> _teamMembers = [];
+  bool _isLoadingTeamMembers = false;
 
   // Calendar view variables
   DateTime _focusedDay = DateTime.now();
@@ -87,6 +92,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         final data = userDoc.data();
         _userName = data?['name'] ?? user.email ?? 'No name found';
         _userRole = UserRole.fromString(data?['role'] ?? 'staff');
+        _teamId = data?['teamId'];
       } else {
         _userName = user.email ?? 'No name found';
         _userRole = UserRole.staff;
@@ -100,6 +106,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
       // Fetch history via service
       await _fetchAttendanceHistory();
+      
+      // Fetch team members if supervisor
+      if (_userRole?.isSupervisor ?? false) {
+        await _fetchTeamMembers();
+      }
     } catch (e) {
       _userName = 'Error loading data';
       _thisMonthPresent = 0;
@@ -110,6 +121,37 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
 
     if (mounted) setState(() => _isLoading = false);
+  }
+
+  /// Fetches team members for the current supervisor.
+  Future<void> _fetchTeamMembers() async {
+    if (_teamId == null) return;
+
+    setState(() => _isLoadingTeamMembers = true);
+
+    try {
+      // Query by teamId only (avoids composite index requirement)
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('teamId', isEqualTo: _teamId)
+          .get();
+
+      // Filter to staff role locally in Dart
+      _teamMembers = querySnapshot.docs
+          .map((doc) => UserModel.fromFirestore(doc))
+          .where((user) => user.role == UserRole.staff)
+          .toList();
+
+      // Sort by name
+      _teamMembers.sort((a, b) => a.name.compareTo(b.name));
+    } catch (e) {
+      _teamMembers = [];
+      if (mounted) {
+        AppToast.showError(context, 'Error fetching team members: $e');
+      }
+    }
+
+    if (mounted) setState(() => _isLoadingTeamMembers = false);
   }
 
   /// Fetches attendance history records via [AttendanceService] (FR-001).
@@ -183,7 +225,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
   }
 
-  /// Records attendance via [AttendanceService] (FR-001/FR-004).
+  /// Record attendance via [AttendanceService] (FR-001/FR-004).
   Future<void> _recordAttendance() async {
     if (_userId == null || _isMarking) return;
 
@@ -216,6 +258,31 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
 
     if (mounted) setState(() => _isMarking = false);
+  }
+
+  /// Mark attendance for a team member (supervisor only).
+  Future<void> _markTeamMemberAttendance(String memberId, DateTime date) async {
+    try {
+      await _attendanceService.markAttendanceForTeamMember(
+        userId: memberId,
+        date: date,
+        status: 'present',
+      );
+
+      if (mounted) {
+        AppToast.showSuccess(context, 'Attendance marked successfully! ✓');
+        await _fetchTeamMembers();
+      }
+    } catch (e) {
+      if (mounted) {
+        final msg = e.toString();
+        if (msg.contains('already marked')) {
+          AppToast.showWarning(context, 'Attendance already marked for this date.');
+        } else {
+          AppToast.showError(context, 'Error marking attendance: $e');
+        }
+      }
+    }
   }
 
   @override
@@ -293,6 +360,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 // Debug test button — only in kDebugMode (FR-012)
                 if (kDebugMode && !_isMarkedToday) _buildDebugButton(),
                 SizedBox(height: AppSpacing.xl),
+                // Supervisor section for marking team members
+                if (_userRole?.isSupervisor ?? false) ...[
+                  _buildSupervisorSection(),
+                  SizedBox(height: AppSpacing.xl),
+                ],
               ],
             ),
           ),
@@ -501,11 +573,270 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
+  /// Supervisor section for marking team member attendance.
+  Widget _buildSupervisorSection() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.cardShadow,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.supervisor_account_rounded, color: AppColors.primary),
+              SizedBox(width: AppSpacing.md),
+              Text(
+                'Mark Team Attendance',
+                style: AppTypography.subheadingStyle,
+              ),
+            ],
+          ),
+          SizedBox(height: AppSpacing.lg),
+          if (_isLoadingTeamMembers)
+            Center(
+              child: SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                ),
+              ),
+            )
+          else if (_teamMembers.isEmpty)
+            Center(
+              child: Padding(
+                padding: EdgeInsets.all(AppSpacing.lg),
+                child: Text(
+                  'No team members available',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: AppTypography.fontSizeBase,
+                  ),
+                ),
+              ),
+            )
+          else
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.primaryWithLowOpacity),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                itemCount: _teamMembers.length,
+                separatorBuilder: (context, index) => Divider(
+                  height: 1,
+                  color: AppColors.primaryWithLowOpacity,
+                  indent: AppSpacing.xl,
+                  endIndent: AppSpacing.xl,
+                ),
+                itemBuilder: (context, index) {
+                  final member = _teamMembers[index];
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.md,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.person_outline_rounded,
+                            color: AppColors.textSecondary, size: 20),
+                        SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                member.name,
+                                style: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: AppTypography.fontSizeBase,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              if (member.email.isNotEmpty)
+                                Padding(
+                                  padding: EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    member.email,
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: AppTypography.fontSizeBase - 2,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: AppSpacing.md),
+                        ElevatedButton.icon(
+                          onPressed: () =>
+                              _showMarkAttendanceDialog(member.id, member.name),
+                          icon: Icon(Icons.check_circle_outline_rounded,
+                              size: 18),
+                          label: Text('Mark'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: AppColors.textOnPrimary,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppSpacing.md,
+                              vertical: AppSpacing.sm,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Show dialog to mark attendance for a specific team member.
+  Future<void> _showMarkAttendanceDialog(
+      String memberId, String memberName) async {
+    DateTime? selectedDate = DateTime.now();
+
+    if (!mounted) return;
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: Text('Mark Attendance for $memberName'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Select date to mark:',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: AppTypography.fontSizeBase,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(height: AppSpacing.lg),
+              Material(
+                child: InkWell(
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: dialogContext,
+                      initialDate: selectedDate ?? DateTime.now(),
+                      firstDate:
+                          DateTime.now().subtract(const Duration(days: 90)),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) {
+                      setDialogState(() {
+                        selectedDate = picked;
+                      });
+                    }
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.primaryWithLowOpacity),
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusDefault),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.calendar_today_rounded,
+                            color: AppColors.primary, size: 20),
+                        SizedBox(width: AppSpacing.md),
+                        Text(
+                          selectedDate != null
+                              ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
+                              : 'Tap to select date',
+                          style: TextStyle(
+                            color: selectedDate != null
+                                ? AppColors.textPrimary
+                                : AppColors.textSecondary,
+                            fontSize: AppTypography.fontSizeBase,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: selectedDate != null
+                  ? () async {
+                      Navigator.pop(dialogContext);
+                      await _markTeamMemberAttendance(memberId, selectedDate!);
+                    }
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+              ),
+              child: Text(
+                'Mark Attendance',
+                style: TextStyle(color: AppColors.textOnPrimary),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Remove attendance record (supervisor only).
+  Future<void> _removeAttendanceRecord(String attendanceId) async {
+    try {
+      await _attendanceService.removeAttendance(attendanceId);
+      if (mounted) {
+        AppToast.showSuccess(context, 'Attendance removed successfully.');
+        await _fetchWorkerData();
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.showError(context, 'Error removing attendance: $e');
+      }
+    }
+  }
+
   /// History view delegated to extracted [AttendanceHistoryList] widget (T015).
   Widget _buildHistoryView() {
     return AttendanceHistoryList(
       records: _attendanceRecords,
       onRefresh: _fetchWorkerData,
+      userRole: _userRole,
+      onRemoveAttendance: _removeAttendanceRecord,
     );
   }
 }

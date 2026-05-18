@@ -6,7 +6,7 @@ import 'dart:async';
 import 'attendance_screen.dart';
 import 'material_management_screen.dart';
 import 'worksheet_screen.dart';
-import 'staff_management_screen.dart';
+// import 'staff_management_screen.dart';
 import 'bonus_management_screen.dart';
 import 'bonus_history_screen.dart';
 import '../utils/app_colors.dart';
@@ -608,38 +608,39 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                   SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
 
                   // Modern Quick Stats Section
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: context.responsivePadding(AppSpacing.lg)),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            context,
-                            'Bonus Points',
-                            isLoading ? '--' : bonusPoints.toString(),
-                            Icons.star_rounded,
-                            AppColors.statColors[0],
-                          ),
-                        ),
-                        SizedBox(
-                            width: context.responsiveSpacing(AppSpacing.md)),
-                        Expanded(
-                          child: _buildStatCard(
-                            context,
-                            'Bonus Amount',
-                            isLoading
-                                ? '--'
-                                : '₹${bonusAmount.toStringAsFixed(2)}',
-                            Icons.currency_rupee_rounded,
-                            AppColors.statColors[1],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // Bonus Points and Bonus Amount hidden from homepage (to be enabled later)
+                  // Padding(
+                  //   padding: EdgeInsets.symmetric(
+                  //       horizontal: context.responsivePadding(AppSpacing.lg)),
+                  //   child: Row(
+                  //     children: [
+                  //       Expanded(
+                  //         child: _buildStatCard(
+                  //           context,
+                  //           'Bonus Points',
+                  //           isLoading ? '--' : bonusPoints.toString(),
+                  //           Icons.star_rounded,
+                  //           AppColors.statColors[0],
+                  //         ),
+                  //       ),
+                  //       SizedBox(
+                  //           width: context.responsiveSpacing(AppSpacing.md)),
+                  //       Expanded(
+                  //         child: _buildStatCard(
+                  //           context,
+                  //           'Bonus Amount',
+                  //           isLoading
+                  //               ? '--'
+                  //               : '₹${bonusAmount.toStringAsFixed(2)}',
+                  //           Icons.currency_rupee_rounded,
+                  //           AppColors.statColors[1],
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
 
-                  SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
+                  // SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
 
                   // Modern Menu Section
                   Padding(
@@ -670,18 +671,19 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                               ? 1.15
                               : 1.0),
                       children: [
-                        if (isSupervisor && teamId != null)
-                          _buildDashboardCard(
-                            context,
-                            icon: Icons.people_rounded,
-                            label: 'Staff Management',
-                            color: AppColors.dashboardCardColors[2],
-                            destination: StaffManagementScreen(
-                              teamId: teamId,
-                              currentUserRole:
-                                  UserRole.fromString(workerRole.toLowerCase()),
-                            ),
-                          ),
+                        // Staff Management temporarily commented out (to be enabled later)
+                        // if (isSupervisor && teamId != null)
+                        //   _buildDashboardCard(
+                        //     context,
+                        //     icon: Icons.people_rounded,
+                        //     label: 'Staff Management',
+                        //     color: AppColors.dashboardCardColors[2],
+                        //     destination: StaffManagementScreen(
+                        //       teamId: teamId,
+                        //       currentUserRole:
+                        //           UserRole.fromString(workerRole.toLowerCase()),
+                        //     ),
+                        //   ),
                         if (isCooOrDirector)
                           _buildDashboardCard(
                             context,

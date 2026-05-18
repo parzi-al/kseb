@@ -155,16 +155,57 @@ class AttendanceService {
   /// Verify attendance record (FR-011).
   ///
   /// Updates ONLY the [verifiedBy] field. The `status` field is NOT changed.
+  /// NOTE: This feature is currently commented out for supervisors.
   Future<void> verifyAttendance({
     required String attendanceId,
     required String verifiedBy,
   }) async {
+    // Commented out: Verify/Unverify feature temporarily disabled
+    // await _firestore
+    //     .collection(_attendanceCollection)
+    //     .doc(attendanceId)
+    //     .update({
+    //   'verifiedBy': verifiedBy,
+    // });
+  }
+
+  /// Mark attendance for a team member (supervisor only).
+  /// Allows supervisors to mark attendance for their team members on any date.
+  Future<void> markAttendanceForTeamMember({
+    required String userId,
+    required DateTime date,
+    String status = 'present',
+  }) async {
+    final normalizedDate = DateTime(date.year, date.month, date.day);
+
+    // Check if attendance already marked for this date
+    final existingAttendance = await _firestore
+        .collection(_attendanceCollection)
+        .where('userId', isEqualTo: userId)
+        .where('date', isEqualTo: Timestamp.fromDate(normalizedDate))
+        .limit(1)
+        .get();
+
+    if (existingAttendance.docs.isNotEmpty) {
+      throw Exception('Attendance already marked for this date');
+    }
+
+    // Mark attendance
+    await _firestore.collection(_attendanceCollection).add({
+      'userId': userId,
+      'date': Timestamp.fromDate(normalizedDate),
+      'status': status,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Remove attendance record (supervisor only).
+  /// Allows supervisors to remove attendance records for their team members.
+  Future<void> removeAttendance(String attendanceId) async {
     await _firestore
         .collection(_attendanceCollection)
         .doc(attendanceId)
-        .update({
-      'verifiedBy': verifiedBy,
-    });
+        .delete();
   }
 
   /// Delete attendance record
