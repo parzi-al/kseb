@@ -46,7 +46,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   String? _teamId;
   List<AttendanceModel> _attendanceRecords = [];
   bool _showHistory = false;
-  
+
   // Supervisor team members
   List<UserModel> _teamMembers = [];
   bool _isLoadingTeamMembers = false;
@@ -106,7 +106,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
       // Fetch history via service
       await _fetchAttendanceHistory();
-      
+
       // Fetch team members if supervisor
       if (_userRole?.isSupervisor ?? false) {
         await _fetchTeamMembers();
@@ -277,7 +277,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       if (mounted) {
         final msg = e.toString();
         if (msg.contains('already marked')) {
-          AppToast.showWarning(context, 'Attendance already marked for this date.');
+          AppToast.showWarning(
+              context, 'Attendance already marked for this date.');
         } else {
           AppToast.showError(context, 'Error marking attendance: $e');
         }
@@ -413,7 +414,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 ),
               ),
               child: Text(
-                _userRole?.displayName ?? 'KSEB Staff',
+                _userRole?.displayName ?? 'AumLux Staff',
                 style: TextStyle(
                   color: AppColors.primary,
                   fontSize: AppTypography.fontSizeBase,
@@ -759,7 +760,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     width: double.infinity,
                     padding: EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.primaryWithLowOpacity),
+                      border:
+                          Border.all(color: AppColors.primaryWithLowOpacity),
                       borderRadius:
                           BorderRadius.circular(AppSpacing.radiusDefault),
                     ),

@@ -13,7 +13,7 @@ import '../utils/app_typography.dart';
 ///
 /// Animation sequence:
 /// 1. Lightning-bolt icon scales up (0→800ms)
-/// 2. "KSEB" text slides up (800→1300ms)
+/// 2. "AUMLUX" text slides up (800→1300ms)
 ///
 /// Respects reduce-motion accessibility setting via [respectMotion].
 class SplashScreen extends StatefulWidget {

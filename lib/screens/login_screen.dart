@@ -227,7 +227,7 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                   SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
                   Text(
-                    'KSEB',
+                    'AUMLUX',
                     style: AppTypography.displayLargeStyle,
                   ),
                   SizedBox(height: context.responsiveSpacing(AppSpacing.sm)),

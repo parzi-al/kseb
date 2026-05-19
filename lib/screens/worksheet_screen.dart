@@ -26,8 +26,11 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   bool _isLoading = false;
 
   // Form controllers to manage text field data
-  final _workTypeController = TextEditingController();
   final _projectNameController = TextEditingController();
+  String? _selectedWorkType;
+
+  // Form controllers to manage text field data
+
   final _permitBookController = TextEditingController();
   final _locationController = TextEditingController();
   final _moreInfoController = TextEditingController();
@@ -45,7 +48,6 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   @override
   void dispose() {
     // Clean up the controllers when the widget is disposed.
-    _workTypeController.dispose();
     _projectNameController.dispose();
     _permitBookController.dispose();
     _locationController.dispose();
@@ -250,7 +252,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
         'submittedByEmail': user.email,
         'timestamp': FieldValue.serverTimestamp(),
         'office': _selectedOffice,
-        'workType': _workTypeController.text,
+        'workType': _selectedWorkType,
         'projectSelection': _selectedProject,
         'projectName': _projectNameController.text,
         'permitBook': _permitBookController.text,
@@ -466,6 +468,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                 border: Border.all(color: AppColors.grey300, width: 1),
               ),
               child: DropdownButtonFormField<String>(
+                isDense: true,
                 value: _selectedOffice,
                 validator: (value) =>
                     value == null ? 'Please select an office.' : null,
@@ -474,6 +477,8 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   labelStyle: TextStyle(color: AppColors.textSecondary),
                   prefixIcon:
                       Icon(Icons.location_city, color: AppColors.primary),
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     borderSide: BorderSide.none,
@@ -483,8 +488,17 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                 ),
                 items: ['Office A', 'Office B', 'Office C']
                     .map(
-                      (label) =>
-                          DropdownMenuItem(value: label, child: Text(label)),
+                      (label) => DropdownMenuItem(
+                        value: label,
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
                     )
                     .toList(),
                 onChanged: (value) {
@@ -503,13 +517,18 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                 borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 border: Border.all(color: AppColors.grey300, width: 1),
               ),
-              child: TextFormField(
-                controller: _workTypeController,
+              child: DropdownButtonFormField<String>(
+                isDense: true,
+                initialValue: _selectedWorkType,
+                validator: (value) =>
+                    value == null ? 'Please select a work type.' : null,
                 decoration: InputDecoration(
                   labelText: 'Work Type',
                   labelStyle: TextStyle(color: AppColors.textSecondary),
                   prefixIcon:
                       Icon(Icons.construction, color: AppColors.primary),
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     borderSide: BorderSide.none,
@@ -517,70 +536,108 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   filled: true,
                   fillColor: AppColors.grey50,
                 ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.base),
-
-            // Project Selection Dropdown
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.grey50,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                border: Border.all(color: AppColors.grey300, width: 1),
-              ),
-              child: DropdownButtonFormField<String>(
-                value: _selectedProject,
-                validator: (value) =>
-                    value == null ? 'Please select a project.' : null,
-                decoration: InputDecoration(
-                  labelText: 'Project Selection',
-                  labelStyle: TextStyle(color: AppColors.textSecondary),
-                  prefixIcon: Icon(Icons.assignment, color: AppColors.primary),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: AppColors.grey50,
-                ),
-                items: ['Project X', 'Project Y', 'Project Z']
-                    .map(
-                      (label) =>
-                          DropdownMenuItem(value: label, child: Text(label)),
-                    )
+                items: ['Project', 'Maintenance', 'Calamity']
+                    .map((label) => DropdownMenuItem(
+                          value: label,
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ))
                     .toList(),
                 onChanged: (value) {
                   setState(() {
-                    _selectedProject = value;
+                    _selectedWorkType = value;
+                    if (value != 'Project') {
+                      _selectedProject = null;
+                      _projectNameController.clear();
+                    }
                   });
                 },
               ),
             ),
             const SizedBox(height: AppSpacing.base),
 
-            // Project Name Field
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.grey50,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                border: Border.all(color: AppColors.grey300, width: 1),
-              ),
-              child: TextFormField(
-                controller: _projectNameController,
-                decoration: InputDecoration(
-                  labelText: 'Project Name',
-                  labelStyle: TextStyle(color: AppColors.textSecondary),
-                  prefixIcon: Icon(Icons.label_important_outline,
-                      color: AppColors.primary),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                    borderSide: BorderSide.none,
+            // Show project-specific fields only when Work Type is Project
+            if (_selectedWorkType == 'Project') ...[
+              // Project Selection Dropdown
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.grey50,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  border: Border.all(color: AppColors.grey300, width: 1),
+                ),
+                child: DropdownButtonFormField<String>(
+                  isDense: true,
+                  value: _selectedProject,
+                  validator: (value) =>
+                      value == null ? 'Please select a project.' : null,
+                  decoration: InputDecoration(
+                    labelText: 'Project Selection',
+                    labelStyle: TextStyle(color: AppColors.textSecondary),
+                    prefixIcon:
+                        Icon(Icons.assignment, color: AppColors.primary),
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: AppColors.grey50,
                   ),
-                  filled: true,
-                  fillColor: AppColors.grey50,
+                  items: ['Project X', 'Project Y', 'Project Z']
+                      .map(
+                        (label) => DropdownMenuItem(
+                          value: label,
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedProject = value;
+                    });
+                  },
                 ),
               ),
-            ),
+              const SizedBox(height: AppSpacing.base),
+
+              // Project Name Field
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.grey50,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  border: Border.all(color: AppColors.grey300, width: 1),
+                ),
+                child: TextFormField(
+                  controller: _projectNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Project Name',
+                    labelStyle: TextStyle(color: AppColors.textSecondary),
+                    prefixIcon: Icon(Icons.label_important_outline,
+                        color: AppColors.primary),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: AppColors.grey50,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

@@ -341,7 +341,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
             ),
             const SizedBox(width: AppSpacing.base),
             Text(
-              'KSEB Portal',
+              'AumLux Portal',
               style: context.responsiveTextStyle(AppTypography.headingStyle),
             ),
           ],
@@ -802,8 +802,8 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
     );
   }
 
-  Widget _buildStatCard(BuildContext context,
-      String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(BuildContext context, String title, String value,
+      IconData icon, Color color) {
     return Container(
       padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
       decoration: AppDecorations.modernCardDecoration,
@@ -819,7 +819,8 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                   borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 ),
                 child: Icon(icon,
-                    color: color, size: _getResponsiveIconSize(context, baseSize: 22)),
+                    color: color,
+                    size: _getResponsiveIconSize(context, baseSize: 22)),
               ),
               const Spacer(),
             ],
@@ -862,7 +863,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
   double _getResponsiveIconSize(BuildContext context, {double baseSize = 20}) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     // Desktop screens (Windows typically > 1000px width)
     if (screenWidth > 1000) {
       return baseSize * 1.5; // 50% larger on desktop
