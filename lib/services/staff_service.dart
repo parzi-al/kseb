@@ -6,7 +6,11 @@ import '../models/user_model.dart';
 class StaffService {
   static const String _usersCollection = 'users';
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore? _firestoreOverride;
+
+  StaffService({FirebaseFirestore? firestore}) : _firestoreOverride = firestore;
+
+  FirebaseFirestore get _firestore => _firestoreOverride ?? FirebaseFirestore.instance;
 
   /// Get staff stream for a specific team
   /// Returns all users in the team regardless of role - filtering by role hierarchy

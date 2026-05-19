@@ -6,7 +6,11 @@ import '../models/user_model.dart';
 class UserService {
   static const String _usersCollection = 'users';
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore? _firestoreOverride;
+
+  UserService({FirebaseFirestore? firestore}) : _firestoreOverride = firestore;
+
+  FirebaseFirestore get _firestore => _firestoreOverride ?? FirebaseFirestore.instance;
 
   /// Get current user by email
   Future<UserModel?> getUserByEmail(String email) async {

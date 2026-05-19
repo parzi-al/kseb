@@ -58,9 +58,24 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 add_subdirectory("runner")
 
 
-# Generated plugin build rules, which manage building the plugins and adding
-# them to the application.
-include(flutter/generated_plugins.cmake)
+# === Windows-specific plugin handling ===
+# Firebase plugins don't have Windows C++ SDK support.
+# They're conditionally initialized in main.dart for Android/iOS/Web.
+# We manually include only Windows-compatible plugins.
+
+set(FLUTTER_PLUGIN_LIST)
+set(FLUTTER_FFI_PLUGIN_LIST)
+set(PLUGIN_BUNDLED_LIBRARIES)
+
+# Only add file_selector_windows which has Windows support
+add_subdirectory(flutter/ephemeral/.plugin_symlinks/file_selector_windows/windows plugins/file_selector_windows)
+target_link_libraries(${BINARY_NAME} PRIVATE file_selector_windows_plugin)
+list(APPEND PLUGIN_BUNDLED_LIBRARIES $<TARGET_FILE:file_selector_windows_plugin>)
+list(APPEND PLUGIN_BUNDLED_LIBRARIES ${file_selector_windows_bundled_libraries})
+
+# Note: DO NOT include flutter/generated_plugins.cmake as it contains
+# Firebase plugins that don't work on Windows. Instead, we manually
+# include only Windows-compatible plugins above.
 
 
 # === Installation ===

@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../services/idle_timeout_service.dart';
 import '../utils/animation_constants.dart';
+import '../utils/firebase_availability.dart';
 import 'login_screen.dart';
 import 'splash_screen.dart';
 import 'worker_home_screen.dart';
@@ -102,6 +103,45 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if Firebase is available on this platform
+    if (!FirebaseAvailability.isAvailable) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.cloud_off,
+                  size: 64,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Platform Not Supported',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  FirebaseAvailability.platformMessage,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     final stream = widget.authStream ?? _authService.authStateChanges;
 
     return StreamBuilder<User?>(

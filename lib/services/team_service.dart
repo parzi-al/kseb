@@ -6,7 +6,11 @@ import '../models/team_model.dart';
 class TeamService {
   static const String _teamsCollection = 'teams';
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore? _firestoreOverride;
+
+  TeamService({FirebaseFirestore? firestore}) : _firestoreOverride = firestore;
+
+  FirebaseFirestore get _firestore => _firestoreOverride ?? FirebaseFirestore.instance;
 
   /// Get team by ID
   Future<TeamModel?> getTeamById(String teamId) async {
