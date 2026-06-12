@@ -67,6 +67,8 @@ class ApprovalService {
     required ApprovalAction action,
     required Map<String, dynamic> payload,
   }) async {
+    validateRequestPayload(action: action, payload: payload);
+
     final currentUser = await getCurrentUser();
     final currentAuthUid = _currentAuthUid;
 
@@ -85,6 +87,86 @@ class ApprovalService {
       'approvedAt': null,
       'rejectionReason': null,
     });
+  }
+
+  static void validateRequestPayload({
+    required ApprovalAction action,
+    required Map<String, dynamic> payload,
+  }) {
+    switch (action) {
+      case ApprovalAction.addMaterial:
+        _validateAddMaterialPayload(payload);
+        return;
+      case ApprovalAction.withdrawMaterial:
+        _validateWithdrawMaterialPayload(payload);
+        return;
+      case ApprovalAction.worksheet:
+        return;
+    }
+  }
+
+  static void _validateAddMaterialPayload(Map<String, dynamic> payload) {
+    final materialData = payload['materialData'];
+    if (materialData is! Map) {
+      throw Exception('Material details are required.');
+    }
+    final normalizedMaterialData = Map<String, dynamic>.from(materialData);
+
+    final requestedQuantity = _positiveNumber(
+      payload['requestedQuantity'],
+      'Requested quantity',
+    );
+    final materialQuantity = _positiveNumber(
+      normalizedMaterialData['quantity'],
+      'Material quantity',
+    );
+
+    if (requestedQuantity != materialQuantity) {
+      throw Exception('Requested quantity must match material quantity.');
+    }
+
+    _requiredString(payload['materialName'], 'Material name');
+    _requiredString(payload['materialCode'], 'Material code');
+    _requiredString(payload['unit'], 'Unit');
+    _requiredString(normalizedMaterialData['materialName'], 'Material name');
+    _requiredString(normalizedMaterialData['materialCode'], 'Material code');
+    _requiredString(normalizedMaterialData['category'], 'Category');
+    _requiredString(normalizedMaterialData['unit'], 'Unit');
+    _requiredString(normalizedMaterialData['supplier'], 'Supplier');
+    _requiredString(normalizedMaterialData['location'], 'Storage location');
+
+    final unitPrice = normalizedMaterialData['unitPrice'];
+    if (unitPrice is! num || unitPrice < 0) {
+      throw Exception('Unit price must be a valid positive number.');
+    }
+  }
+
+  static void _validateWithdrawMaterialPayload(Map<String, dynamic> payload) {
+    _requiredString(payload['materialId'], 'Material reference');
+    _requiredString(payload['materialName'], 'Material name');
+    _requiredString(payload['unit'], 'Unit');
+    _requiredString(payload['projectCode'], 'Project code');
+    _requiredString(payload['purpose'], 'Purpose');
+    _requiredString(payload['priority'], 'Priority');
+    _positiveNumber(payload['requestedQuantity'], 'Requested quantity');
+
+    if (payload['requiredDate'] == null) {
+      throw Exception('Required date is required.');
+    }
+  }
+
+  static String _requiredString(Object? value, String label) {
+    if (value is! String || value.trim().isEmpty) {
+      throw Exception('$label is required.');
+    }
+    return value.trim();
+  }
+
+  static double _positiveNumber(Object? value, String label) {
+    if (value is! num || value <= 0) {
+      throw Exception('$label must be greater than zero.');
+    }
+    return value.toDouble();
   }
 
   Future<void> approveMaterialRequest(String requestId) async {

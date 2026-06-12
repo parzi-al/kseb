@@ -352,9 +352,11 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value?.isEmpty ?? true) return 'Quantity is required';
-                    if (double.tryParse(value!) == null) {
+                    final quantity = double.tryParse(value!);
+                    if (quantity == null) {
                       return 'Invalid number';
                     }
+                    if (quantity <= 0) return 'Quantity must be greater than 0';
                     return null;
                   },
                 ),
@@ -378,7 +380,9 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (value?.isEmpty ?? true) return 'Unit price is required';
-                if (double.tryParse(value!) == null) return 'Invalid price';
+                final price = double.tryParse(value!);
+                if (price == null) return 'Invalid price';
+                if (price < 0) return 'Price cannot be negative';
                 return null;
               },
             ),

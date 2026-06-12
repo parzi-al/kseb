@@ -29,7 +29,7 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
   final _remarksController = TextEditingController();
 
   // Dropdown values
-  String? _selectedMaterial;
+  String? _selectedMaterialId;
   String? _selectedPriority;
   DateTime? _requiredDate;
 
@@ -108,11 +108,11 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
 
     try {
       final selectedMaterialData = _availableMaterials
-          .firstWhere((material) => material['name'] == _selectedMaterial);
+          .firstWhere((material) => material['id'] == _selectedMaterialId);
 
       final requestData = {
         'materialId': selectedMaterialData['id'],
-        'materialName': _selectedMaterial,
+        'materialName': selectedMaterialData['name'],
         'requestedQuantity': double.parse(_quantityController.text.trim()),
         'unit': selectedMaterialData['unit'],
         'projectCode': _projectCodeController.text.trim(),
@@ -174,10 +174,19 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
   }
 
   String _getAvailableQuantity() {
-    if (_selectedMaterial == null) return '';
-    final material =
-        _availableMaterials.firstWhere((m) => m['name'] == _selectedMaterial);
+    if (_selectedMaterialId == null) return '';
+    final material = _materialForId(_selectedMaterialId!);
+    if (material == null) return '';
     return '${material['available']} ${material['unit']} available';
+  }
+
+  Map<String, dynamic>? _materialForId(String materialId) {
+    for (final material in _availableMaterials) {
+      if (material['id'] == materialId) {
+        return material;
+      }
+    }
+    return null;
   }
 
   @override
@@ -422,19 +431,19 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                         ),
                       )
                     : _buildDropdown(
-                        value: _selectedMaterial,
+                        value: _selectedMaterialId,
                         label: 'Select Material',
                         icon: Icons.inventory_2_outlined,
                         items: _availableMaterials
-                            .map((m) => m['name'] as String)
+                            .map((m) => m['id'] as String)
                             .toList(),
                         onChanged: (value) =>
-                            setState(() => _selectedMaterial = value),
+                            setState(() => _selectedMaterialId = value),
                         validator: (value) =>
                             value == null ? 'Please select a material' : null,
                       ),
 
-            if (_selectedMaterial != null) ...[
+            if (_selectedMaterialId != null) ...[
               const SizedBox(height: AppSpacing.md),
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
@@ -473,6 +482,14 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
                 final qty = double.tryParse(value!);
                 if (qty == null) return 'Invalid number';
                 if (qty <= 0) return 'Quantity must be greater than 0';
+                if (_selectedMaterialId != null) {
+                  final material = _materialForId(_selectedMaterialId!);
+                  if (material == null) return 'Selected material not found';
+                  final available = (material['available'] as num).toDouble();
+                  if (qty > available) {
+                    return 'Quantity exceeds available stock';
+                  }
+                }
                 return null;
               },
             ),
@@ -656,14 +673,19 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
       fillColor: AppColors.surface,
       validator: validator,
       onChanged: onChanged,
-      items: items
-          .map(
-            (item) => ModernDropdownItem.create<String>(
-              value: item,
-              text: item,
-            ),
-          )
-          .toList(),
+      items: items.map(
+        (item) {
+          final material = _materialForId(item);
+
+          return ModernDropdownItem.create<String>(
+            value: item,
+            text: material?['name'] as String? ?? item,
+            subtitle: material == null
+                ? null
+                : '${material['available']} ${material['unit']} available',
+          );
+        },
+      ).toList(),
     );
   }
 }

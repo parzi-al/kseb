@@ -45,6 +45,11 @@ service cloud.firestore {
       return roleLevel(currentUserRole()) < roleLevel(requesterRole);
     }
 
+    function canCreateUserRole(role) {
+      return role in ['staff', 'supervisor', 'manager', 'coo', 'director'] &&
+        roleLevel(currentUserRole()) <= roleLevel(role);
+    }
+
     function isValidApprovalUpdate() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'status',
@@ -74,12 +79,103 @@ service cloud.firestore {
         canApproveRole(approval.requestedByRole);
     }
 
+    function isValidApprovedMaterialCreate(requestId) {
+      let approval = approvedRequest(requestId);
+      return isApprovedAddMaterialRequest(requestId) &&
+        request.resource.data.keys().hasOnly([
+          'materialName',
+          'materialCode',
+          'category',
+          'quantity',
+          'unit',
+          'unitPrice',
+          'totalValue',
+          'supplier',
+          'location',
+          'description',
+          'status',
+          'approvedRequestId',
+          'addedBy',
+          'addedByEmail',
+          'approvedBy',
+          'approvedByEmail',
+          'timestamp',
+          'lastUpdated'
+        ]) &&
+        request.resource.data.materialName == approval.materialData.materialName &&
+        request.resource.data.materialCode == approval.materialData.materialCode &&
+        request.resource.data.category == approval.materialData.category &&
+        request.resource.data.quantity == approval.materialData.quantity &&
+        request.resource.data.unit == approval.materialData.unit &&
+        request.resource.data.unitPrice == approval.materialData.unitPrice &&
+        request.resource.data.totalValue == approval.materialData.totalValue &&
+        request.resource.data.supplier == approval.materialData.supplier &&
+        request.resource.data.location == approval.materialData.location &&
+        request.resource.data.description == approval.materialData.description &&
+        request.resource.data.status == 'Available' &&
+        request.resource.data.addedBy == approval.requestedBy &&
+        request.resource.data.addedByEmail == approval.requestedByEmail &&
+        request.resource.data.approvedBy == request.auth.uid;
+    }
+
     function isApprovedWithdrawMaterialRequest(requestId) {
       let approval = approvedRequest(requestId);
       return approval.action == 'withdraw_material' &&
         approval.status == 'Approved' &&
         approval.approvedBy == request.auth.uid &&
         canApproveRole(approval.requestedByRole);
+    }
+
+    function isPositiveNumber(value) {
+      return value is number && value > 0;
+    }
+
+    function isRequiredString(value) {
+      return value is string && value.size() > 0;
+    }
+
+    function isValidAddMaterialRequest() {
+      return request.resource.data.materialData is map &&
+        isRequiredString(request.resource.data.materialName) &&
+        isRequiredString(request.resource.data.materialCode) &&
+        isPositiveNumber(request.resource.data.requestedQuantity) &&
+        isRequiredString(request.resource.data.unit) &&
+        isRequiredString(request.resource.data.materialData.materialName) &&
+        isRequiredString(request.resource.data.materialData.materialCode) &&
+        isRequiredString(request.resource.data.materialData.category) &&
+        isPositiveNumber(request.resource.data.materialData.quantity) &&
+        isRequiredString(request.resource.data.materialData.unit) &&
+        request.resource.data.requestedQuantity == request.resource.data.materialData.quantity &&
+        request.resource.data.unit == request.resource.data.materialData.unit &&
+        request.resource.data.materialName == request.resource.data.materialData.materialName &&
+        request.resource.data.materialCode == request.resource.data.materialData.materialCode &&
+        request.resource.data.materialData.unitPrice is number &&
+        request.resource.data.materialData.unitPrice >= 0 &&
+        request.resource.data.materialData.totalValue is number &&
+        request.resource.data.materialData.totalValue >= 0 &&
+        isRequiredString(request.resource.data.materialData.supplier) &&
+        isRequiredString(request.resource.data.materialData.location) &&
+        request.resource.data.materialData.description is string;
+    }
+
+    function isValidWithdrawMaterialRequest() {
+      return isRequiredString(request.resource.data.materialId) &&
+        isRequiredString(request.resource.data.materialName) &&
+        isPositiveNumber(request.resource.data.requestedQuantity) &&
+        isRequiredString(request.resource.data.unit) &&
+        isRequiredString(request.resource.data.projectCode) &&
+        isRequiredString(request.resource.data.purpose) &&
+        request.resource.data.priority in ['Low', 'Medium', 'High', 'Critical'] &&
+        request.resource.data.requiredDate is timestamp &&
+        request.resource.data.remarks is string;
+    }
+
+    function isValidMaterialRequestCreate() {
+      return request.resource.data.action == 'add_material'
+        ? isValidAddMaterialRequest()
+        : request.resource.data.action == 'withdraw_material'
+          ? isValidWithdrawMaterialRequest()
+          : request.resource.data.action == 'worksheet';
     }
     
     // Auth audit events — append-only log (FR-018, FR-019)
@@ -119,7 +215,9 @@ service cloud.firestore {
         request.auth.uid == userId &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email']);
       // Only managers and above can create users
-      allow create: if request.auth != null && isManagerOrAbove();
+      allow create: if request.auth != null &&
+        isManagerOrAbove() &&
+        canCreateUserRole(request.resource.data.role);
       // Only managers and above can delete users
       allow delete: if request.auth != null && isManagerOrAbove();
     }
@@ -178,7 +276,7 @@ service cloud.firestore {
       // Materials can only be created as part of approving an add-material request.
       allow create: if request.auth != null &&
         request.resource.data.approvedRequestId is string &&
-        isApprovedAddMaterialRequest(request.resource.data.approvedRequestId);
+        isValidApprovedMaterialCreate(request.resource.data.approvedRequestId);
       // Stock can only be decremented as part of approving a withdraw request.
       allow update: if request.auth != null &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -271,7 +369,13 @@ service cloud.firestore {
         request.resource.data.requestedByRole is string &&
         request.resource.data.requestedByRole == currentUserRole() &&
         request.resource.data.action in ['add_material', 'withdraw_material', 'worksheet'] &&
-        request.resource.data.status == 'Pending';
+        request.resource.data.status == 'Pending' &&
+        request.resource.data.approvalStatus == 'Awaiting Approval' &&
+        request.resource.data.approvedBy == null &&
+        request.resource.data.approvedByRole == null &&
+        request.resource.data.approvedAt == null &&
+        request.resource.data.rejectionReason == null &&
+        isValidMaterialRequestCreate();
       // Allow users to update their own pending requests
       allow update: if request.auth != null && 
         resource.data.requestedBy == request.auth.uid &&
