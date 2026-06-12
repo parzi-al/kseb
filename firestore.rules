@@ -50,6 +50,35 @@ service cloud.firestore {
         roleLevel(currentUserRole()) <= roleLevel(role);
     }
 
+    function isNullableString(value) {
+      return value == null || value is string;
+    }
+
+    function isValidUserCreate() {
+      return request.resource.data.keys().hasOnly([
+          'name',
+          'email',
+          'phone',
+          'role',
+          'teamId',
+          'areaCode',
+          'bonusPoints',
+          'bonusAmount',
+          'createdAt'
+        ]) &&
+        isRequiredString(request.resource.data.name) &&
+        isRequiredString(request.resource.data.email) &&
+        isRequiredString(request.resource.data.phone) &&
+        canCreateUserRole(request.resource.data.role) &&
+        isNullableString(request.resource.data.teamId) &&
+        isNullableString(request.resource.data.areaCode) &&
+        request.resource.data.bonusPoints is int &&
+        request.resource.data.bonusPoints >= 0 &&
+        request.resource.data.bonusAmount is number &&
+        request.resource.data.bonusAmount >= 0 &&
+        request.resource.data.createdAt is timestamp;
+    }
+
     function isValidApprovalUpdate() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'status',
@@ -109,6 +138,8 @@ service cloud.firestore {
         request.resource.data.unit == approval.materialData.unit &&
         request.resource.data.unitPrice == approval.materialData.unitPrice &&
         request.resource.data.totalValue == approval.materialData.totalValue &&
+        request.resource.data.totalValue == request.resource.data.quantity *
+          request.resource.data.unitPrice &&
         request.resource.data.supplier == approval.materialData.supplier &&
         request.resource.data.location == approval.materialData.location &&
         request.resource.data.description == approval.materialData.description &&
@@ -152,7 +183,9 @@ service cloud.firestore {
         request.resource.data.materialData.unitPrice is number &&
         request.resource.data.materialData.unitPrice >= 0 &&
         request.resource.data.materialData.totalValue is number &&
-        request.resource.data.materialData.totalValue >= 0 &&
+        request.resource.data.materialData.totalValue ==
+          request.resource.data.materialData.quantity *
+          request.resource.data.materialData.unitPrice &&
         isRequiredString(request.resource.data.materialData.supplier) &&
         isRequiredString(request.resource.data.materialData.location) &&
         request.resource.data.materialData.description is string;
@@ -175,7 +208,7 @@ service cloud.firestore {
         ? isValidAddMaterialRequest()
         : request.resource.data.action == 'withdraw_material'
           ? isValidWithdrawMaterialRequest()
-          : request.resource.data.action == 'worksheet';
+          : false;
     }
     
     // Auth audit events — append-only log (FR-018, FR-019)
@@ -217,7 +250,7 @@ service cloud.firestore {
       // Only managers and above can create users
       allow create: if request.auth != null &&
         isManagerOrAbove() &&
-        canCreateUserRole(request.resource.data.role);
+        isValidUserCreate();
       // Only managers and above can delete users
       allow delete: if request.auth != null && isManagerOrAbove();
     }
@@ -366,9 +399,10 @@ service cloud.firestore {
       // Allow users to create their own requests
       allow create: if request.auth != null && 
         request.resource.data.requestedBy == request.auth.uid &&
+        request.resource.data.requestCategory == 'material' &&
         request.resource.data.requestedByRole is string &&
         request.resource.data.requestedByRole == currentUserRole() &&
-        request.resource.data.action in ['add_material', 'withdraw_material', 'worksheet'] &&
+        request.resource.data.action in ['add_material', 'withdraw_material'] &&
         request.resource.data.status == 'Pending' &&
         request.resource.data.approvalStatus == 'Awaiting Approval' &&
         request.resource.data.approvedBy == null &&

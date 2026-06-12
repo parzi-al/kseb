@@ -123,9 +123,10 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
                     child: StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('material_requests')
-                          .where('status',
-                              whereIn: ['Pending', 'Approved', 'Rejected'])
-                          .orderBy('requestTimestamp', descending: true)
+                          .where('action', whereIn: [
+                            ApprovalAction.addMaterial.value,
+                            ApprovalAction.withdrawMaterial.value,
+                          ])
                           .limit(200)
                           .snapshots(),
                       builder: (context, snapshot) {

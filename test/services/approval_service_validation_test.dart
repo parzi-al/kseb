@@ -59,6 +59,33 @@ void main() {
       );
     });
 
+    test('rejects an add-material payload with mismatched total value', () {
+      expect(
+        () => ApprovalService.validateRequestPayload(
+          action: ApprovalAction.addMaterial,
+          payload: {
+            'materialName': 'Cable',
+            'materialCode': 'CBL-001',
+            'requestedQuantity': 10.0,
+            'unit': 'Meters',
+            'materialData': {
+              'materialName': 'Cable',
+              'materialCode': 'CBL-001',
+              'category': 'Cables & Wires',
+              'quantity': 10.0,
+              'unit': 'Meters',
+              'unitPrice': 25.0,
+              'totalValue': 100.0,
+              'supplier': 'Supplier A',
+              'location': 'Main Warehouse',
+              'description': '',
+            },
+          },
+        ),
+        throwsException,
+      );
+    });
+
     test('accepts a valid withdraw-material request payload', () {
       expect(
         () => ApprovalService.validateRequestPayload(
@@ -94,6 +121,16 @@ void main() {
             'requiredDate': Timestamp.fromDate(DateTime(2026, 1, 1)),
             'remarks': '',
           },
+        ),
+        throwsException,
+      );
+    });
+
+    test('rejects worksheet approval requests until schema is implemented', () {
+      expect(
+        () => ApprovalService.validateRequestPayload(
+          action: ApprovalAction.worksheet,
+          payload: const {},
         ),
         throwsException,
       );

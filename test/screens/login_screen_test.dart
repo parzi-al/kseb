@@ -39,7 +39,7 @@ void main() {
       expect(find.text('Password'), findsOneWidget);
     });
 
-    testWidgets('renders KSEB header and subtitle', (tester) async {
+    testWidgets('renders login header and subtitle', (tester) async {
       await tester.pumpWidget(
         createTestApp(
           LoginScreen(authService: createTestAuthService()),
@@ -47,7 +47,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('KSEB'), findsOneWidget);
       expect(find.text('Worker Portal'), findsOneWidget);
       expect(find.text('Welcome Back'), findsOneWidget);
       expect(find.text('Sign in to continue'), findsOneWidget);

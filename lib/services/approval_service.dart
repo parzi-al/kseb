@@ -75,6 +75,9 @@ class ApprovalService {
     return _firestore.collection('material_requests').add({
       ...payload,
       'action': action.value,
+      'requestCategory': action == ApprovalAction.worksheet
+          ? ApprovalAction.worksheet.value
+          : 'material',
       'requestedBy': currentAuthUid,
       'requestedByEmail': currentUser.email,
       'requestedByName': currentUser.name,
@@ -101,7 +104,7 @@ class ApprovalService {
         _validateWithdrawMaterialPayload(payload);
         return;
       case ApprovalAction.worksheet:
-        return;
+        throw Exception('Worksheet approval requests are not available yet.');
     }
   }
 
@@ -138,6 +141,13 @@ class ApprovalService {
     final unitPrice = normalizedMaterialData['unitPrice'];
     if (unitPrice is! num || unitPrice < 0) {
       throw Exception('Unit price must be a valid positive number.');
+    }
+
+    final totalValue = normalizedMaterialData['totalValue'];
+    final expectedTotalValue = materialQuantity * unitPrice;
+    if (totalValue is! num ||
+        (totalValue - expectedTotalValue).abs() > 0.0001) {
+      throw Exception('Total value must match quantity and unit price.');
     }
   }
 

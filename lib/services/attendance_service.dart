@@ -160,13 +160,12 @@ class AttendanceService {
     required String attendanceId,
     required String verifiedBy,
   }) async {
-    // Commented out: Verify/Unverify feature temporarily disabled
-    // await _firestore
-    //     .collection(_attendanceCollection)
-    //     .doc(attendanceId)
-    //     .update({
-    //   'verifiedBy': verifiedBy,
-    // });
+    await _firestore
+        .collection(_attendanceCollection)
+        .doc(attendanceId)
+        .update({
+      'verifiedBy': verifiedBy,
+    });
   }
 
   /// Mark attendance for a team member (supervisor only).
