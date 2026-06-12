@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -202,27 +201,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       return;
     }
 
-    bool authenticated = false;
-    try {
-      // Note: local_auth disabled due to Windows build incompatibility.
-      // Allow marking attendance without biometric requirement.
-      authenticated = true;
-    } on PlatformException catch (e) {
-      if (mounted) {
-        AppErrorHandler.handleError(
-            context, e.message ?? 'Authentication error');
-      }
-      return;
-    }
-
+    // Note: local_auth disabled due to Windows build incompatibility.
+    // Allow marking attendance without biometric requirement.
     if (!mounted) return;
 
-    if (authenticated) {
-      await _recordAttendance();
-    } else {
-      AppToast.showError(
-          context, 'Fingerprint authentication failed. Please try again.');
-    }
+    await _recordAttendance();
   }
 
   /// Record attendance via [AttendanceService] (FR-001/FR-004).

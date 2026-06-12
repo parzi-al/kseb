@@ -10,6 +10,7 @@ import '../../utils/app_typography.dart';
 import '../../utils/app_toast.dart';
 import '../../models/user_model.dart';
 import '../common/app_loading.dart';
+import '../common/modern_dropdown.dart';
 
 class StaffFormDialog extends StatefulWidget {
   final String? staffId; // null for add mode, non-null for edit mode
@@ -710,56 +711,25 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
                   ],
                 ),
               )
-            : DropdownButtonFormField<String>(
+            : ModernDropdown<String>(
                 value: _selectedTeamId,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.groups_rounded,
-                      color: AppColors.primary, size: 22),
-                  hintText: 'Select a team (optional)',
-                  hintStyle: TextStyle(
-                    color: AppColors.grey400,
-                    fontSize: AppTypography.fontSizeBase,
-                  ),
-                  filled: true,
-                  fillColor: AppColors.grey50,
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusDefault),
-                    borderSide: BorderSide(color: AppColors.grey300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusDefault),
-                    borderSide: BorderSide(color: AppColors.grey300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusDefault),
-                    borderSide:
-                        const BorderSide(color: AppColors.primary, width: 2),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.base,
-                    vertical: AppSpacing.base,
-                  ),
-                ),
+                label: 'Team',
+                hint: 'Select a team (optional)',
+                prefixIcon: Icons.groups_rounded,
+                fillColor: AppColors.grey50,
                 items: [
                   const DropdownMenuItem<String>(
                     value: null,
                     child: Text('No Team (Unassigned)'),
                   ),
                   ..._availableTeams.map((team) {
-                    return DropdownMenuItem<String>(
-                      value: team['id'],
-                      child: Text(team['name']!),
+                    return ModernDropdownItem.create<String>(
+                      value: team['id']!,
+                      text: team['name']!,
                     );
                   }),
                 ],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedTeamId = value;
-                  });
-                },
+                onChanged: (value) => setState(() => _selectedTeamId = value),
               ),
       ],
     );
@@ -799,38 +769,12 @@ class _StaffFormDialogState extends State<StaffFormDialog> {
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        DropdownButtonFormField<UserRole>(
+        ModernDropdown<UserRole>(
           value: _selectedRole,
-          decoration: InputDecoration(
-            prefixIcon: Icon(
-              _getRoleIcon(_selectedRole),
-              color: AppColors.primary,
-              size: 22,
-            ),
-            hintText: 'Select role',
-            hintStyle: TextStyle(
-              color: AppColors.grey400,
-              fontSize: AppTypography.fontSizeBase,
-            ),
-            filled: true,
-            fillColor: AppColors.grey50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
-              borderSide: BorderSide(color: AppColors.grey300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
-              borderSide: BorderSide(color: AppColors.grey300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.base,
-              vertical: AppSpacing.base,
-            ),
-          ),
+          label: 'Role',
+          hint: 'Select role',
+          prefixIcon: _getRoleIcon(_selectedRole),
+          fillColor: AppColors.grey50,
           items: widget.currentUserRole.manageableRoles.map((role) {
             return DropdownMenuItem<UserRole>(
               value: role,

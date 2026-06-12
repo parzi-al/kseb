@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../components/common/app_bar_builder.dart';
+import '../components/common/modern_dropdown.dart';
 import '../components/common/skeleton_loader.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_decorations.dart';
@@ -477,67 +478,21 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
     required void Function(String?) onChanged,
     String? Function(String?)? validator,
   }) {
-    return Container(
-      decoration: AppDecorations.modernCardDecoration,
-      child: DropdownButtonFormField<String>(
-        value: value,
-        validator: validator,
-        style: AppTypography.bodyMediumStyle.copyWith(
-          fontSize: AppTypography.fontSizeLG,
-        ),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w500,
-          ),
-          prefixIcon: Container(
-            margin: const EdgeInsets.all(AppSpacing.md),
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: AppColors.primaryWithLowOpacity,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+    return ModernDropdown<String>(
+      value: value,
+      label: label,
+      prefixIcon: icon,
+      fillColor: AppColors.surface,
+      validator: validator,
+      onChanged: onChanged,
+      items: items
+          .map(
+            (item) => ModernDropdownItem.create<String>(
+              value: item,
+              text: item,
             ),
-            child: Icon(
-              icon,
-              color: AppColors.primary,
-              size: 20,
-            ),
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: AppColors.surface,
-          contentPadding: const EdgeInsets.all(AppSpacing.lg),
-        ),
-        items: items
-            .map((item) => DropdownMenuItem(
-                  value: item,
-                  child: Text(
-                    item,
-                    style: AppTypography.bodyMediumStyle.copyWith(
-                      fontSize: AppTypography.fontSizeLG,
-                    ),
-                  ),
-                ))
-            .toList(),
-        onChanged: onChanged,
-        dropdownColor: AppColors.surface,
-        icon: Container(
-          padding: const EdgeInsets.all(AppSpacing.xs),
-          decoration: BoxDecoration(
-            color: AppColors.grey200,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: AppColors.textSecondary,
-            size: 20,
-          ),
-        ),
-      ),
+          )
+          .toList(),
     );
   }
 }

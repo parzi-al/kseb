@@ -9,6 +9,7 @@ import 'worksheet_screen.dart';
 import 'staff_management_screen.dart';
 import 'bonus_management_screen.dart';
 import 'bonus_history_screen.dart';
+import 'portal_module_screen.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_typography.dart';
 import '../utils/app_spacing.dart';
@@ -676,8 +677,8 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                               ? 1.15
                               : 1.0),
                       children: [
-                        if (kEnableStaffDashboard &&
-                            _canShowStaffDashboard())
+                        ..._buildPortalModuleCards(context),
+                        if (kEnableStaffDashboard && _canShowStaffDashboard())
                           _buildDashboardCard(
                             context,
                             icon: Icons.people_rounded,
@@ -685,8 +686,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                             color: AppColors.dashboardCardColors[2],
                             destination: StaffManagementScreen(
                               teamId: teamId,
-                              currentUserRole:
-                                  UserRole.fromString(workerRole),
+                              currentUserRole: UserRole.fromString(workerRole),
                             ),
                           ),
                         if (isCooOrDirector)
@@ -748,6 +748,272 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
     }
 
     return isSupervisor && teamId != null;
+  }
+
+  List<Widget> _buildPortalModuleCards(BuildContext context) {
+    final role = UserRole.fromString(workerRole);
+
+    if (role == UserRole.manager) {
+      return [
+        _portalCard(
+          context,
+          icon: Icons.electrical_services_rounded,
+          label: 'Polevar',
+          sections: const [
+            PortalModuleSection(
+              title: 'Upload / Edit Polevar',
+              features: [
+                'Upload polevar details',
+                'Edit polevar',
+                'Version history',
+                'Download polevar records',
+              ],
+            ),
+          ],
+        ),
+        _portalCard(
+          context,
+          icon: Icons.devices_other_rounded,
+          label: 'Asset Details',
+          sections: const [
+            PortalModuleSection(
+              title: 'Asset Details',
+              features: [
+                'Upload asset information',
+                'Asset allocation',
+                'Asset tracking',
+                'Asset history',
+              ],
+            ),
+          ],
+        ),
+      ];
+    }
+
+    if (role == UserRole.coo) {
+      return [
+        _portalCard(
+          context,
+          icon: Icons.electrical_services_rounded,
+          label: 'Polevar',
+          sections: const [
+            PortalModuleSection(
+              title: 'Upload / Edit Polevar',
+              features: ['Manage polevar details'],
+            ),
+          ],
+        ),
+        _portalCard(
+          context,
+          icon: Icons.receipt_long_rounded,
+          label: 'EMD / SD',
+          sections: const [
+            PortalModuleSection(
+              title: 'EMD / SD Details & Receipt Upload',
+              features: [
+                'EMD records',
+                'Security Deposit records',
+                'Upload receipts',
+                'Approval workflow',
+              ],
+            ),
+          ],
+        ),
+        _portalCard(
+          context,
+          icon: Icons.description_rounded,
+          label: 'Work Orders',
+          sections: const [
+            PortalModuleSection(
+              title: 'Work Order Agreement Upload',
+              features: [
+                'Upload work orders',
+                'Upload agreements',
+                'View history',
+              ],
+            ),
+          ],
+        ),
+        _portalCard(
+          context,
+          icon: Icons.request_quote_rounded,
+          label: 'Bills / Invoices',
+          sections: const [
+            PortalModuleSection(
+              title: 'Bill / Invoice Submission Upload',
+              features: [
+                'Upload invoices',
+                'Upload bills',
+                'Approval status',
+              ],
+            ),
+          ],
+        ),
+        _portalCard(
+          context,
+          icon: Icons.devices_other_rounded,
+          label: 'Asset Details',
+          sections: const [
+            PortalModuleSection(
+              title: 'Asset Details',
+              features: ['Upload/Edit assets', 'Asset allocation'],
+            ),
+          ],
+        ),
+      ];
+    }
+
+    if (role == UserRole.director) {
+      return [
+        _portalCard(
+          context,
+          icon: Icons.electrical_services_rounded,
+          label: 'Polevar',
+          sections: const [
+            PortalModuleSection(
+              title: 'Upload / Edit Polevar',
+              features: ['Polevar management'],
+            ),
+          ],
+        ),
+        _portalCard(
+          context,
+          icon: Icons.receipt_long_rounded,
+          label: 'EMD / SD',
+          sections: const [
+            PortalModuleSection(
+              title: 'EMD / SD Details Receipt Upload',
+              features: ['Deposit tracking', 'Receipt uploads'],
+            ),
+          ],
+        ),
+        _portalCard(
+          context,
+          icon: Icons.description_rounded,
+          label: 'Work Orders',
+          sections: const [
+            PortalModuleSection(
+              title: 'Work Order Agreement Upload',
+              features: [
+                'Work order repository',
+                'Agreement management',
+              ],
+            ),
+          ],
+        ),
+        _portalCard(
+          context,
+          icon: Icons.request_quote_rounded,
+          label: 'Bills / Invoices',
+          sections: const [
+            PortalModuleSection(
+              title: 'Bill / Invoice Submission Upload',
+              features: ['Invoice tracking', 'Bill approval'],
+            ),
+          ],
+        ),
+        _portalCard(
+          context,
+          icon: Icons.folder_copy_rounded,
+          label: 'Dispatch / Letter',
+          sections: const [
+            PortalModuleSection(
+              title: 'Dispatch / Letter Upload',
+              features: [
+                'Dispatch uploads',
+                'Letter uploads',
+                'Official correspondence',
+              ],
+            ),
+          ],
+        ),
+        _portalCard(
+          context,
+          icon: Icons.devices_other_rounded,
+          label: 'Asset Details',
+          sections: const [
+            PortalModuleSection(
+              title: 'Asset Details',
+              features: ['Upload/Edit assets'],
+            ),
+          ],
+        ),
+        _portalCard(
+          context,
+          icon: Icons.account_balance_rounded,
+          label: 'GST Details',
+          sections: const [
+            PortalModuleSection(
+              title: 'GST Details Upload',
+              features: [
+                'GST certificates',
+                'GST filings',
+                'GST documents',
+              ],
+            ),
+          ],
+        ),
+        _portalCard(
+          context,
+          icon: Icons.analytics_rounded,
+          label: 'View Details',
+          sections: const [
+            PortalModuleSection(
+              title: 'View Details',
+              features: [
+                'Dashboard analytics',
+                'Reports',
+                'Search and filter all records',
+              ],
+            ),
+          ],
+        ),
+      ];
+    }
+
+    return const [];
+  }
+
+  Widget _portalCard(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required List<PortalModuleSection> sections,
+  }) {
+    return _buildDashboardCard(
+      context,
+      icon: icon,
+      label: label,
+      color: _portalCardColor(label),
+      destination: PortalModuleScreen(
+        title: label,
+        icon: icon,
+        sections: sections,
+      ),
+    );
+  }
+
+  Color _portalCardColor(String label) {
+    switch (label) {
+      case 'Polevar':
+        return AppColors.dashboardCardColors[0];
+      case 'EMD / SD':
+        return AppColors.dashboardCardColors[1];
+      case 'Work Orders':
+        return AppColors.dashboardCardColors[2];
+      case 'Bills / Invoices':
+        return AppColors.dashboardCardColors[3];
+      case 'Dispatch / Letter':
+        return AppColors.purple;
+      case 'Asset Details':
+        return AppColors.success;
+      case 'GST Details':
+        return AppColors.warning;
+      case 'View Details':
+        return AppColors.info;
+      default:
+        return AppColors.primary;
+    }
   }
 
   Widget _buildDashboardCard(
@@ -819,67 +1085,10 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
     );
   }
 
-  Widget _buildStatCard(BuildContext context, String title, String value,
-      IconData icon, Color color) {
-    return Container(
-      padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
-      decoration: AppDecorations.modernCardDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(context.responsivePadding(10)),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                ),
-                child: Icon(icon,
-                    color: color,
-                    size: _getResponsiveIconSize(context, baseSize: 22)),
-              ),
-              const Spacer(),
-            ],
-          ),
-          SizedBox(height: context.responsiveSpacing(AppSpacing.md)),
-          value == '--'
-              ? SizedBox(
-                  width: 40,
-                  height: 28,
-                  child: LinearProgressIndicator(
-                    backgroundColor: AppColors.grey200,
-                    valueColor: AlwaysStoppedAnimation(color),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                )
-              : Text(
-                  value,
-                  style: context
-                      .responsiveTextStyle(AppTypography.displayStyle)
-                      .copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-          SizedBox(height: context.responsiveSpacing(AppSpacing.xs)),
-          Text(
-            title,
-            style: context
-                .responsiveTextStyle(AppTypography.captionStyle)
-                .copyWith(
-                  color: AppColors.textSecondary,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-
   /// Get responsive icon size based on screen dimensions.
   /// Scales more aggressively on desktop (Windows) than on mobile.
   double _getResponsiveIconSize(BuildContext context, {double baseSize = 20}) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
 
     // Desktop screens (Windows typically > 1000px width)
     if (screenWidth > 1000) {

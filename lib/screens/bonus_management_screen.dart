@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../components/common/app_bar_builder.dart';
+import '../components/common/modern_dropdown.dart';
 import '../components/common/skeleton_loader.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
@@ -344,106 +345,70 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
   }
 
   Widget _buildTeamDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.base, vertical: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: AppColors.grey300),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          isExpanded: true,
-          value: _selectedTeamId,
-          hint: Text(
-            'Select a team',
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
-          icon: Icon(Icons.arrow_drop_down, color: AppColors.primary),
-          items: _teams.map((team) {
-            return DropdownMenuItem<String>(
-              value: team['id'],
-              child: Text(
-                team['name'],
-                style: TextStyle(color: AppColors.textPrimary),
-              ),
-            );
-          }).toList(),
-          onChanged: (value) {
-            if (value != null) {
-              // Defer setState to post-frame callback to avoid mouse tracker assertion
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  setState(() {
-                    _selectedTeamId = value;
-                  });
-                }
-              });
-              _loadEmployeesByTeam(value);
-            }
-          },
-        ),
-      ),
+    return ModernDropdown<String>(
+      value: _selectedTeamId,
+      label: 'Team',
+      hint: 'Select a team',
+      prefixIcon: Icons.groups_rounded,
+      fillColor: AppColors.surface,
+      items: _teams.map((team) {
+        return ModernDropdownItem.create<String>(
+          value: team['id'],
+          text: team['name'],
+        );
+      }).toList(),
+      onChanged: (value) {
+        if (value == null) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() => _selectedTeamId = value);
+          }
+        });
+        _loadEmployeesByTeam(value);
+      },
     );
   }
 
   Widget _buildEmployeeDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.base, vertical: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: AppColors.grey300),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          isExpanded: true,
-          value: _selectedEmployeeId,
-          hint: Text(
-            _employees.isEmpty
-                ? 'No employees in this team'
-                : 'Select an employee',
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
-          icon: Icon(Icons.arrow_drop_down, color: AppColors.primary),
-          items: _employees.map((employee) {
-            return DropdownMenuItem<String>(
-              value: employee['id'],
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    employee['name'],
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    '${employee['email']} • ${UserRole.fromString(employee['role']).displayName}',
-                    style: AppTypography.captionStyle,
-                  ),
-                ],
+    return ModernDropdown<String>(
+      value: _selectedEmployeeId,
+      label: 'Employee',
+      hint: _employees.isEmpty
+          ? 'No employees in this team'
+          : 'Select an employee',
+      prefixIcon: Icons.person_search_rounded,
+      fillColor: AppColors.surface,
+      items: _employees.map((employee) {
+        return DropdownMenuItem<String>(
+          value: employee['id'],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                employee['name'],
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            );
-          }).toList(),
-          onChanged: _employees.isEmpty
-              ? null
-              : (value) {
-                  // Defer setState to post-frame callback to avoid mouse tracker assertion
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) {
-                      setState(() {
-                        _selectedEmployeeId = value;
-                      });
-                    }
-                  });
-                },
-        ),
-      ),
+              Text(
+                '${employee['email']} • ${UserRole.fromString(employee['role']).displayName}',
+                style: AppTypography.captionStyle,
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+      onChanged: _employees.isEmpty
+          ? null
+          : (value) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  setState(() => _selectedEmployeeId = value);
+                }
+              });
+            },
     );
   }
 

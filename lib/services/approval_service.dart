@@ -48,6 +48,14 @@ class ApprovalService {
     return user;
   }
 
+  String get _currentAuthUid {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null || uid.isEmpty) {
+      throw Exception('User not logged in.');
+    }
+    return uid;
+  }
+
   bool canApprove({
     required UserRole approverRole,
     required UserRole requesterRole,
@@ -60,11 +68,12 @@ class ApprovalService {
     required Map<String, dynamic> payload,
   }) async {
     final currentUser = await getCurrentUser();
+    final currentAuthUid = _currentAuthUid;
 
     return _firestore.collection('material_requests').add({
       ...payload,
       'action': action.value,
-      'requestedBy': currentUser.id,
+      'requestedBy': currentAuthUid,
       'requestedByEmail': currentUser.email,
       'requestedByName': currentUser.name,
       'requestedByRole': currentUser.role.name,
@@ -80,95 +89,103 @@ class ApprovalService {
 
   Future<void> approveMaterialRequest(String requestId) async {
     final approver = await getCurrentUser();
-    final requestRef = _firestore.collection('material_requests').doc(requestId);
-    final requestSnapshot = await requestRef.get();
-
-    if (!requestSnapshot.exists) {
-      throw Exception('Request not found.');
-    }
-
-    final request = requestSnapshot.data()!;
-    final requesterRole =
-        UserRole.fromString(request['requestedByRole'] ?? 'staff');
-
-    if (!canApprove(
-      approverRole: approver.role,
-      requesterRole: requesterRole,
-    )) {
-      throw Exception('Only a higher authority can approve this request.');
-    }
-
-    if (request['status'] != 'Pending') {
-      throw Exception('This request is already ${request['status']}.');
-    }
-
-    final action = request['action'] as String?;
-    if (action != ApprovalAction.addMaterial.value &&
-        action != ApprovalAction.withdrawMaterial.value) {
-      throw Exception('Unsupported or legacy request format.');
-    }
-
-    final batch = _firestore.batch();
-
-    if (action == ApprovalAction.addMaterial.value) {
-      final rawMaterialData = request['materialData'];
-      if (rawMaterialData is! Map) {
-        throw Exception('Add-material request is missing material details.');
+    final approverUid = _currentAuthUid;
+    final requestRef =
+        _firestore.collection('material_requests').doc(requestId);
+    final failure =
+        await _firestore.runTransaction<String?>((transaction) async {
+      final requestSnapshot = await transaction.get(requestRef);
+      if (!requestSnapshot.exists) {
+        return 'Request not found.';
       }
 
-      final materialData = Map<String, dynamic>.from(rawMaterialData);
-      final materialRef = _firestore.collection('materials').doc();
+      final request = requestSnapshot.data()!;
+      final requesterRole =
+          UserRole.fromString(request['requestedByRole'] ?? 'staff');
 
-      batch.set(materialRef, {
-        ...materialData,
-        'approvedRequestId': requestId,
-        'addedBy': request['requestedBy'],
-        'addedByEmail': request['requestedByEmail'],
-        'approvedBy': approver.id,
+      if (!canApprove(
+        approverRole: approver.role,
+        requesterRole: requesterRole,
+      )) {
+        return 'Only a higher authority can approve this request.';
+      }
+
+      if (request['status'] != 'Pending') {
+        return 'This request is already ${request['status']}.';
+      }
+
+      final action = request['action'] as String?;
+      if (action != ApprovalAction.addMaterial.value &&
+          action != ApprovalAction.withdrawMaterial.value) {
+        return 'Unsupported or legacy request format.';
+      }
+
+      if (action == ApprovalAction.addMaterial.value) {
+        final rawMaterialData = request['materialData'];
+        if (rawMaterialData is! Map) {
+          return 'Add-material request is missing material details.';
+        }
+
+        final materialData = Map<String, dynamic>.from(rawMaterialData);
+        final materialRef = _firestore.collection('materials').doc();
+
+        transaction.set(materialRef, {
+          ...materialData,
+          'approvedRequestId': requestId,
+          'addedBy': request['requestedBy'],
+          'addedByEmail': request['requestedByEmail'],
+          'approvedBy': approverUid,
+          'approvedByEmail': approver.email,
+          'timestamp': FieldValue.serverTimestamp(),
+          'lastUpdated': FieldValue.serverTimestamp(),
+          'status': 'Available',
+        });
+      } else {
+        final materialId = request['materialId'] as String?;
+        if (materialId == null || materialId.isEmpty) {
+          return 'Withdraw request is missing material reference.';
+        }
+
+        final materialRef = _firestore.collection('materials').doc(materialId);
+        final materialSnapshot = await transaction.get(materialRef);
+        if (!materialSnapshot.exists) {
+          return 'Material not found.';
+        }
+
+        final material = materialSnapshot.data()!;
+        final currentQuantity = (material['quantity'] ?? 0).toDouble();
+        final requestedQuantity =
+            (request['requestedQuantity'] ?? 0).toDouble();
+
+        if (requestedQuantity <= 0) {
+          return 'Invalid requested quantity.';
+        }
+        if (currentQuantity < requestedQuantity) {
+          return 'Not enough stock available.';
+        }
+
+        transaction.update(materialRef, {
+          'quantity': currentQuantity - requestedQuantity,
+          'lastUpdated': FieldValue.serverTimestamp(),
+          'lastApprovedRequestId': requestId,
+        });
+      }
+
+      transaction.update(requestRef, {
+        'status': 'Approved',
+        'approvalStatus': 'Approved',
+        'approvedBy': approverUid,
         'approvedByEmail': approver.email,
-        'timestamp': FieldValue.serverTimestamp(),
-        'lastUpdated': FieldValue.serverTimestamp(),
-        'status': 'Available',
+        'approvedByRole': approver.role.name,
+        'approvedAt': FieldValue.serverTimestamp(),
       });
-    } else {
-      final materialId = request['materialId'] as String?;
-      if (materialId == null || materialId.isEmpty) {
-        throw Exception('Withdraw request is missing material reference.');
-      }
 
-      final materialRef = _firestore.collection('materials').doc(materialId);
-      final materialSnapshot = await materialRef.get();
-      if (!materialSnapshot.exists) {
-        throw Exception('Material not found.');
-      }
-
-      final material = materialSnapshot.data()!;
-      final currentQuantity = (material['quantity'] ?? 0).toDouble();
-      final requestedQuantity = (request['requestedQuantity'] ?? 0).toDouble();
-
-      if (requestedQuantity <= 0) {
-        throw Exception('Invalid requested quantity.');
-      }
-      if (currentQuantity < requestedQuantity) {
-        throw Exception('Not enough stock available.');
-      }
-
-      batch.update(materialRef, {
-        'quantity': currentQuantity - requestedQuantity,
-        'lastUpdated': FieldValue.serverTimestamp(),
-      });
-    }
-
-    batch.update(requestRef, {
-      'status': 'Approved',
-      'approvalStatus': 'Approved',
-      'approvedBy': approver.id,
-      'approvedByEmail': approver.email,
-      'approvedByRole': approver.role.name,
-      'approvedAt': FieldValue.serverTimestamp(),
+      return null;
     });
 
-    await batch.commit();
+    if (failure != null) {
+      throw Exception(failure);
+    }
   }
 
   Future<void> rejectMaterialRequest(
@@ -176,7 +193,9 @@ class ApprovalService {
     String? reason,
   }) async {
     final approver = await getCurrentUser();
-    final requestRef = _firestore.collection('material_requests').doc(requestId);
+    final approverUid = _currentAuthUid;
+    final requestRef =
+        _firestore.collection('material_requests').doc(requestId);
     final requestSnapshot = await requestRef.get();
 
     if (!requestSnapshot.exists) {
@@ -197,7 +216,7 @@ class ApprovalService {
     await requestRef.update({
       'status': 'Rejected',
       'approvalStatus': 'Rejected',
-      'approvedBy': approver.id,
+      'approvedBy': approverUid,
       'approvedByEmail': approver.email,
       'approvedByRole': approver.role.name,
       'approvedAt': FieldValue.serverTimestamp(),

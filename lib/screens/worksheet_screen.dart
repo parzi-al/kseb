@@ -11,6 +11,7 @@ import '../utils/app_typography.dart';
 import '../utils/app_toast.dart';
 import '../components/common/app_bar_builder.dart';
 import '../components/common/app_loading.dart';
+import '../components/common/modern_dropdown.dart';
 import '../components/common/skeleton_loader.dart';
 
 class WorksheetScreen extends StatefulWidget {
@@ -461,156 +462,48 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
             const SizedBox(height: AppSpacing.sm),
 
             // Office Selection Dropdown
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.grey50,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                border: Border.all(color: AppColors.grey300, width: 1),
-              ),
-              child: DropdownButtonFormField<String>(
-                isDense: true,
-                value: _selectedOffice,
-                validator: (value) =>
-                    value == null ? 'Please select an office.' : null,
-                decoration: InputDecoration(
-                  labelText: 'Office Selection',
-                  labelStyle: TextStyle(color: AppColors.textSecondary),
-                  prefixIcon:
-                      Icon(Icons.location_city, color: AppColors.primary),
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: AppColors.grey50,
-                ),
-                items: ['Office A', 'Office B', 'Office C']
-                    .map(
-                      (label) => DropdownMenuItem(
-                        value: label,
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedOffice = value;
-                  });
-                },
-              ),
+            _buildDropdown(
+              value: _selectedOffice,
+              label: 'Office Selection',
+              icon: Icons.location_city,
+              items: const ['Office A', 'Office B', 'Office C'],
+              validator: (value) =>
+                  value == null ? 'Please select an office.' : null,
+              onChanged: (value) => setState(() => _selectedOffice = value),
             ),
             const SizedBox(height: AppSpacing.base),
 
             // Work Type Field
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.grey50,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                border: Border.all(color: AppColors.grey300, width: 1),
-              ),
-              child: DropdownButtonFormField<String>(
-                isDense: true,
-                initialValue: _selectedWorkType,
-                validator: (value) =>
-                    value == null ? 'Please select a work type.' : null,
-                decoration: InputDecoration(
-                  labelText: 'Work Type',
-                  labelStyle: TextStyle(color: AppColors.textSecondary),
-                  prefixIcon:
-                      Icon(Icons.construction, color: AppColors.primary),
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: AppColors.grey50,
-                ),
-                items: ['Project', 'Maintenance', 'Calamity']
-                    .map((label) => DropdownMenuItem(
-                          value: label,
-                          child: Text(
-                            label,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedWorkType = value;
-                    if (value != 'Project') {
-                      _selectedProject = null;
-                      _projectNameController.clear();
-                    }
-                  });
-                },
-              ),
+            _buildDropdown(
+              value: _selectedWorkType,
+              label: 'Work Type',
+              icon: Icons.construction,
+              items: const ['Project', 'Maintenance', 'Calamity'],
+              validator: (value) =>
+                  value == null ? 'Please select a work type.' : null,
+              onChanged: (value) {
+                setState(() {
+                  _selectedWorkType = value;
+                  if (value != 'Project') {
+                    _selectedProject = null;
+                    _projectNameController.clear();
+                  }
+                });
+              },
             ),
             const SizedBox(height: AppSpacing.base),
 
             // Show project-specific fields only when Work Type is Project
             if (_selectedWorkType == 'Project') ...[
               // Project Selection Dropdown
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.grey50,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                  border: Border.all(color: AppColors.grey300, width: 1),
-                ),
-                child: DropdownButtonFormField<String>(
-                  isDense: true,
-                  value: _selectedProject,
-                  validator: (value) =>
-                      value == null ? 'Please select a project.' : null,
-                  decoration: InputDecoration(
-                    labelText: 'Project Selection',
-                    labelStyle: TextStyle(color: AppColors.textSecondary),
-                    prefixIcon:
-                        Icon(Icons.assignment, color: AppColors.primary),
-                    contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: AppColors.grey50,
-                  ),
-                  items: ['Project X', 'Project Y', 'Project Z']
-                      .map(
-                        (label) => DropdownMenuItem(
-                          value: label,
-                          child: Text(
-                            label,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedProject = value;
-                    });
-                  },
-                ),
+              _buildDropdown(
+                value: _selectedProject,
+                label: 'Project Selection',
+                icon: Icons.assignment,
+                items: const ['Project X', 'Project Y', 'Project Z'],
+                validator: (value) =>
+                    value == null ? 'Please select a project.' : null,
+                onChanged: (value) => setState(() => _selectedProject = value),
               ),
               const SizedBox(height: AppSpacing.base),
 
@@ -746,6 +639,36 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDropdown({
+    required String? value,
+    required String label,
+    required IconData icon,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+    String? Function(String?)? validator,
+  }) {
+    return ModernDropdown<String>(
+      value: value,
+      label: label,
+      prefixIcon: icon,
+      fillColor: AppColors.grey50,
+      contentPadding: const EdgeInsets.symmetric(
+        vertical: 12,
+        horizontal: 12,
+      ),
+      validator: validator,
+      onChanged: onChanged,
+      items: items
+          .map(
+            (item) => ModernDropdownItem.create<String>(
+              value: item,
+              text: item,
+            ),
+          )
+          .toList(),
     );
   }
 

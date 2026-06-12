@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform, kIsWeb;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform, kIsWeb;
 
 // Design system tokens
 import 'utils/app_colors.dart';
@@ -119,48 +120,31 @@ ThemeData createAppTheme() {
 /// Note: google_fonts disabled due to constant evaluation error on Windows builds.
 TextTheme _buildTextTheme() {
   return ThemeData.light().textTheme.copyWith(
-    displayLarge: AppTypography.displayLargeStyle,
-    displayMedium: AppTypography.displayStyle,
-    titleLarge: AppTypography.titleStyle,
-    titleMedium: AppTypography.headingStyle,
-    titleSmall: AppTypography.subheadingStyle,
-    bodyLarge: AppTypography.bodyMediumStyle,
-    bodyMedium: AppTypography.bodyStyle,
-    bodySmall: AppTypography.captionStyle,
-  );
+        displayLarge: AppTypography.displayLargeStyle,
+        displayMedium: AppTypography.displayStyle,
+        titleLarge: AppTypography.titleStyle,
+        titleMedium: AppTypography.headingStyle,
+        titleSmall: AppTypography.subheadingStyle,
+        bodyLarge: AppTypography.bodyMediumStyle,
+        bodyMedium: AppTypography.bodyStyle,
+        bodySmall: AppTypography.captionStyle,
+      );
 }
 
 void main() async {
   // Ensure Flutter bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase only on supported platforms (Android, iOS, Web)
   // Windows doesn't have Firebase C++ SDK support in current Flutter version
-  if (kIsWeb || 
+  if (kIsWeb ||
       defaultTargetPlatform == TargetPlatform.android ||
       defaultTargetPlatform == TargetPlatform.iOS) {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
   }
-  
-  runApp(const MyApp());
-}
 
-/// Initialize Firebase conditionally
-/// Returns null on Windows or if initialization fails
-Future<dynamic> _initializeFirebase() async {
-  try {
-    // Only attempt Firebase init on supported platforms
-    // This will fail gracefully on Windows where Firebase is unavailable
-    if (kIsWeb || defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS) {
-      // Import Firebase dynamically to avoid compile errors on unsupported platforms
-      // On Windows: Firebase plugins are not available, so we skip initialization
-      return null; // TODO: Add Firebase initialization when plugins are available
-    }
-    return null;
-  } catch (e) {
-    print('Firebase initialization error: $e');
-    return null;
-  }
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

@@ -26,8 +26,12 @@ service cloud.firestore {
       return userRole == 'director';
     }
 
+    function currentUser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     function currentUserRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return currentUser().role;
     }
 
     function roleLevel(role) {
@@ -39,6 +43,43 @@ service cloud.firestore {
 
     function canApproveRole(requesterRole) {
       return roleLevel(currentUserRole()) < roleLevel(requesterRole);
+    }
+
+    function isValidApprovalUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status',
+          'approvalStatus',
+          'approvedBy',
+          'approvedByEmail',
+          'approvedByRole',
+          'approvedAt',
+          'rejectionReason'
+        ]) &&
+        request.resource.data.status in ['Approved', 'Rejected'] &&
+        request.resource.data.approvalStatus in ['Approved', 'Rejected'] &&
+        request.resource.data.status == request.resource.data.approvalStatus &&
+        request.resource.data.approvedBy == request.auth.uid &&
+        request.resource.data.approvedByRole == currentUserRole();
+    }
+
+    function approvedRequest(requestId) {
+      return getAfter(/databases/$(database)/documents/material_requests/$(requestId)).data;
+    }
+
+    function isApprovedAddMaterialRequest(requestId) {
+      let approval = approvedRequest(requestId);
+      return approval.action == 'add_material' &&
+        approval.status == 'Approved' &&
+        approval.approvedBy == request.auth.uid &&
+        canApproveRole(approval.requestedByRole);
+    }
+
+    function isApprovedWithdrawMaterialRequest(requestId) {
+      let approval = approvedRequest(requestId);
+      return approval.action == 'withdraw_material' &&
+        approval.status == 'Approved' &&
+        approval.approvedBy == request.auth.uid &&
+        canApproveRole(approval.requestedByRole);
     }
     
     // Auth audit events — append-only log (FR-018, FR-019)
@@ -134,10 +175,21 @@ service cloud.firestore {
     match /materials/{materialId} {
       // All authenticated users can read materials
       allow read: if request.auth != null;
-      // Supervisors and above can create approved materials
-      allow create: if request.auth != null && isSupervisorOrAbove();
-      // Supervisors and above can update stock while approving lower-level requests
-      allow update: if request.auth != null && isSupervisorOrAbove();
+      // Materials can only be created as part of approving an add-material request.
+      allow create: if request.auth != null &&
+        request.resource.data.approvedRequestId is string &&
+        isApprovedAddMaterialRequest(request.resource.data.approvedRequestId);
+      // Stock can only be decremented as part of approving a withdraw request.
+      allow update: if request.auth != null &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'quantity',
+          'lastUpdated',
+          'lastApprovedRequestId'
+        ]) &&
+        request.resource.data.lastApprovedRequestId is string &&
+        request.resource.data.quantity == resource.data.quantity -
+          approvedRequest(request.resource.data.lastApprovedRequestId).requestedQuantity &&
+        isApprovedWithdrawMaterialRequest(request.resource.data.lastApprovedRequestId);
       // Managers and above can delete materials
       allow delete: if request.auth != null && isManagerOrAbove();
     }
@@ -217,24 +269,24 @@ service cloud.firestore {
       allow create: if request.auth != null && 
         request.resource.data.requestedBy == request.auth.uid &&
         request.resource.data.requestedByRole is string &&
+        request.resource.data.requestedByRole == currentUserRole() &&
         request.resource.data.action in ['add_material', 'withdraw_material', 'worksheet'] &&
         request.resource.data.status == 'Pending';
       // Allow users to update their own pending requests
       allow update: if request.auth != null && 
         resource.data.requestedBy == request.auth.uid &&
-        resource.data.status == 'Pending';
+        resource.data.status == 'Pending' &&
+        request.resource.data.status == 'Pending' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'purpose',
+          'priority',
+          'requiredDate',
+          'remarks'
+        ]);
       // Only higher authority can approve or reject a request
       allow update: if request.auth != null &&
         canApproveRole(resource.data.requestedByRole) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'status',
-          'approvalStatus',
-          'approvedBy',
-          'approvedByEmail',
-          'approvedByRole',
-          'approvedAt',
-          'rejectionReason'
-        ]);
+        isValidApprovalUpdate();
     }
     
     // Deny all other requests by default

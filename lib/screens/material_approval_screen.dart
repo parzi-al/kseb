@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../components/common/app_bar_builder.dart';
+import '../components/common/modern_dropdown.dart';
 import '../models/user_model.dart';
 import '../services/approval_service.dart';
 import '../utils/app_colors.dart';
@@ -68,8 +69,7 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
       }
     } catch (e) {
       if (mounted) {
-        AppErrorHandler.handleError(context, e,
-            customMessage: 'Failed to approve request');
+        AppToast.showError(context, _approvalErrorMessage(e));
       }
     } finally {
       if (mounted) {
@@ -87,8 +87,7 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
       }
     } catch (e) {
       if (mounted) {
-        AppErrorHandler.handleError(context, e,
-            customMessage: 'Failed to reject request');
+        AppToast.showError(context, _approvalErrorMessage(e));
       }
     } finally {
       if (mounted) {
@@ -124,7 +123,10 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
                     child: StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('material_requests')
-                          .snapshots(),
+                          .where('action', whereIn: [
+                        ApprovalAction.addMaterial.value,
+                        ApprovalAction.withdrawMaterial.value,
+                      ]).snapshots(),
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
                           return Center(
@@ -181,6 +183,14 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
               ),
       ),
     );
+  }
+
+  String _approvalErrorMessage(Object error) {
+    final message = error.toString().replaceFirst('Exception: ', '').trim();
+    if (message.isEmpty) {
+      return 'Unable to process request. Please try again.';
+    }
+    return message;
   }
 
   List<QueryDocumentSnapshot> _visibleRequests(
@@ -325,14 +335,8 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
               runSpacing: AppSpacing.sm,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                _buildFilterPill(
-                  icon: Icons.tune_rounded,
-                  child: _buildStatusFilter(),
-                ),
-                _buildFilterPill(
-                  icon: Icons.badge_outlined,
-                  child: _buildRoleFilter(),
-                ),
+                _buildStatusFilter(),
+                _buildRoleFilter(),
                 _buildFilterButton(
                   icon: Icons.calendar_today_rounded,
                   label: _historyDateFilter == null
@@ -368,32 +372,6 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
         _historyRoleFilter != null ||
         _historyStatusFilter != 'All' ||
         _historySearchController.text.isNotEmpty;
-  }
-
-  Widget _buildFilterPill({
-    required IconData icon,
-    required Widget child,
-  }) {
-    return Container(
-      height: 44,
-      padding: const EdgeInsets.only(
-        left: AppSpacing.sm,
-        right: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.grey50,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: AppColors.grey300),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: AppColors.primary, size: 18),
-          const SizedBox(width: AppSpacing.xs),
-          child,
-        ],
-      ),
-    );
   }
 
   Widget _buildFilterButton({
@@ -435,51 +413,36 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
   }
 
   Widget _buildStatusFilter() {
-    return DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
+    return SizedBox(
+      width: 150,
+      child: ModernDropdown<String>(
         value: _historyStatusFilter,
-        isDense: true,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        dropdownColor: AppColors.surface,
-        style: AppTypography.captionStyle.copyWith(
-          color: AppColors.textPrimary,
-          fontWeight: FontWeight.w600,
-        ),
-        icon: Icon(
-          Icons.keyboard_arrow_down_rounded,
-          color: AppColors.textSecondary,
-          size: 20,
-        ),
+        label: 'Status',
+        prefixIcon: Icons.tune_rounded,
+        fillColor: AppColors.grey50,
+        contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         items: const [
           DropdownMenuItem(value: 'All', child: Text('All')),
           DropdownMenuItem(value: 'Approved', child: Text('Approved')),
           DropdownMenuItem(value: 'Rejected', child: Text('Rejected')),
         ],
         onChanged: (value) {
-          if (value == null) return;
-          setState(() => _historyStatusFilter = value);
+          if (value != null) setState(() => _historyStatusFilter = value);
         },
       ),
     );
   }
 
   Widget _buildRoleFilter() {
-    return DropdownButtonHideUnderline(
-      child: DropdownButton<UserRole?>(
+    return SizedBox(
+      width: 180,
+      child: ModernDropdown<UserRole?>(
         value: _historyRoleFilter,
-        hint: const Text('Role'),
-        isDense: true,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        dropdownColor: AppColors.surface,
-        style: AppTypography.captionStyle.copyWith(
-          color: AppColors.textPrimary,
-          fontWeight: FontWeight.w600,
-        ),
-        icon: Icon(
-          Icons.keyboard_arrow_down_rounded,
-          color: AppColors.textSecondary,
-          size: 20,
-        ),
+        label: 'Role',
+        hint: 'Role',
+        prefixIcon: Icons.badge_outlined,
+        fillColor: AppColors.grey50,
+        contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         items: [
           const DropdownMenuItem<UserRole?>(
             value: null,

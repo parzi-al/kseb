@@ -7,6 +7,7 @@ import '../components/common/app_error_state.dart';
 import '../components/common/app_empty_state.dart';
 import '../components/common/staggered_list_item.dart';
 import '../components/common/fade_in_widget.dart';
+import '../components/common/modern_dropdown.dart';
 import '../components/common/skeleton_loader.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
@@ -141,94 +142,77 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
   }
 
   Widget _buildUserDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.base, vertical: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: AppColors.grey300),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          isExpanded: true,
-          value: _selectedUserId,
-          hint: Text(
-            'Select an employee',
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
-          icon: Icon(Icons.arrow_drop_down, color: AppColors.primary),
-          items: _users.map((user) {
-            return DropdownMenuItem<String>(
-              value: user['id'],
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          user['name'],
-                          style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Text(
-                          '${user['email']} • ${UserRole.fromString(user['role']).displayName}',
-                          style: AppTypography.captionStyle,
-                        ),
-                      ],
+    return ModernDropdown<String>(
+      value: _selectedUserId,
+      label: 'Employee',
+      hint: 'Select an employee',
+      prefixIcon: Icons.person_search_rounded,
+      items: _users.map((user) {
+        return DropdownMenuItem<String>(
+          value: user['id'],
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      user['name'],
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    Text(
+                      '${user['email']} • ${UserRole.fromString(user['role']).displayName}',
+                      style: AppTypography.captionStyle,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.star_rounded,
-                              color: Colors.amber,
-                              size: 16), // DS-EXCEPTION: status color
-                          const SizedBox(width: AppSpacing.xs),
-                          Text(
-                            '${user['bonusPoints']}',
-                            style: AppTypography.captionStyle.copyWith(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
+                      Icon(Icons.star_rounded,
+                          color: Colors.amber,
+                          size: 16), // DS-EXCEPTION: status color
+                      const SizedBox(width: AppSpacing.xs),
                       Text(
-                        '₹${user['bonusAmount'].toStringAsFixed(2)}',
+                        '${user['bonusPoints']}',
                         style: AppTypography.captionStyle.copyWith(
-                          color: AppColors.success,
+                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '₹${user['bonusAmount'].toStringAsFixed(2)}',
+                    style: AppTypography.captionStyle.copyWith(
+                      color: AppColors.success,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
-            );
-          }).toList(),
-          onChanged: (value) {
-            // Defer setState to post-frame callback to avoid mouse tracker assertion
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                setState(() {
-                  _selectedUserId = value;
-                });
-              }
-            });
-          },
-        ),
-      ),
+            ],
+          ),
+        );
+      }).toList(),
+      onChanged: (value) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() => _selectedUserId = value);
+          }
+        });
+      },
     );
   }
 

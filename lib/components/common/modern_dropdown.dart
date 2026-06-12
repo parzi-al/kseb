@@ -12,6 +12,9 @@ class ModernDropdown<T> extends StatelessWidget {
   final ValueChanged<T?>? onChanged;
   final String? Function(T?)? validator;
   final bool isRequired;
+  final bool isDense;
+  final Color? fillColor;
+  final EdgeInsetsGeometry? contentPadding;
 
   const ModernDropdown({
     super.key,
@@ -23,6 +26,9 @@ class ModernDropdown<T> extends StatelessWidget {
     this.onChanged,
     this.validator,
     this.isRequired = false,
+    this.isDense = true,
+    this.fillColor,
+    this.contentPadding,
   });
 
   @override
@@ -37,7 +43,7 @@ class ModernDropdown<T> extends StatelessWidget {
         ),
       ),
       child: DropdownButtonFormField<T>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: isRequired ? '$label *' : label,
           labelStyle: AppTypography.captionStyle.copyWith(
@@ -57,16 +63,19 @@ class ModernDropdown<T> extends StatelessWidget {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: EdgeInsets.only(
-            left: prefixIcon != null ? AppSpacing.xs : AppSpacing.base,
-            right: AppSpacing.xs,
-            top: AppSpacing.md,
-            bottom: AppSpacing.md,
-          ),
+          contentPadding: contentPadding ??
+              EdgeInsets.only(
+                left: prefixIcon != null ? AppSpacing.xs : AppSpacing.base,
+                right: AppSpacing.xs,
+                top: AppSpacing.md,
+                bottom: AppSpacing.md,
+              ),
           errorStyle: TextStyle(
             color: AppColors.error,
             fontSize: AppTypography.fontSizeSM,
           ),
+          filled: true,
+          fillColor: fillColor ?? AppColors.background,
         ),
         icon: Padding(
           padding: EdgeInsets.only(right: AppSpacing.sm),
@@ -84,7 +93,7 @@ class ModernDropdown<T> extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         isExpanded: true,
-        isDense: true,
+        isDense: isDense,
         items: items,
         onChanged: onChanged,
         validator: validator,
