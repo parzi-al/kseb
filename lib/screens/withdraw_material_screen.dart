@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../components/common/app_bar_builder.dart';
 import '../components/common/skeleton_loader.dart';
 import '../utils/app_colors.dart';
@@ -8,6 +7,7 @@ import '../utils/app_decorations.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_typography.dart';
 import '../utils/app_toast.dart';
+import '../services/approval_service.dart';
 
 class WithdrawMaterialScreen extends StatefulWidget {
   const WithdrawMaterialScreen({super.key});
@@ -18,6 +18,7 @@ class WithdrawMaterialScreen extends StatefulWidget {
 
 class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
   final _formKey = GlobalKey<FormState>();
+  final ApprovalService _approvalService = ApprovalService();
   bool _isLoading = false;
 
   // Form controllers
@@ -105,11 +106,6 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
     });
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        throw Exception("User not logged in.");
-      }
-
       final selectedMaterialData = _availableMaterials
           .firstWhere((material) => material['name'] == _selectedMaterial);
 
@@ -123,16 +119,12 @@ class _WithdrawMaterialScreenState extends State<WithdrawMaterialScreen> {
         'priority': _selectedPriority,
         'requiredDate': Timestamp.fromDate(_requiredDate!),
         'remarks': _remarksController.text.trim(),
-        'requestedBy': user.uid,
-        'requestedByEmail': user.email,
-        'requestTimestamp': FieldValue.serverTimestamp(),
-        'status': 'Pending',
-        'approvalStatus': 'Awaiting Approval',
       };
 
-      await FirebaseFirestore.instance
-          .collection('material_requests')
-          .add(requestData);
+      await _approvalService.submitRequest(
+        action: ApprovalAction.withdrawMaterial,
+        payload: requestData,
+      );
 
       if (mounted) {
         AppToast.showSuccess(

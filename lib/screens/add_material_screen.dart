@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../components/common/app_bar_builder.dart';
 import '../components/common/skeleton_loader.dart';
 import '../utils/app_colors.dart';
@@ -8,6 +6,7 @@ import '../utils/app_decorations.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_typography.dart';
 import '../utils/app_toast.dart';
+import '../services/approval_service.dart';
 
 class AddMaterialScreen extends StatefulWidget {
   const AddMaterialScreen({super.key});
@@ -18,6 +17,7 @@ class AddMaterialScreen extends StatefulWidget {
 
 class _AddMaterialScreenState extends State<AddMaterialScreen> {
   final _formKey = GlobalKey<FormState>();
+  final ApprovalService _approvalService = ApprovalService();
   bool _isLoading = false;
 
   // Form controllers
@@ -84,11 +84,6 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
     });
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        throw Exception("User not logged in.");
-      }
-
       final materialData = {
         'materialName': _materialNameController.text.trim(),
         'materialCode': _materialCodeController.text.trim(),
@@ -101,18 +96,23 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
         'supplier': _supplierController.text.trim(),
         'location': _selectedLocation,
         'description': _descriptionController.text.trim(),
-        'addedBy': user.uid,
-        'addedByEmail': user.email,
-        'timestamp': FieldValue.serverTimestamp(),
         'status': 'Available',
       };
 
-      await FirebaseFirestore.instance
-          .collection('materials')
-          .add(materialData);
+      await _approvalService.submitRequest(
+        action: ApprovalAction.addMaterial,
+        payload: {
+          'materialName': _materialNameController.text.trim(),
+          'materialCode': _materialCodeController.text.trim(),
+          'requestedQuantity': double.parse(_quantityController.text.trim()),
+          'unit': _selectedUnit,
+          'materialData': materialData,
+        },
+      );
 
       if (mounted) {
-        AppToast.showSuccess(context, 'Material added successfully! 📦');
+        AppToast.showSuccess(
+            context, 'Material request submitted for approval.');
         Navigator.of(context).pop();
       }
     } catch (e) {

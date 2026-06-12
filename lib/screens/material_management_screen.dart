@@ -7,6 +7,7 @@ import '../components/common/app_bar_builder.dart';
 import '../components/common/app_card.dart';
 import '../utils/page_transitions.dart';
 import 'add_material_screen.dart';
+import 'material_approval_screen.dart';
 import 'withdraw_material_screen.dart';
 
 class MaterialManagementScreen extends StatelessWidget {
@@ -75,7 +76,7 @@ class MaterialManagementScreen extends StatelessWidget {
                   _buildManagementCard(
                     context,
                     label: 'ADD MATERIAL',
-                    description: 'Add new materials to inventory',
+                    description: 'Raise a request to add inventory',
                     icon: Icons.add_circle_outline_rounded,
                     color: AppColors.success,
                     onTap: () {
@@ -99,6 +100,23 @@ class MaterialManagementScreen extends StatelessWidget {
                         context,
                         AppRoute(
                           builder: (context) => const WithdrawMaterialScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
+                  _buildManagementCard(
+                    context,
+                    label: 'APPROVE REQUESTS',
+                    description: 'Review requests from lower authority roles',
+                    icon: Icons.verified_rounded,
+                    color: AppColors.info,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        AppRoute(
+                          builder: (context) =>
+                              const MaterialApprovalScreen(),
                         ),
                       );
                     },

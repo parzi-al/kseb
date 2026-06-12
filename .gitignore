@@ -46,7 +46,21 @@ app.*.map.json
 
 # Environment files
 .env*
+!.env.example
 
 # OS artifacts
 Thumbs.db
 *.tmp
+
+# Local dev files
+# Local Android/IDE properties
+local.properties
+**/local.properties
+
+# Generated plugin registrant files (platform-managed, should not be tracked)
+**/flutter/generated_plugin_registrant.*
+**/generated_plugin_registrant.*
+
+# Windows/Linux/macOS Flutter ephemeral directories
+**/flutter/ephemeral/
+**/Flutter/ephemeral/

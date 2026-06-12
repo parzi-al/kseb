@@ -6,7 +6,7 @@ import 'dart:async';
 import 'attendance_screen.dart';
 import 'material_management_screen.dart';
 import 'worksheet_screen.dart';
-// import 'staff_management_screen.dart';
+import 'staff_management_screen.dart';
 import 'bonus_management_screen.dart';
 import 'bonus_history_screen.dart';
 import '../utils/app_colors.dart';
@@ -19,6 +19,11 @@ import '../services/user_service.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
 import '../components/common/skeleton_loader.dart';
+
+const bool kEnableStaffDashboard =
+    bool.fromEnvironment('ENABLE_STAFF_DASHBOARD');
+const bool kEnableStaffDashboardForManagersAndSupervisors =
+    bool.fromEnvironment('ENABLE_STAFF_DASHBOARD_FOR_MANAGERS_SUPERVISORS');
 
 class WorkerHomeScreen extends StatefulWidget {
   /// Optional [AuthService] for dependency injection (used in tests).
@@ -671,19 +676,19 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                               ? 1.15
                               : 1.0),
                       children: [
-                        // Staff Management temporarily commented out (to be enabled later)
-                        // if (isSupervisor && teamId != null)
-                        //   _buildDashboardCard(
-                        //     context,
-                        //     icon: Icons.people_rounded,
-                        //     label: 'Staff Management',
-                        //     color: AppColors.dashboardCardColors[2],
-                        //     destination: StaffManagementScreen(
-                        //       teamId: teamId,
-                        //       currentUserRole:
-                        //           UserRole.fromString(workerRole.toLowerCase()),
-                        //     ),
-                        //   ),
+                        if (kEnableStaffDashboard &&
+                            _canShowStaffDashboard())
+                          _buildDashboardCard(
+                            context,
+                            icon: Icons.people_rounded,
+                            label: 'Staff Management',
+                            color: AppColors.dashboardCardColors[2],
+                            destination: StaffManagementScreen(
+                              teamId: teamId,
+                              currentUserRole:
+                                  UserRole.fromString(workerRole),
+                            ),
+                          ),
                         if (isCooOrDirector)
                           _buildDashboardCard(
                             context,
@@ -731,6 +736,18 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
               ),
             ),
     );
+  }
+
+  bool _canShowStaffDashboard() {
+    final role = UserRole.fromString(workerRole);
+    final isManagerOrSupervisor =
+        role == UserRole.manager || role == UserRole.supervisor;
+
+    if (kEnableStaffDashboardForManagersAndSupervisors) {
+      return isManagerOrSupervisor && teamId != null;
+    }
+
+    return isSupervisor && teamId != null;
   }
 
   Widget _buildDashboardCard(

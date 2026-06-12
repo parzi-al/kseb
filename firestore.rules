@@ -25,6 +25,21 @@ service cloud.firestore {
       let userRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
       return userRole == 'director';
     }
+
+    function currentUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function roleLevel(role) {
+      return role == 'director' ? 0 :
+        role == 'coo' ? 1 :
+        role == 'manager' ? 2 :
+        role == 'supervisor' ? 3 : 4;
+    }
+
+    function canApproveRole(requesterRole) {
+      return roleLevel(currentUserRole()) < roleLevel(requesterRole);
+    }
     
     // Auth audit events — append-only log (FR-018, FR-019)
     match /auth_events/{eventId} {
@@ -119,10 +134,12 @@ service cloud.firestore {
     match /materials/{materialId} {
       // All authenticated users can read materials
       allow read: if request.auth != null;
-      // Supervisors and above can create materials
+      // Supervisors and above can create approved materials
       allow create: if request.auth != null && isSupervisorOrAbove();
-      // Managers and above can update/delete materials
-      allow update, delete: if request.auth != null && isManagerOrAbove();
+      // Supervisors and above can update stock while approving lower-level requests
+      allow update: if request.auth != null && isSupervisorOrAbove();
+      // Managers and above can delete materials
+      allow delete: if request.auth != null && isManagerOrAbove();
     }
     
     // Assets collection
@@ -189,22 +206,35 @@ service cloud.firestore {
       }
     }
     
-    // Material request rules (legacy)
+    // Material request approval workflow
     match /material_requests/{requestId} {
       // Allow users to read their own requests
       allow read: if request.auth != null && 
         resource.data.requestedBy == request.auth.uid;
-      // Managers can read all requests
-      allow read: if request.auth != null && isManagerOrAbove();
+      // Supervisors and above can read requests for approval filtering
+      allow read: if request.auth != null && isSupervisorOrAbove();
       // Allow users to create their own requests
       allow create: if request.auth != null && 
-        request.resource.data.requestedBy == request.auth.uid;
+        request.resource.data.requestedBy == request.auth.uid &&
+        request.resource.data.requestedByRole is string &&
+        request.resource.data.action in ['add_material', 'withdraw_material', 'worksheet'] &&
+        request.resource.data.status == 'Pending';
       // Allow users to update their own pending requests
       allow update: if request.auth != null && 
         resource.data.requestedBy == request.auth.uid &&
         resource.data.status == 'Pending';
-      // Managers can update any request
-      allow update: if request.auth != null && isManagerOrAbove();
+      // Only higher authority can approve or reject a request
+      allow update: if request.auth != null &&
+        canApproveRole(resource.data.requestedByRole) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status',
+          'approvalStatus',
+          'approvedBy',
+          'approvedByEmail',
+          'approvedByRole',
+          'approvedAt',
+          'rejectionReason'
+        ]);
     }
     
     // Deny all other requests by default

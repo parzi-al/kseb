@@ -61,6 +61,14 @@ enum UserRole {
     return hierarchyLevel <= otherRole.hierarchyLevel;
   }
 
+  /// Check if this role can approve a request raised by another role.
+  ///
+  /// Approval requires strictly higher authority, so a manager can approve a
+  /// supervisor request, but another supervisor cannot.
+  bool canApproveRequestFrom(UserRole requesterRole) {
+    return hierarchyLevel < requesterRole.hierarchyLevel;
+  }
+
   /// Get all roles that this role can assign/manage
   List<UserRole> get manageableRoles {
     return UserRole.values
