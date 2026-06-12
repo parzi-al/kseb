@@ -157,6 +157,12 @@ service cloud.firestore {
         canApproveRole(approval.requestedByRole);
     }
 
+    function isApprovedWithdrawMaterialRequestForMaterial(requestId, materialId) {
+      let approval = approvedRequest(requestId);
+      return isApprovedWithdrawMaterialRequest(requestId) &&
+        approval.materialId == materialId;
+    }
+
     function isPositiveNumber(value) {
       return value is number && value > 0;
     }
@@ -318,9 +324,13 @@ service cloud.firestore {
           'lastApprovedRequestId'
         ]) &&
         request.resource.data.lastApprovedRequestId is string &&
+        request.resource.data.quantity >= 0 &&
         request.resource.data.quantity == resource.data.quantity -
           approvedRequest(request.resource.data.lastApprovedRequestId).requestedQuantity &&
-        isApprovedWithdrawMaterialRequest(request.resource.data.lastApprovedRequestId);
+        isApprovedWithdrawMaterialRequestForMaterial(
+          request.resource.data.lastApprovedRequestId,
+          materialId
+        );
       // Managers and above can delete materials
       allow delete: if request.auth != null && isManagerOrAbove();
     }
@@ -423,6 +433,7 @@ service cloud.firestore {
         ]);
       // Only higher authority can approve or reject a request
       allow update: if request.auth != null &&
+        resource.data.status == 'Pending' &&
         canApproveRole(resource.data.requestedByRole) &&
         isValidApprovalUpdate();
     }
