@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_spacing.dart';
 
-/// Decoration tokens and responsive helpers for the KSEB design system.
+/// Decoration tokens and responsive helpers for the AumLux design system.
 ///
 /// Provides card decoration presets and BuildContext extensions for
 /// responsive scaling of spacing, padding, and font sizes.

@@ -119,7 +119,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
-            // "KSEB" text with slide-up animation
+            // App name text with slide-up animation
             SlideTransition(
               position: _textSlide,
               child: FadeTransition(

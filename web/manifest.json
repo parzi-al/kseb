@@ -1,11 +1,11 @@
 {
-    "name": "kseb",
-    "short_name": "kseb",
+    "name": "AumLux",
+    "short_name": "AumLux",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#FFFFFF",
     "theme_color": "#FF6B35",
-    "description": "A new Flutter project.",
+    "description": "AumLux workforce management portal.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

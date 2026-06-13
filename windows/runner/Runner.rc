@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "kseb" "\0"
+            VALUE "FileDescription", "AumLux" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "kseb" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
             VALUE "OriginalFilename", "kseb.exe" "\0"
-            VALUE "ProductName", "kseb" "\0"
+            VALUE "ProductName", "AumLux" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

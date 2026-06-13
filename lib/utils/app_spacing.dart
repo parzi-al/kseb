@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// Spacing, border radius, and elevation token system for the KSEB design system.
+/// Spacing, border radius, and elevation token system for the AumLux design system.
 ///
 /// Provides named spacing values, border radius constants, and shadow presets.
 /// All screen and widget code should reference these tokens

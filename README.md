@@ -1,6 +1,6 @@
-# KSEB App - Kerala State Electricity Board Management System
+# AumLux App - Workforce Management System
 
-A comprehensive Flutter application for managing KSEB workforce, attendance, materials, and worksheets with role-based access control.
+A comprehensive Flutter application for managing AumLux workforce, attendance, materials, and worksheets with role-based access control.
 
 ## 🚀 Quick Start
 

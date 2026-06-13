@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// User roles in the KSEB system
+/// User roles in the AumLux system
 enum UserRole {
   staff,
   supervisor,
@@ -85,7 +85,7 @@ enum UserRole {
   }
 }
 
-/// User model representing a user in the KSEB system
+/// User model representing a user in the AumLux system
 class UserModel {
   final String id;
   final String name;

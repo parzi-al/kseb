@@ -1,4 +1,4 @@
-/// Barrel export for the KSEB design token system.
+/// Barrel export for the AumLux design token system.
 ///
 /// Import this file to get access to all design tokens:
 /// ```dart

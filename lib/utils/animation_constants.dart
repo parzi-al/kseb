@@ -18,7 +18,7 @@ abstract final class AnimationConstants {
   /// Duration of the lightning-bolt icon scale-up animation.
   static const Duration splashIconScaleDuration = Duration(milliseconds: 800);
 
-  /// Duration of the "KSEB" text slide-up animation.
+  /// Duration of the app name text slide-up animation.
   static const Duration splashTextSlideDuration = Duration(milliseconds: 500);
 
   /// Duration of the cross-fade from splash to the destination screen.
@@ -63,7 +63,7 @@ abstract final class AnimationConstants {
 
   // ── Configurable Strings ────────────────────────────────────────
   /// Application name displayed on the splash screen.
-  static const String appName = 'KSEB';
+  static const String appName = 'AumLux';
 
   // ── Login Icon Animation ────────────────────────────────────────
   /// Total duration of the login icon scale-in + glow entrance animation.

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// Typography token system for the KSEB design system.
+/// Typography token system for the AumLux design system.
 ///
 /// Provides named TextStyles and font size constants.
 /// All screen and widget code should reference these tokens
@@ -19,7 +19,7 @@ abstract final class AppTypography {
 
   // ── Named TextStyles ──────────────────────────────────────────────
 
-  /// Hero text, KSEB branding — 28sp w800
+  /// Hero text, AumLux branding — 28sp w800
   static TextStyle get displayLargeStyle => TextStyle(
         fontSize: fontSize4XL,
         color: AppColors.textPrimary,

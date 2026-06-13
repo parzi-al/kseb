@@ -153,7 +153,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Form Filing App',
+      title: 'AumLux',
       theme: createAppTheme(),
       debugShowCheckedModeBanner: false,
       // AuthGate handles reactive auth state and navigates to the correct screen

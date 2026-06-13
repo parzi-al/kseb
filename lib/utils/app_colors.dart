@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Color token system for the KSEB design system.
+/// Color token system for the AumLux design system.
 ///
 /// Contains ONLY color tokens. Typography, spacing, decorations,
 /// and responsive helpers have been extracted to their own modules.
