@@ -759,33 +759,13 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
           context,
           icon: Icons.electrical_services_rounded,
           label: 'Polevar',
-          sections: const [
-            PortalModuleSection(
-              title: 'Upload / Edit Polevar',
-              features: [
-                'Upload polevar details',
-                'Edit polevar',
-                'Version history',
-                'Download polevar records',
-              ],
-            ),
-          ],
+          sections: _polevarSections(),
         ),
         _portalCard(
           context,
           icon: Icons.devices_other_rounded,
           label: 'Asset Details',
-          sections: const [
-            PortalModuleSection(
-              title: 'Asset Details',
-              features: [
-                'Upload asset information',
-                'Asset allocation',
-                'Asset tracking',
-                'Asset history',
-              ],
-            ),
-          ],
+          sections: _assetSections(),
         ),
       ];
     }
@@ -796,69 +776,31 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
           context,
           icon: Icons.electrical_services_rounded,
           label: 'Polevar',
-          sections: const [
-            PortalModuleSection(
-              title: 'Upload / Edit Polevar',
-              features: ['Manage polevar details'],
-            ),
-          ],
+          sections: _polevarSections(),
         ),
         _portalCard(
           context,
           icon: Icons.receipt_long_rounded,
           label: 'EMD / SD',
-          sections: const [
-            PortalModuleSection(
-              title: 'EMD / SD Details & Receipt Upload',
-              features: [
-                'EMD records',
-                'Security Deposit records',
-                'Upload receipts',
-                'Approval workflow',
-              ],
-            ),
-          ],
+          sections: _depositSections(),
         ),
         _portalCard(
           context,
           icon: Icons.description_rounded,
           label: 'Work Orders',
-          sections: const [
-            PortalModuleSection(
-              title: 'Work Order Agreement Upload',
-              features: [
-                'Upload work orders',
-                'Upload agreements',
-                'View history',
-              ],
-            ),
-          ],
+          sections: _workOrderSections(),
         ),
         _portalCard(
           context,
           icon: Icons.request_quote_rounded,
           label: 'Bills / Invoices',
-          sections: const [
-            PortalModuleSection(
-              title: 'Bill / Invoice Submission Upload',
-              features: [
-                'Upload invoices',
-                'Upload bills',
-                'Approval status',
-              ],
-            ),
-          ],
+          sections: _billInvoiceSections(),
         ),
         _portalCard(
           context,
           icon: Icons.devices_other_rounded,
           label: 'Asset Details',
-          sections: const [
-            PortalModuleSection(
-              title: 'Asset Details',
-              features: ['Upload/Edit assets', 'Asset allocation'],
-            ),
-          ],
+          sections: _assetSections(),
         ),
       ];
     }
@@ -869,110 +811,411 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
           context,
           icon: Icons.electrical_services_rounded,
           label: 'Polevar',
-          sections: const [
-            PortalModuleSection(
-              title: 'Upload / Edit Polevar',
-              features: ['Polevar management'],
-            ),
-          ],
+          sections: _polevarSections(),
         ),
         _portalCard(
           context,
           icon: Icons.receipt_long_rounded,
           label: 'EMD / SD',
-          sections: const [
-            PortalModuleSection(
-              title: 'EMD / SD Details Receipt Upload',
-              features: ['Deposit tracking', 'Receipt uploads'],
-            ),
-          ],
+          sections: _depositSections(),
         ),
         _portalCard(
           context,
           icon: Icons.description_rounded,
           label: 'Work Orders',
-          sections: const [
-            PortalModuleSection(
-              title: 'Work Order Agreement Upload',
-              features: [
-                'Work order repository',
-                'Agreement management',
-              ],
-            ),
-          ],
+          sections: _workOrderSections(),
         ),
         _portalCard(
           context,
           icon: Icons.request_quote_rounded,
           label: 'Bills / Invoices',
-          sections: const [
-            PortalModuleSection(
-              title: 'Bill / Invoice Submission Upload',
-              features: ['Invoice tracking', 'Bill approval'],
-            ),
-          ],
+          sections: _billInvoiceSections(),
         ),
         _portalCard(
           context,
           icon: Icons.folder_copy_rounded,
           label: 'Dispatch / Letter',
-          sections: const [
-            PortalModuleSection(
-              title: 'Dispatch / Letter Upload',
-              features: [
-                'Dispatch uploads',
-                'Letter uploads',
-                'Official correspondence',
-              ],
-            ),
-          ],
+          sections: _dispatchSections(),
         ),
         _portalCard(
           context,
           icon: Icons.devices_other_rounded,
           label: 'Asset Details',
-          sections: const [
-            PortalModuleSection(
-              title: 'Asset Details',
-              features: ['Upload/Edit assets'],
-            ),
-          ],
+          sections: _assetSections(),
         ),
         _portalCard(
           context,
           icon: Icons.account_balance_rounded,
           label: 'GST Details',
-          sections: const [
-            PortalModuleSection(
-              title: 'GST Details Upload',
-              features: [
-                'GST certificates',
-                'GST filings',
-                'GST documents',
-              ],
-            ),
-          ],
+          sections: _gstSections(),
         ),
         _portalCard(
           context,
           icon: Icons.analytics_rounded,
           label: 'View Details',
-          sections: const [
-            PortalModuleSection(
-              title: 'View Details',
-              features: [
-                'Dashboard analytics',
-                'Reports',
-                'Search and filter all records',
-              ],
-            ),
-          ],
+          sections: _viewDetailsSections(),
         ),
       ];
     }
 
     return const [];
   }
+
+  List<PortalModuleSection> _polevarSections() => const [
+        PortalModuleSection(
+          title: 'Polevar Details',
+          fields: [
+            PortalModuleField(
+              label: 'Pole Number',
+              icon: Icons.confirmation_number_outlined,
+              required: true,
+            ),
+            PortalModuleField(
+              label: 'Feeder Name',
+              icon: Icons.electrical_services_rounded,
+              required: true,
+            ),
+            PortalModuleField(
+              label: 'Transformer / DP Reference',
+              icon: Icons.settings_input_component_rounded,
+            ),
+            PortalModuleField(
+              label: 'Section Office',
+              icon: Icons.location_city_rounded,
+              type: PortalFieldType.dropdown,
+              options: [
+                'Electrical Section A',
+                'Electrical Section B',
+                'Electrical Section C'
+              ],
+              required: true,
+            ),
+            PortalModuleField(
+              label: 'Pole Type',
+              icon: Icons.account_tree_rounded,
+              type: PortalFieldType.dropdown,
+              options: ['PSC', 'RCC', 'A Pole', 'H Pole', 'Steel Tubular'],
+            ),
+            PortalModuleField(
+              label: 'Location / Landmark',
+              icon: Icons.place_outlined,
+              required: true,
+            ),
+            PortalModuleField(
+              label: 'GPS Coordinates',
+              icon: Icons.my_location_rounded,
+            ),
+            PortalModuleField(
+              label: 'Remarks',
+              icon: Icons.notes_rounded,
+              type: PortalFieldType.multiline,
+            ),
+            PortalModuleField(
+              label: 'Upload Pole Photo',
+              icon: Icons.photo_camera_rounded,
+              type: PortalFieldType.upload,
+            ),
+          ],
+        ),
+      ];
+
+  List<PortalModuleSection> _assetSections() => const [
+        PortalModuleSection(
+          title: 'Asset Details',
+          fields: [
+            PortalModuleField(
+                label: 'Asset ID', icon: Icons.qr_code_rounded, required: true),
+            PortalModuleField(
+                label: 'Asset Name',
+                icon: Icons.inventory_2_outlined,
+                required: true),
+            PortalModuleField(
+              label: 'Asset Category',
+              icon: Icons.category_rounded,
+              type: PortalFieldType.dropdown,
+              options: [
+                'Tools',
+                'Vehicle',
+                'Safety Equipment',
+                'Electrical Material',
+                'Office Equipment'
+              ],
+              required: true,
+            ),
+            PortalModuleField(
+                label: 'Serial Number', icon: Icons.numbers_rounded),
+            PortalModuleField(
+                label: 'Assigned To', icon: Icons.person_outline_rounded),
+            PortalModuleField(
+                label: 'Purchase Date',
+                icon: Icons.event_rounded,
+                type: PortalFieldType.date),
+            PortalModuleField(
+                label: 'Condition',
+                icon: Icons.verified_outlined,
+                type: PortalFieldType.dropdown,
+                options: ['New', 'Good', 'Needs Repair', 'Damaged']),
+            PortalModuleField(
+                label: 'Upload Asset Document',
+                icon: Icons.attach_file_rounded,
+                type: PortalFieldType.upload),
+          ],
+        ),
+      ];
+
+  List<PortalModuleSection> _depositSections() => const [
+        PortalModuleSection(
+          title: 'EMD / Security Deposit',
+          fields: [
+            PortalModuleField(
+                label: 'Deposit Type',
+                icon: Icons.receipt_long_rounded,
+                type: PortalFieldType.dropdown,
+                options: ['EMD', 'Security Deposit'],
+                required: true),
+            PortalModuleField(
+                label: 'Tender / Work Reference',
+                icon: Icons.description_outlined,
+                required: true),
+            PortalModuleField(
+                label: 'Amount',
+                icon: Icons.currency_rupee_rounded,
+                type: PortalFieldType.number,
+                required: true),
+            PortalModuleField(
+                label: 'Payment Mode',
+                icon: Icons.payments_outlined,
+                type: PortalFieldType.dropdown,
+                options: ['DD', 'Bank Guarantee', 'Online Transfer', 'Cheque'],
+                required: true),
+            PortalModuleField(
+                label: 'Instrument / UTR Number', icon: Icons.tag_rounded),
+            PortalModuleField(
+                label: 'Deposit Date',
+                icon: Icons.event_rounded,
+                type: PortalFieldType.date),
+            PortalModuleField(
+                label: 'Validity Date',
+                icon: Icons.event_available_rounded,
+                type: PortalFieldType.date),
+            PortalModuleField(
+                label: 'Upload Receipt',
+                icon: Icons.upload_file_rounded,
+                type: PortalFieldType.upload,
+                required: true),
+          ],
+        ),
+      ];
+
+  List<PortalModuleSection> _workOrderSections() => const [
+        PortalModuleSection(
+          title: 'Work Order / Agreement',
+          fields: [
+            PortalModuleField(
+                label: 'Work Order Number',
+                icon: Icons.confirmation_number_outlined,
+                required: true),
+            PortalModuleField(
+                label: 'Agreement Number', icon: Icons.handshake_outlined),
+            PortalModuleField(
+                label: 'Project / Work Name',
+                icon: Icons.work_outline_rounded,
+                required: true),
+            PortalModuleField(
+                label: 'Awarded Amount',
+                icon: Icons.currency_rupee_rounded,
+                type: PortalFieldType.number),
+            PortalModuleField(
+                label: 'Issue Date',
+                icon: Icons.event_rounded,
+                type: PortalFieldType.date),
+            PortalModuleField(
+                label: 'Completion Due Date',
+                icon: Icons.event_available_rounded,
+                type: PortalFieldType.date),
+            PortalModuleField(
+                label: 'Current Status',
+                icon: Icons.fact_check_outlined,
+                type: PortalFieldType.dropdown,
+                options: [
+                  'Draft',
+                  'Active',
+                  'Completed',
+                  'On Hold',
+                  'Cancelled'
+                ]),
+            PortalModuleField(
+                label: 'Upload Work Order / Agreement',
+                icon: Icons.upload_file_rounded,
+                type: PortalFieldType.upload,
+                required: true),
+          ],
+        ),
+      ];
+
+  List<PortalModuleSection> _billInvoiceSections() => const [
+        PortalModuleSection(
+          title: 'Bill / Invoice Submission',
+          fields: [
+            PortalModuleField(
+                label: 'Invoice Number',
+                icon: Icons.receipt_outlined,
+                required: true),
+            PortalModuleField(
+                label: 'Bill Type',
+                icon: Icons.request_quote_outlined,
+                type: PortalFieldType.dropdown,
+                options: [
+                  'Running Account Bill',
+                  'Final Bill',
+                  'Material Bill',
+                  'Service Invoice'
+                ],
+                required: true),
+            PortalModuleField(
+                label: 'Work Order Number', icon: Icons.description_outlined),
+            PortalModuleField(
+                label: 'Invoice Date',
+                icon: Icons.event_rounded,
+                type: PortalFieldType.date),
+            PortalModuleField(
+                label: 'Invoice Amount',
+                icon: Icons.currency_rupee_rounded,
+                type: PortalFieldType.number,
+                required: true),
+            PortalModuleField(
+                label: 'Tax Amount',
+                icon: Icons.percent_rounded,
+                type: PortalFieldType.number),
+            PortalModuleField(
+                label: 'Upload Bill / Invoice',
+                icon: Icons.upload_file_rounded,
+                type: PortalFieldType.upload,
+                required: true),
+            PortalModuleField(
+                label: 'Notes',
+                icon: Icons.notes_rounded,
+                type: PortalFieldType.multiline),
+          ],
+        ),
+      ];
+
+  List<PortalModuleSection> _dispatchSections() => const [
+        PortalModuleSection(
+          title: 'Dispatch / Letter',
+          fields: [
+            PortalModuleField(
+                label: 'Reference Number',
+                icon: Icons.numbers_rounded,
+                required: true),
+            PortalModuleField(
+                label: 'Document Type',
+                icon: Icons.folder_copy_rounded,
+                type: PortalFieldType.dropdown,
+                options: [
+                  'Incoming Letter',
+                  'Outgoing Letter',
+                  'Dispatch Note',
+                  'Circular'
+                ],
+                required: true),
+            PortalModuleField(
+                label: 'From / To',
+                icon: Icons.account_box_outlined,
+                required: true),
+            PortalModuleField(
+                label: 'Subject', icon: Icons.subject_rounded, required: true),
+            PortalModuleField(
+                label: 'Received / Sent Date',
+                icon: Icons.event_rounded,
+                type: PortalFieldType.date),
+            PortalModuleField(
+                label: 'Upload Letter',
+                icon: Icons.upload_file_rounded,
+                type: PortalFieldType.upload,
+                required: true),
+            PortalModuleField(
+                label: 'Remarks',
+                icon: Icons.notes_rounded,
+                type: PortalFieldType.multiline),
+          ],
+        ),
+      ];
+
+  List<PortalModuleSection> _gstSections() => const [
+        PortalModuleSection(
+          title: 'GST Details',
+          fields: [
+            PortalModuleField(
+                label: 'GSTIN', icon: Icons.badge_outlined, required: true),
+            PortalModuleField(
+                label: 'Legal Name',
+                icon: Icons.business_rounded,
+                required: true),
+            PortalModuleField(
+                label: 'Return Period',
+                icon: Icons.date_range_rounded,
+                required: true),
+            PortalModuleField(
+                label: 'Taxable Value',
+                icon: Icons.currency_rupee_rounded,
+                type: PortalFieldType.number),
+            PortalModuleField(
+                label: 'CGST',
+                icon: Icons.percent_rounded,
+                type: PortalFieldType.number),
+            PortalModuleField(
+                label: 'SGST',
+                icon: Icons.percent_rounded,
+                type: PortalFieldType.number),
+            PortalModuleField(
+                label: 'IGST',
+                icon: Icons.percent_rounded,
+                type: PortalFieldType.number),
+            PortalModuleField(
+                label: 'Upload GST Filing / Certificate',
+                icon: Icons.upload_file_rounded,
+                type: PortalFieldType.upload,
+                required: true),
+          ],
+        ),
+      ];
+
+  List<PortalModuleSection> _viewDetailsSections() => const [
+        PortalModuleSection(
+          title: 'Search Records',
+          fields: [
+            PortalModuleField(
+                label: 'Module',
+                icon: Icons.dashboard_customize_rounded,
+                type: PortalFieldType.dropdown,
+                options: [
+                  'Polevar',
+                  'EMD / SD',
+                  'Work Orders',
+                  'Bills / Invoices',
+                  'Dispatch / Letter',
+                  'Asset Details',
+                  'GST Details'
+                ]),
+            PortalModuleField(
+                label: 'Reference Number', icon: Icons.search_rounded),
+            PortalModuleField(
+                label: 'Status',
+                icon: Icons.fact_check_outlined,
+                type: PortalFieldType.dropdown,
+                options: ['All', 'Draft', 'Submitted', 'Approved', 'Rejected']),
+            PortalModuleField(
+                label: 'From Date',
+                icon: Icons.event_rounded,
+                type: PortalFieldType.date),
+            PortalModuleField(
+                label: 'To Date',
+                icon: Icons.event_available_rounded,
+                type: PortalFieldType.date),
+          ],
+        ),
+      ];
 
   Widget _portalCard(
     BuildContext context, {
