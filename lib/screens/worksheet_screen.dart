@@ -480,7 +480,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
 
     return _buildWorksheetRequestStream(
       stream: FirebaseFirestore.instance
-          .collection('material_requests')
+          .collection('worksheet_requests')
           .where('action', isEqualTo: ApprovalAction.worksheet.value)
           .where('requestedBy', isEqualTo: currentUid)
           .snapshots(),
@@ -493,7 +493,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   Widget _buildApprovalsTab() {
     return _buildWorksheetRequestStream(
       stream: FirebaseFirestore.instance
-          .collection('material_requests')
+          .collection('worksheet_requests')
           .where('action', isEqualTo: ApprovalAction.worksheet.value)
           .snapshots(),
       filter: (data) {
@@ -711,7 +711,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   Future<void> _approveWorksheet(String requestId) async {
     setState(() => _busyRequestId = requestId);
     try {
-      await _approvalService.approveMaterialRequest(requestId);
+      await _approvalService.approveWorksheetRequest(requestId);
       if (mounted) AppToast.showSuccess(context, 'Worksheet approved.');
     } catch (e) {
       if (mounted) AppErrorHandler.handleError(context, e);
@@ -723,7 +723,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   Future<void> _rejectWorksheet(String requestId) async {
     setState(() => _busyRequestId = requestId);
     try {
-      await _approvalService.rejectMaterialRequest(requestId);
+      await _approvalService.rejectWorksheetRequest(requestId);
       if (mounted) AppToast.showSuccess(context, 'Worksheet rejected.');
     } catch (e) {
       if (mounted) AppErrorHandler.handleError(context, e);

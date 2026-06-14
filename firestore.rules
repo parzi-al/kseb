@@ -100,6 +100,10 @@ service cloud.firestore {
       return getAfter(/databases/$(database)/documents/material_requests/$(requestId)).data;
     }
 
+    function approvedWorksheetRequest(requestId) {
+      return getAfter(/databases/$(database)/documents/worksheet_requests/$(requestId)).data;
+    }
+
     function isApprovedAddMaterialRequest(requestId) {
       let approval = approvedRequest(requestId);
       return approval.action == 'add_material' &&
@@ -161,6 +165,32 @@ service cloud.firestore {
       let approval = approvedRequest(requestId);
       return isApprovedWithdrawMaterialRequest(requestId) &&
         approval.materialId == materialId;
+    }
+
+    function isApprovedWorksheetRequest(requestId) {
+      let approval = approvedWorksheetRequest(requestId);
+      return approval.action == 'worksheet' &&
+        approval.status == 'Approved' &&
+        approval.approvedBy == request.auth.uid &&
+        canApproveRole(approval.requestedByRole);
+    }
+
+    function isValidApprovedWorksheetCreate(requestId) {
+      let approval = approvedWorksheetRequest(requestId);
+      return isApprovedWorksheetRequest(requestId) &&
+        request.resource.data.approvedRequestId == requestId &&
+        request.resource.data.createdBy == approval.requestedBy &&
+        request.resource.data.createdByEmail == approval.requestedByEmail &&
+        request.resource.data.createdByName == approval.requestedByName &&
+        request.resource.data.createdByRole == approval.requestedByRole &&
+        request.resource.data.workType == approval.worksheetData.workType &&
+        request.resource.data.office == approval.worksheetData.office &&
+        request.resource.data.location == approval.worksheetData.location &&
+        request.resource.data.permitBook == approval.worksheetData.permitBook &&
+        request.resource.data.status == 'Approved' &&
+        request.resource.data.approvalStatus == 'Approved' &&
+        request.resource.data.approvedBy == request.auth.uid &&
+        request.resource.data.approvedByRole == currentUserRole();
     }
 
     function isPositiveNumber(value) {
@@ -292,10 +322,18 @@ service cloud.firestore {
     match /worksheets/{worksheetId} {
       // Supervisors and above can read all worksheets
       allow read: if request.auth != null && isSupervisorOrAbove();
-      // Supervisors can create worksheets
-      allow create: if request.auth != null && 
-        isSupervisorOrAbove() &&
-        request.resource.data.createdBy == request.auth.uid;
+      // Worksheets can be created directly by supervisors or from approved worksheet requests.
+      allow create: if request.auth != null &&
+        (
+          (
+            isSupervisorOrAbove() &&
+            request.resource.data.createdBy == request.auth.uid
+          ) ||
+          (
+            request.resource.data.approvedRequestId is string &&
+            isValidApprovedWorksheetCreate(request.resource.data.approvedRequestId)
+          )
+        );
       // Creators can update their own pending worksheets
       allow update: if request.auth != null && 
         resource.data.createdBy == request.auth.uid &&
@@ -431,6 +469,47 @@ service cloud.firestore {
           'requiredDate',
           'remarks'
         ]);
+      // Only higher authority can approve or reject a request
+      allow update: if request.auth != null &&
+        resource.data.status == 'Pending' &&
+        canApproveRole(resource.data.requestedByRole) &&
+        isValidApprovalUpdate();
+    }
+
+    // Worksheet request approval workflow
+    match /worksheet_requests/{requestId} {
+      // Allow users to read their own requests
+      allow read: if request.auth != null &&
+        resource.data.requestedBy == request.auth.uid;
+      // Supervisors and above can read requests for approval filtering
+      allow read: if request.auth != null && isSupervisorOrAbove();
+      // Allow users to create their own worksheet requests
+      allow create: if request.auth != null &&
+        request.resource.data.requestedBy == request.auth.uid &&
+        request.resource.data.requestCategory == 'worksheet' &&
+        request.resource.data.requestedByRole is string &&
+        request.resource.data.requestedByRole == currentUserRole() &&
+        request.resource.data.action == 'worksheet' &&
+        request.resource.data.status == 'Pending' &&
+        request.resource.data.approvalStatus == 'Awaiting Approval' &&
+        request.resource.data.approvedBy == null &&
+        request.resource.data.approvedByRole == null &&
+        request.resource.data.approvedAt == null &&
+        request.resource.data.rejectionReason == null &&
+        request.resource.data.worksheetData is map &&
+        request.resource.data.worksheetType in ['Project', 'Calamity', 'Maintenance'] &&
+        request.resource.data.worksheetTitle is string &&
+        request.resource.data.worksheetData.workType == request.resource.data.worksheetType &&
+        isRequiredString(request.resource.data.worksheetData.office) &&
+        isRequiredString(request.resource.data.worksheetData.location) &&
+        isRequiredString(request.resource.data.worksheetData.permitBook) &&
+        (
+          request.resource.data.worksheetType != 'Project' ||
+          (
+            isRequiredString(request.resource.data.worksheetData.projectSelection) &&
+            isRequiredString(request.resource.data.worksheetData.projectName)
+          )
+        );
       // Only higher authority can approve or reject a request
       allow update: if request.auth != null &&
         resource.data.status == 'Pending' &&

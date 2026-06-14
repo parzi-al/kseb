@@ -63,6 +63,12 @@ class ApprovalService {
     return approverRole.canApproveRequestFrom(requesterRole);
   }
 
+  String _requestCollectionForAction(ApprovalAction action) {
+    return action == ApprovalAction.worksheet
+        ? 'worksheet_requests'
+        : 'material_requests';
+  }
+
   Future<DocumentReference<Map<String, dynamic>>> submitRequest({
     required ApprovalAction action,
     required Map<String, dynamic> payload,
@@ -72,7 +78,7 @@ class ApprovalService {
     final currentUser = await getCurrentUser();
     final currentAuthUid = _currentAuthUid;
 
-    return _firestore.collection('material_requests').add({
+    return _firestore.collection(_requestCollectionForAction(action)).add({
       ...payload,
       'action': action.value,
       'requestCategory': action == ApprovalAction.worksheet
@@ -211,10 +217,32 @@ class ApprovalService {
   }
 
   Future<void> approveMaterialRequest(String requestId) async {
+    await _approveRequest(
+      requestId: requestId,
+      collectionPath: 'material_requests',
+      allowedActions: {
+        ApprovalAction.addMaterial.value,
+        ApprovalAction.withdrawMaterial.value,
+      },
+    );
+  }
+
+  Future<void> approveWorksheetRequest(String requestId) async {
+    await _approveRequest(
+      requestId: requestId,
+      collectionPath: 'worksheet_requests',
+      allowedActions: {ApprovalAction.worksheet.value},
+    );
+  }
+
+  Future<void> _approveRequest({
+    required String requestId,
+    required String collectionPath,
+    required Set<String> allowedActions,
+  }) async {
     final approver = await getCurrentUser();
     final approverUid = _currentAuthUid;
-    final requestRef =
-        _firestore.collection('material_requests').doc(requestId);
+    final requestRef = _firestore.collection(collectionPath).doc(requestId);
     final failure =
         await _firestore.runTransaction<String?>((transaction) async {
       final requestSnapshot = await transaction.get(requestRef);
@@ -238,9 +266,7 @@ class ApprovalService {
       }
 
       final action = request['action'] as String?;
-      if (action != ApprovalAction.addMaterial.value &&
-          action != ApprovalAction.withdrawMaterial.value &&
-          action != ApprovalAction.worksheet.value) {
+      if (action == null || !allowedActions.contains(action)) {
         return 'Unsupported or legacy request format.';
       }
 
@@ -336,14 +362,37 @@ class ApprovalService {
     }
   }
 
-  Future<void> rejectMaterialRequest(
-    String requestId, {
+  Future<void> rejectMaterialRequest(String requestId, {String? reason}) async {
+    await _rejectRequest(
+      requestId: requestId,
+      collectionPath: 'material_requests',
+      allowedActions: {
+        ApprovalAction.addMaterial.value,
+        ApprovalAction.withdrawMaterial.value,
+      },
+      reason: reason,
+    );
+  }
+
+  Future<void> rejectWorksheetRequest(String requestId,
+      {String? reason}) async {
+    await _rejectRequest(
+      requestId: requestId,
+      collectionPath: 'worksheet_requests',
+      allowedActions: {ApprovalAction.worksheet.value},
+      reason: reason,
+    );
+  }
+
+  Future<void> _rejectRequest({
+    required String requestId,
+    required String collectionPath,
+    required Set<String> allowedActions,
     String? reason,
   }) async {
     final approver = await getCurrentUser();
     final approverUid = _currentAuthUid;
-    final requestRef =
-        _firestore.collection('material_requests').doc(requestId);
+    final requestRef = _firestore.collection(collectionPath).doc(requestId);
     final requestSnapshot = await requestRef.get();
 
     if (!requestSnapshot.exists) {
@@ -351,6 +400,11 @@ class ApprovalService {
     }
 
     final request = requestSnapshot.data()!;
+    final action = request['action'] as String?;
+    if (action == null || !allowedActions.contains(action)) {
+      throw Exception('Unsupported or legacy request format.');
+    }
+
     final requesterRole =
         UserRole.fromString(request['requestedByRole'] ?? 'staff');
 
