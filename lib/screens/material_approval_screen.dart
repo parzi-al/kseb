@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../components/common/app_bar_builder.dart';
+import '../components/common/floating_bottom_nav.dart';
 import '../components/common/modern_dropdown.dart';
 import '../models/user_model.dart';
 import '../services/approval_service.dart';
@@ -29,6 +30,7 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
   String _historyStatusFilter = 'All';
   UserRole? _historyRoleFilter;
   DateTime? _historyDateFilter;
+  int _selectedTabIndex = 0;
 
   @override
   void initState() {
@@ -98,90 +100,86 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: buildAppBar(title: 'Material Approvals'),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  Container(
-                    color: AppColors.surface,
-                    child: TabBar(
-                      labelColor: AppColors.primary,
-                      unselectedLabelColor: AppColors.textSecondary,
-                      indicatorColor: AppColors.primary,
-                      tabs: const [
-                        Tab(text: 'Pending'),
-                        Tab(text: 'History'),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('material_requests')
-                          .where('action', whereIn: [
-                        ApprovalAction.addMaterial.value,
-                        ApprovalAction.withdrawMaterial.value,
-                      ]).snapshots(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Unable to load requests.',
-                              style: AppTypography.bodyStyle,
-                            ),
-                          );
-                        }
-
-                        if (!snapshot.hasData) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-
-                        final visibleRequests =
-                            _visibleRequests(snapshot.data!.docs);
-                        final pendingRequests = visibleRequests
-                            .where((doc) =>
-                                _requestData(doc)['status'] == 'Pending')
-                            .toList();
-                        final historyRequests = visibleRequests
-                            .where((doc) =>
-                                _requestData(doc)['status'] == 'Approved' ||
-                                _requestData(doc)['status'] == 'Rejected')
-                            .where(_matchesHistoryFilters)
-                            .toList();
-
-                        return TabBarView(
-                          children: [
-                            _buildRequestList(
-                              pendingRequests,
-                              emptyMessage:
-                                  'No pending requests for your approval.',
-                            ),
-                            Column(
-                              children: [
-                                _buildHistoryFilters(),
-                                Expanded(
-                                  child: _buildRequestList(
-                                    historyRequests,
-                                    emptyMessage:
-                                        'No approved or rejected requests match these filters.',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: buildAppBar(title: 'Material Approvals'),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _buildApprovalTabs(),
+      bottomNavigationBar: FloatingBottomNav(
+        selectedIndex: _selectedTabIndex,
+        onDestinationSelected: (index) {
+          setState(() => _selectedTabIndex = index);
+        },
+        destinations: const [
+          FloatingBottomNavDestination(
+            icon: Icons.pending_actions_outlined,
+            label: 'Pending',
+          ),
+          FloatingBottomNavDestination(
+            icon: Icons.history_rounded,
+            label: 'History',
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildApprovalTabs() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('material_requests')
+          .where('action', whereIn: [
+        ApprovalAction.addMaterial.value,
+        ApprovalAction.withdrawMaterial.value,
+      ]).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Unable to load requests.',
+              style: AppTypography.bodyStyle,
+            ),
+          );
+        }
+
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final visibleRequests = _visibleRequests(snapshot.data!.docs);
+        final pendingRequests = visibleRequests
+            .where((doc) => _requestData(doc)['status'] == 'Pending')
+            .toList();
+        final historyRequests = visibleRequests
+            .where((doc) =>
+                _requestData(doc)['status'] == 'Approved' ||
+                _requestData(doc)['status'] == 'Rejected')
+            .where(_matchesHistoryFilters)
+            .toList();
+
+        return IndexedStack(
+          index: _selectedTabIndex,
+          children: [
+            _buildRequestList(
+              pendingRequests,
+              emptyMessage: 'No pending requests for your approval.',
+            ),
+            Column(
+              children: [
+                _buildHistoryFilters(),
+                Expanded(
+                  child: _buildRequestList(
+                    historyRequests,
+                    emptyMessage:
+                        'No approved or rejected requests match these filters.',
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 

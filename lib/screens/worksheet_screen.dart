@@ -10,6 +10,7 @@ import '../utils/app_decorations.dart';
 import '../utils/app_typography.dart';
 import '../utils/app_toast.dart';
 import '../components/common/app_bar_builder.dart';
+import '../components/common/floating_bottom_nav.dart';
 import '../components/common/app_loading.dart';
 import '../components/common/modern_dropdown.dart';
 import '../components/common/skeleton_loader.dart';
@@ -25,6 +26,9 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   // --- State & Controllers ---
   final _formKey = GlobalKey<FormState>(); // Key for form validation
   bool _isLoading = false;
+  UserModel? _currentUser;
+  String? _busyRequestId;
+  int _selectedTabIndex = 0;
 
   // Form controllers to manage text field data
   final _projectNameController = TextEditingController();
@@ -248,24 +252,33 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
       }
 
       // Prepare the data to be saved
-      final worksheetData = {
+      final worksheetData = <String, dynamic>{
         'submittedByUid': user.uid,
         'submittedByEmail': user.email,
         'timestamp': FieldValue.serverTimestamp(),
         'office': _selectedOffice,
         'workType': _selectedWorkType,
-        'projectSelection': _selectedProject,
-        'projectName': _projectNameController.text,
         'permitBook': _permitBookController.text,
         'location': _locationController.text,
         'moreInfo': _moreInfoController.text,
         'photoUrl': _uploadedImageUrl, // URL from Firebase Storage
       };
 
-      // Add a new document with a generated ID to the 'worksheets' collection
-      await FirebaseFirestore.instance
-          .collection('worksheets')
-          .add(worksheetData);
+      if (_selectedWorkType == 'Project') {
+        worksheetData.addAll({
+          'projectSelection': _selectedProject,
+          'projectName': _projectNameController.text.trim(),
+        });
+      }
+
+      await _approvalService.submitRequest(
+        action: ApprovalAction.worksheet,
+        payload: {
+          'worksheetType': _selectedWorkType,
+          'worksheetTitle': _worksheetTitle,
+          'worksheetData': worksheetData,
+        },
+      );
 
       if (mounted) {
         AppToast.showSuccess(context, 'Worksheet submitted successfully! 📄');
@@ -290,126 +303,485 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: buildAppBar(title: 'Daily Worksheet'),
-      body: _isLoading
-          ? const WorksheetSkeleton()
-          : Column(
+      body: IndexedStack(
+        index: _selectedTabIndex,
+        children: [
+          _isLoading ? const WorksheetSkeleton() : _buildSubmitTab(),
+          _buildMyStatusTab(),
+          _buildApprovalsTab(),
+        ],
+      ),
+      bottomNavigationBar: FloatingBottomNav(
+        selectedIndex: _selectedTabIndex,
+        onDestinationSelected: (index) {
+          setState(() => _selectedTabIndex = index);
+        },
+        destinations: const [
+          FloatingBottomNavDestination(
+            icon: Icons.edit_document,
+            label: 'Submit',
+          ),
+          FloatingBottomNavDestination(
+            icon: Icons.fact_check_outlined,
+            label: 'Status',
+          ),
+          FloatingBottomNavDestination(
+            icon: Icons.verified_outlined,
+            label: 'Approvals',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubmitTab() {
+    return Column(
+      children: [
+        // Modern Header Section
+        Container(
+          width: double.infinity,
+          color: AppColors.surface,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+                context.responsivePadding(AppSpacing.xl),
+                context.responsivePadding(AppSpacing.xl),
+                context.responsivePadding(AppSpacing.xl),
+                context.responsivePadding(AppSpacing.xxl)),
+            child: Column(
               children: [
-                // Modern Header Section
                 Container(
-                  width: double.infinity,
-                  color: AppColors.surface,
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                        context.responsivePadding(AppSpacing.xl),
-                        context.responsivePadding(AppSpacing.xl),
-                        context.responsivePadding(AppSpacing.xl),
-                        context.responsivePadding(AppSpacing.xxl)),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryWithLowOpacity,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.assignment_rounded,
+                    size: 48,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.base),
+                Text(
+                  'Daily Worksheet',
+                  style: TextStyle(
+                    fontSize: AppTypography.fontSize2XL,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'Submit your daily work report',
+                  style: TextStyle(
+                    fontSize: AppTypography.fontSizeLG,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Form Content
+        Expanded(
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildProjectDetailsCard(),
+                  SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
+                  _buildDocumentationCard(),
+                  SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
+                  // Submit Button
+                  Container(
+                    width: double.infinity,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.primary, AppColors.primaryLight],
+                      ),
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusDefault),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _submitWorksheet,
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusDefault),
+                        child: Center(
+                          child: Text(
+                            'SUBMIT WORKSHEET',
+                            style: TextStyle(
+                              color: AppColors.textOnPrimary,
+                              fontSize: AppTypography.fontSizeBase,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMyStatusTab() {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUid == null) {
+      return _buildMessage('Login required to view worksheet status.');
+    }
+
+    return _buildWorksheetRequestStream(
+      stream: FirebaseFirestore.instance
+          .collection('material_requests')
+          .where('action', isEqualTo: ApprovalAction.worksheet.value)
+          .where('requestedBy', isEqualTo: currentUid)
+          .snapshots(),
+      filter: (data) => data['requestedBy'] == currentUid,
+      emptyMessage: 'No worksheet requests submitted yet.',
+      showActions: false,
+    );
+  }
+
+  Widget _buildApprovalsTab() {
+    return _buildWorksheetRequestStream(
+      stream: FirebaseFirestore.instance
+          .collection('material_requests')
+          .where('action', isEqualTo: ApprovalAction.worksheet.value)
+          .snapshots(),
+      filter: (data) {
+        final requesterRole =
+            UserRole.fromString(data['requestedByRole'] ?? 'staff');
+        return _currentUser?.role.canApproveRequestFrom(requesterRole) ?? false;
+      },
+      emptyMessage: 'No worksheet requests for your approval.',
+      showActions: true,
+    );
+  }
+
+  Widget _buildWorksheetRequestStream({
+    required Stream<QuerySnapshot> stream,
+    required bool Function(Map<String, dynamic>) filter,
+    required String emptyMessage,
+    required bool showActions,
+  }) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: stream,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return _buildMessage('Unable to load worksheet requests.');
+        }
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final docs = snapshot.data!.docs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return filter(data);
+        }).toList()
+          ..sort((a, b) {
+            final aData = a.data() as Map<String, dynamic>;
+            final bData = b.data() as Map<String, dynamic>;
+            final aTime = aData['requestTimestamp'];
+            final bTime = bData['requestTimestamp'];
+            if (aTime is Timestamp && bTime is Timestamp) {
+              return bTime.compareTo(aTime);
+            }
+            return 0;
+          });
+
+        if (docs.isEmpty) return _buildMessage(emptyMessage);
+
+        return ListView.separated(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          itemCount: docs.length,
+          separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.base),
+          itemBuilder: (context, index) {
+            final doc = docs[index];
+            return _buildWorksheetRequestCard(
+              doc.id,
+              doc.data() as Map<String, dynamic>,
+              showActions: showActions,
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildWorksheetRequestCard(
+    String requestId,
+    Map<String, dynamic> data, {
+    required bool showActions,
+  }) {
+    final worksheetData =
+        Map<String, dynamic>.from(data['worksheetData'] ?? {});
+    final status = data['status'] ?? 'Pending';
+    final isPending = status == 'Pending';
+    final isRejected = status == 'Rejected';
+    final isBusy = _busyRequestId == requestId;
+    final statusColor = isPending
+        ? AppColors.warning
+        : isRejected
+            ? AppColors.error
+            : AppColors.success;
+
+    return Container(
+      decoration: AppDecorations.modernCardDecoration,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  data['worksheetTitle'] ?? 'Worksheet',
+                  style: AppTypography.subheadingStyle,
+                ),
+              ),
+              _buildStatusChip(status.toString(), statusColor),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            '${data['worksheetType'] ?? worksheetData['workType'] ?? 'Daily'} • ${worksheetData['office'] ?? 'Office not set'}',
+            style: AppTypography.bodyStyle,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Raised by ${data['requestedByName'] ?? data['requestedByEmail'] ?? 'User'}',
+            style: AppTypography.captionStyle.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          if (!isPending && data['approvedByEmail'] != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              '${isRejected ? 'Rejected' : 'Approved'} by ${data['approvedByEmail']}',
+              style: AppTypography.captionStyle.copyWith(
+                color: statusColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.base),
+          _buildWorksheetActions(
+            requestId: requestId,
+            data: data,
+            showApprovalActions: showActions && isPending,
+            isBusy: isBusy,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWorksheetActions({
+    required String requestId,
+    required Map<String, dynamic> data,
+    required bool showApprovalActions,
+    required bool isBusy,
+  }) {
+    if (!showApprovalActions) {
+      return SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: () => _showWorksheetDetails(data),
+          icon: const Icon(Icons.visibility_outlined),
+          label: const Text('View Details'),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => _showWorksheetDetails(data),
+            icon: const Icon(Icons.visibility_outlined),
+            label: const Text('View Details'),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.base),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: isBusy ? null : () => _rejectWorksheet(requestId),
+                child: const Text('Reject'),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.base),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: isBusy ? null : () => _approveWorksheet(requestId),
+                child: Text(isBusy ? 'Please wait...' : 'Approve'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusChip(String status, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+      ),
+      child: Text(
+        status,
+        style: AppTypography.captionStyle.copyWith(
+          color: color,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessage(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: AppTypography.bodyStyle.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _approveWorksheet(String requestId) async {
+    setState(() => _busyRequestId = requestId);
+    try {
+      await _approvalService.approveMaterialRequest(requestId);
+      if (mounted) AppToast.showSuccess(context, 'Worksheet approved.');
+    } catch (e) {
+      if (mounted) AppErrorHandler.handleError(context, e);
+    } finally {
+      if (mounted) setState(() => _busyRequestId = null);
+    }
+  }
+
+  Future<void> _rejectWorksheet(String requestId) async {
+    setState(() => _busyRequestId = requestId);
+    try {
+      await _approvalService.rejectMaterialRequest(requestId);
+      if (mounted) AppToast.showSuccess(context, 'Worksheet rejected.');
+    } catch (e) {
+      if (mounted) AppErrorHandler.handleError(context, e);
+    } finally {
+      if (mounted) setState(() => _busyRequestId = null);
+    }
+  }
+
+  void _showWorksheetDetails(Map<String, dynamic> data) {
+    final worksheetData =
+        Map<String, dynamic>.from(data['worksheetData'] ?? {});
+    final worksheetType =
+        _detailValue(data['worksheetType'] ?? worksheetData['workType']);
+    final fields = <MapEntry<String, String>>[
+      MapEntry('Type', worksheetType),
+      MapEntry('Office', _detailValue(worksheetData['office'])),
+      if (worksheetType == 'Project') ...[
+        MapEntry('Project', _detailValue(worksheetData['projectSelection'])),
+        MapEntry('Project Name', _detailValue(worksheetData['projectName'])),
+      ],
+      MapEntry('Permit Book', _detailValue(worksheetData['permitBook'])),
+      MapEntry('Location', _detailValue(worksheetData['location'])),
+      if (_hasDetailValue(worksheetData['moreInfo']))
+        MapEntry('Notes', _detailValue(worksheetData['moreInfo'])),
+      if (_hasDetailValue(worksheetData['photoUrl']))
+        MapEntry('Photo URL', _detailValue(worksheetData['photoUrl'])),
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.7,
+          maxChildSize: 0.9,
+          minChildSize: 0.4,
+          builder: (context, controller) {
+            return ListView(
+              controller: controller,
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              children: [
+                Text(
+                  data['worksheetTitle'] ?? 'Worksheet Details',
+                  style: AppTypography.titleStyle,
+                ),
+                const SizedBox(height: AppSpacing.base),
+                ...fields.map(
+                  (field) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.base),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(AppSpacing.lg),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryWithLowOpacity,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.assignment_rounded,
-                            size: 48,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.base),
                         Text(
-                          'Daily Worksheet',
-                          style: TextStyle(
-                            fontSize: AppTypography.fontSize2XL,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          'Submit your daily work report',
-                          style: TextStyle(
-                            fontSize: AppTypography.fontSizeLG,
+                          field.key,
+                          style: AppTypography.captionStyle.copyWith(
                             color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w500,
                           ),
-                          textAlign: TextAlign.center,
                         ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(field.value, style: AppTypography.bodyStyle),
                       ],
                     ),
                   ),
                 ),
-                // Form Content
-                Expanded(
-                  child: Form(
-                    key: _formKey,
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.all(
-                          context.responsivePadding(AppSpacing.lg)),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildProjectDetailsCard(),
-                          SizedBox(
-                              height: context.responsiveSpacing(AppSpacing.xl)),
-                          _buildDocumentationCard(),
-                          SizedBox(
-                              height:
-                                  context.responsiveSpacing(AppSpacing.xxl)),
-                          // Submit Button
-                          Container(
-                            width: double.infinity,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppColors.primary,
-                                  AppColors.primaryLight
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                  AppSpacing.radiusDefault),
-                              boxShadow: [
-                                BoxShadow(
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.3),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: _submitWorksheet,
-                                borderRadius: BorderRadius.circular(
-                                    AppSpacing.radiusDefault),
-                                child: Center(
-                                  child: Text(
-                                    'SUBMIT WORKSHEET',
-                                    style: TextStyle(
-                                      color: AppColors.textOnPrimary,
-                                      fontSize: AppTypography.fontSizeBase,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1.2,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.xl),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
               ],
-            ),
+            );
+          },
+        );
+      },
     );
+  }
+
+  bool _hasDetailValue(Object? value) =>
+      value != null && value.toString().trim().isNotEmpty;
+
+  String _detailValue(Object? value) {
+    final text = value?.toString().trim() ?? '';
+    return text.isEmpty ? '-' : text;
   }
 
   // Helper widget for a section header
