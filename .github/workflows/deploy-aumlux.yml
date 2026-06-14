@@ -3,7 +3,7 @@ name: Deploy Aumlux
 on:
   push:
     branches:
-      - preprod/v3
+      - releases
   workflow_dispatch:
 
 permissions:
