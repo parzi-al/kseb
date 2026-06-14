@@ -1,0 +1,139 @@
+name: Deploy Aumlux
+
+on:
+  push:
+    branches:
+      - preprod/v3
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Build web app
+        run: flutter build web --release --base-href /
+
+      - name: Add APK download files
+        shell: bash
+        run: |
+          mkdir -p build/web/downloads
+          cp build/app/outputs/flutter-apk/app-release.apk build/web/downloads/aumlux.apk
+          cat > build/web/download-apk.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Aumlux APK Download</title>
+            <style>
+              :root {
+                color-scheme: light;
+                font-family: Arial, sans-serif;
+                background: #f5f7fb;
+                color: #172033;
+              }
+              body {
+                margin: 0;
+                min-height: 100vh;
+                display: grid;
+                place-items: center;
+                padding: 24px;
+              }
+              main {
+                width: min(420px, 100%);
+                background: #ffffff;
+                border: 1px solid #d9e1ee;
+                border-radius: 8px;
+                padding: 24px;
+                box-shadow: 0 12px 40px rgba(23, 32, 51, 0.08);
+              }
+              h1 {
+                margin: 0 0 8px;
+                font-size: 24px;
+              }
+              p {
+                margin: 0 0 20px;
+                line-height: 1.5;
+                color: #526070;
+              }
+              a.button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 44px;
+                padding: 0 18px;
+                border-radius: 6px;
+                background: #ff6b35;
+                color: white;
+                text-decoration: none;
+                font-weight: 700;
+              }
+              a.secondary {
+                display: inline-block;
+                margin-left: 12px;
+                color: #2455a7;
+              }
+            </style>
+          </head>
+          <body>
+            <main>
+              <h1>Aumlux Android App</h1>
+              <p>Download the latest release APK, or open the web version for a quick preview.</p>
+              <a class="button" href="/downloads/aumlux.apk">Download APK</a>
+              <a class="secondary" href="/">Open web app</a>
+            </main>
+          </body>
+          </html>
+          HTML
+          echo "aumlux.simplewebsite.in" > build/web/CNAME
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
