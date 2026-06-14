@@ -42,7 +42,7 @@ jobs:
         run: flutter build apk --release
 
       - name: Build web app
-        run: flutter build web --release --base-href /
+        run: flutter build web --release --base-href /kseb/
 
       - name: Add APK download files
         shell: bash
