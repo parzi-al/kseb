@@ -14,6 +14,8 @@ import '../components/common/floating_bottom_nav.dart';
 import '../components/common/app_loading.dart';
 import '../components/common/modern_dropdown.dart';
 import '../components/common/skeleton_loader.dart';
+import '../models/user_model.dart';
+import '../services/approval_service.dart';
 
 class WorksheetScreen extends StatefulWidget {
   const WorksheetScreen({super.key});
@@ -25,6 +27,7 @@ class WorksheetScreen extends StatefulWidget {
 class _WorksheetScreenState extends State<WorksheetScreen> {
   // --- State & Controllers ---
   final _formKey = GlobalKey<FormState>(); // Key for form validation
+  final ApprovalService _approvalService = ApprovalService();
   bool _isLoading = false;
   UserModel? _currentUser;
   String? _busyRequestId;
@@ -51,6 +54,12 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   final ImagePicker _picker = ImagePicker();
 
   @override
+  void initState() {
+    super.initState();
+    _loadCurrentUser();
+  }
+
+  @override
   void dispose() {
     // Clean up the controllers when the widget is disposed.
     _projectNameController.dispose();
@@ -58,6 +67,15 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
     _locationController.dispose();
     _moreInfoController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    try {
+      final user = await _approvalService.getCurrentUser();
+      if (mounted) setState(() => _currentUser = user);
+    } catch (_) {
+      // Submit flow still handles missing user explicitly.
+    }
   }
 
   // --- Functions ---
@@ -296,6 +314,14 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
         });
       }
     }
+  }
+
+  String get _worksheetTitle {
+    if (_selectedWorkType == 'Project' &&
+        _projectNameController.text.trim().isNotEmpty) {
+      return _projectNameController.text.trim();
+    }
+    return '${_selectedWorkType ?? 'Daily'} Worksheet';
   }
 
   @override

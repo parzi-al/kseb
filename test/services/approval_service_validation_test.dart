@@ -126,11 +126,45 @@ void main() {
       );
     });
 
-    test('rejects worksheet approval requests until schema is implemented', () {
+    test('accepts valid worksheet approval payloads', () {
+      for (final type in ['Project', 'Calamity', 'Maintenance']) {
+        final worksheetData = {
+          'office': 'Section Office',
+          'workType': type,
+          'permitBook': 'PB-1',
+          'location': 'Feeder 1',
+          if (type == 'Project') ...{
+            'projectSelection': 'Project X',
+            'projectName': 'Line Upgrade',
+          },
+        };
+
+        expect(
+          () => ApprovalService.validateRequestPayload(
+            action: ApprovalAction.worksheet,
+            payload: {
+              'worksheetType': type,
+              'worksheetTitle': '$type Worksheet',
+              'worksheetData': worksheetData,
+            },
+          ),
+          returnsNormally,
+        );
+      }
+    });
+
+    test('rejects worksheet approval requests without a valid type', () {
       expect(
         () => ApprovalService.validateRequestPayload(
           action: ApprovalAction.worksheet,
-          payload: const {},
+          payload: const {
+            'worksheetData': {
+              'office': 'Section Office',
+              'workType': 'Other',
+              'permitBook': 'PB-1',
+              'location': 'Feeder 1',
+            },
+          },
         ),
         throwsException,
       );

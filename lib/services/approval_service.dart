@@ -104,7 +104,8 @@ class ApprovalService {
         _validateWithdrawMaterialPayload(payload);
         return;
       case ApprovalAction.worksheet:
-        throw Exception('Worksheet approval requests are not available yet.');
+        _validateWorksheetPayload(payload);
+        return;
     }
   }
 
@@ -165,6 +166,36 @@ class ApprovalService {
     }
   }
 
+  static void _validateWorksheetPayload(Map<String, dynamic> payload) {
+    final worksheetData = payload['worksheetData'];
+    if (worksheetData is! Map) {
+      throw Exception('Worksheet details are required.');
+    }
+
+    final normalizedWorksheetData = Map<String, dynamic>.from(worksheetData);
+    final workType = _requiredString(
+      normalizedWorksheetData['workType'],
+      'Worksheet type',
+    );
+
+    if (!['Project', 'Calamity', 'Maintenance'].contains(workType)) {
+      throw Exception(
+          'Worksheet type must be Project, Calamity, or Maintenance.');
+    }
+
+    _requiredString(normalizedWorksheetData['office'], 'Office');
+    _requiredString(normalizedWorksheetData['location'], 'Location');
+    _requiredString(normalizedWorksheetData['permitBook'], 'Permit book');
+
+    if (workType == 'Project') {
+      _requiredString(
+        normalizedWorksheetData['projectSelection'],
+        'Project selection',
+      );
+      _requiredString(normalizedWorksheetData['projectName'], 'Project name');
+    }
+  }
+
   static String _requiredString(Object? value, String label) {
     if (value is! String || value.trim().isEmpty) {
       throw Exception('$label is required.');
@@ -208,7 +239,8 @@ class ApprovalService {
 
       final action = request['action'] as String?;
       if (action != ApprovalAction.addMaterial.value &&
-          action != ApprovalAction.withdrawMaterial.value) {
+          action != ApprovalAction.withdrawMaterial.value &&
+          action != ApprovalAction.worksheet.value) {
         return 'Unsupported or legacy request format.';
       }
 
@@ -232,7 +264,7 @@ class ApprovalService {
           'lastUpdated': FieldValue.serverTimestamp(),
           'status': 'Available',
         });
-      } else {
+      } else if (action == ApprovalAction.withdrawMaterial.value) {
         final materialId = request['materialId'] as String?;
         if (materialId == null || materialId.isEmpty) {
           return 'Withdraw request is missing material reference.';
@@ -260,6 +292,30 @@ class ApprovalService {
           'quantity': currentQuantity - requestedQuantity,
           'lastUpdated': FieldValue.serverTimestamp(),
           'lastApprovedRequestId': requestId,
+        });
+      } else {
+        final rawWorksheetData = request['worksheetData'];
+        if (rawWorksheetData is! Map) {
+          return 'Worksheet request is missing worksheet details.';
+        }
+
+        final worksheetData = Map<String, dynamic>.from(rawWorksheetData);
+        final worksheetRef = _firestore.collection('worksheets').doc();
+
+        transaction.set(worksheetRef, {
+          ...worksheetData,
+          'approvedRequestId': requestId,
+          'createdBy': request['requestedBy'],
+          'createdByEmail': request['requestedByEmail'],
+          'createdByName': request['requestedByName'],
+          'createdByRole': request['requestedByRole'],
+          'status': 'Approved',
+          'approvalStatus': 'Approved',
+          'approvedBy': approverUid,
+          'approvedByEmail': approver.email,
+          'approvedByRole': approver.role.name,
+          'approvedAt': FieldValue.serverTimestamp(),
+          'createdAt': FieldValue.serverTimestamp(),
         });
       }
 

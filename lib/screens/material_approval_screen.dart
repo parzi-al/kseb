@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../components/common/app_bar_builder.dart';
@@ -117,6 +118,10 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
             label: 'Pending',
           ),
           FloatingBottomNavDestination(
+            icon: Icons.fact_check_outlined,
+            label: 'Status',
+          ),
+          FloatingBottomNavDestination(
             icon: Icons.history_rounded,
             label: 'History',
           ),
@@ -151,6 +156,24 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
         final pendingRequests = visibleRequests
             .where((doc) => _requestData(doc)['status'] == 'Pending')
             .toList();
+        final currentUid = FirebaseAuth.instance.currentUser?.uid;
+        final statusRequests = snapshot.data!.docs.where((doc) {
+          final data = _requestData(doc);
+          final action = data['action'] as String?;
+          final status = data['status'] as String?;
+          final isSupportedAction =
+              action == ApprovalAction.addMaterial.value ||
+                  action == ApprovalAction.withdrawMaterial.value;
+          final isVisibleStatus = status == 'Pending' ||
+              status == 'Approved' ||
+              status == 'Rejected';
+
+          return currentUid != null &&
+              isSupportedAction &&
+              isVisibleStatus &&
+              data['requestedBy'] == currentUid;
+        }).toList()
+          ..sort(_compareRequestTime);
         final historyRequests = visibleRequests
             .where((doc) =>
                 _requestData(doc)['status'] == 'Approved' ||
@@ -164,6 +187,13 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
             _buildRequestList(
               pendingRequests,
               emptyMessage: 'No pending requests for your approval.',
+            ),
+            _buildRequestList(
+              statusRequests,
+              emptyMessage: currentUid == null
+                  ? 'Login required to view material request status.'
+                  : 'No material requests submitted yet.',
+              showActions: false,
             ),
             Column(
               children: [
@@ -219,15 +249,21 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
         return aStatusOrder.compareTo(bStatusOrder);
       }
 
-      final aTime = aData['requestTimestamp'];
-      final bTime = bData['requestTimestamp'];
-      if (aTime is Timestamp && bTime is Timestamp) {
-        return bTime.compareTo(aTime);
-      }
-      return 0;
+      return _compareRequestTime(a, b);
     });
 
     return requests;
+  }
+
+  int _compareRequestTime(QueryDocumentSnapshot a, QueryDocumentSnapshot b) {
+    final aData = _requestData(a);
+    final bData = _requestData(b);
+    final aTime = aData['requestTimestamp'];
+    final bTime = bData['requestTimestamp'];
+    if (aTime is Timestamp && bTime is Timestamp) {
+      return bTime.compareTo(aTime);
+    }
+    return 0;
   }
 
   bool _matchesHistoryFilters(QueryDocumentSnapshot doc) {
@@ -474,6 +510,7 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
   Widget _buildRequestList(
     List<QueryDocumentSnapshot> requests, {
     required String emptyMessage,
+    bool showActions = true,
   }) {
     if (requests.isEmpty) {
       return Center(
@@ -494,14 +531,22 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
       padding: const EdgeInsets.all(AppSpacing.lg),
       itemBuilder: (context, index) {
         final doc = requests[index];
-        return _buildRequestCard(doc.id, _requestData(doc));
+        return _buildRequestCard(
+          doc.id,
+          _requestData(doc),
+          showActions: showActions,
+        );
       },
       separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.base),
       itemCount: requests.length,
     );
   }
 
-  Widget _buildRequestCard(String requestId, Map<String, dynamic> data) {
+  Widget _buildRequestCard(
+    String requestId,
+    Map<String, dynamic> data, {
+    required bool showActions,
+  }) {
     final action = data['action'] == ApprovalAction.addMaterial.value
         ? 'Add Material'
         : 'Withdraw Material';
@@ -578,7 +623,7 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
               ),
             ),
           ],
-          if (isPending) ...[
+          if (showActions && isPending) ...[
             const SizedBox(height: AppSpacing.base),
             Row(
               children: [
