@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/attendance_model.dart';
-import '../utils/app_constants.dart';
 
 /// Thrown when attendance has already been marked for the current day.
 class AttendanceAlreadyMarkedException implements Exception {
@@ -228,16 +227,32 @@ class AttendanceService {
   ///
   /// This is the method [AttendanceHistoryScreen] MUST use instead of direct
   /// Firestore queries.
-  Future<List<AttendanceModel>> getAttendanceHistory(String userId) async {
-    final snapshot = await _firestore
+  Future<List<AttendanceModel>> getAttendanceHistory(
+    String userId, {
+    int? year,
+    int? month,
+  }) async {
+    Query<Map<String, dynamic>> query = _firestore
         .collection(_attendanceCollection)
-        .where('userId', isEqualTo: userId)
-        .orderBy('date', descending: true)
-        .get();
+        .where('userId', isEqualTo: userId);
 
-    return snapshot.docs
-        .map((doc) => AttendanceModel.fromFirestore(doc))
-        .toList();
+    if (year != null) {
+      final start = DateTime(year, month ?? 1, 1);
+      final end = month != null
+          ? DateTime(year, month + 1, 1)
+          : DateTime(year + 1, 1, 1);
+      query = query
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+          .where('date', isLessThan: Timestamp.fromDate(end));
+    }
+
+    final snapshot = await query.get();
+
+    final records =
+        snapshot.docs.map((doc) => AttendanceModel.fromFirestore(doc)).toList();
+
+    records.sort((a, b) => b.date.compareTo(a.date));
+    return records;
   }
 
   /// Check if attendance is marked for today
@@ -257,13 +272,17 @@ class AttendanceService {
 
   /// Get attendance statistics for a user.
   ///
-  /// Uses [AttendanceConstants.fiscalYearStartMonth] to determine year
-  /// boundaries — configurable between calendar year and fiscal year.
-  Future<Map<String, dynamic>> getUserAttendanceStats(String userId) async {
+  /// [referenceDate] controls the month/year summary window. Yearly stats use
+  /// the calendar year containing [referenceDate] (Jan 1 to Dec 31).
+  Future<Map<String, dynamic>> getUserAttendanceStats(
+    String userId, {
+    DateTime? referenceDate,
+  }) async {
     final now = DateTime.now();
-    final currentMonth = DateTime(now.year, now.month, 1);
-    final fyStart = AttendanceConstants.fiscalYearStart(now);
-    final fyEnd = AttendanceConstants.fiscalYearEnd(now);
+    final reference = referenceDate ?? now;
+    final currentMonth = DateTime(reference.year, reference.month, 1);
+    final yearStart = DateTime(reference.year, 1, 1);
+    final yearEnd = DateTime(reference.year + 1, 1, 1);
 
     // Get all attendance records for the user (single query)
     final allSnapshot = await _firestore
@@ -272,32 +291,32 @@ class AttendanceService {
         .get();
 
     // Filter in code to avoid multiple indexes
-    final allDocs = allSnapshot.docs;
+    final allRecords = allSnapshot.docs
+        .map((doc) => AttendanceModel.fromFirestore(doc))
+        .toList();
 
     // Count this month
-    final monthEnd = DateTime(now.year, now.month + 1, 1);
-    final thisMonth = allDocs.where((doc) {
-      final date = (doc.data()['date'] as Timestamp).toDate();
-      final status = doc.data()['status'];
-      return status == 'present' &&
+    final monthEnd = DateTime(reference.year, reference.month + 1, 1);
+    final thisMonth = allRecords.where((record) {
+      final date = record.date;
+      return record.status == 'present' &&
           date.isAfter(currentMonth.subtract(const Duration(days: 1))) &&
           date.isBefore(monthEnd);
     }).length;
 
-    // Count this fiscal/calendar year
-    final thisYear = allDocs.where((doc) {
-      final date = (doc.data()['date'] as Timestamp).toDate();
-      final status = doc.data()['status'];
-      return status == 'present' &&
-          date.isAfter(fyStart.subtract(const Duration(days: 1))) &&
-          date.isBefore(fyEnd);
+    // Count this calendar year
+    final thisYear = allRecords.where((record) {
+      final date = record.date;
+      return record.status == 'present' &&
+          date.isAfter(yearStart.subtract(const Duration(days: 1))) &&
+          date.isBefore(yearEnd);
     }).length;
 
     // Check if marked today
     final today = DateTime(now.year, now.month, now.day);
     final todayEnd = today.add(const Duration(days: 1));
-    final isMarkedToday = allDocs.any((doc) {
-      final date = (doc.data()['date'] as Timestamp).toDate();
+    final isMarkedToday = allRecords.any((record) {
+      final date = record.date;
       return date.isAfter(today.subtract(const Duration(days: 1))) &&
           date.isBefore(todayEnd);
     });

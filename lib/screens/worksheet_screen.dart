@@ -24,7 +24,8 @@ class WorksheetScreen extends StatefulWidget {
   State<WorksheetScreen> createState() => _WorksheetScreenState();
 }
 
-class _WorksheetScreenState extends State<WorksheetScreen> {
+class _WorksheetScreenState extends State<WorksheetScreen>
+    with AutomaticKeepAliveClientMixin {
   // --- State & Controllers ---
   final _formKey = GlobalKey<FormState>(); // Key for form validation
   final ApprovalService _approvalService = ApprovalService();
@@ -326,6 +327,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: buildAppBar(title: 'Daily Worksheet'),
@@ -346,6 +348,9 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 
   Widget _buildWorksheetTabs() {
     return AppSegmentedTabs(

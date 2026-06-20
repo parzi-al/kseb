@@ -34,7 +34,10 @@ class WorkerHomeScreen extends StatefulWidget {
 }
 
 class _WorkerHomeScreenState extends State<WorkerHomeScreen>
-    with TickerProviderStateMixin, WidgetsBindingObserver {
+    with
+        TickerProviderStateMixin,
+        WidgetsBindingObserver,
+        AutomaticKeepAliveClientMixin {
   final UserService _userService = UserService();
   late final AuthService _authService;
 
@@ -300,6 +303,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     String greeting = '';
 
     if (isBirthday) {
@@ -720,6 +724,9 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
             ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 
   bool _canShowStaffDashboard() {
     final role = UserRole.fromString(workerRole);
