@@ -7,8 +7,8 @@ import '../services/idle_timeout_service.dart';
 import '../utils/animation_constants.dart';
 import '../utils/firebase_availability.dart';
 import 'login_screen.dart';
+import 'main_shell.dart';
 import 'splash_screen.dart';
-import 'worker_home_screen.dart';
 
 /// Root auth-driven navigation widget (FR-009).
 ///
@@ -168,7 +168,7 @@ class _AuthGateState extends State<AuthGate> {
         if (snapshot.hasData && snapshot.data != null) {
           return Listener(
             onPointerDown: (_) => _onUserInteraction(),
-            child: const WorkerHomeScreen(),
+            child: MainShell(authService: _authService),
           );
         }
 

@@ -33,4 +33,23 @@ void main() {
       );
     });
   });
+
+  group('Firestore rules attendance safeguards', () {
+    test('attendance create validates document shape before role checks', () {
+      expect(rules, contains('function isValidAttendanceCreate()'));
+      expect(rules, contains('isValidAttendanceCreate()'));
+      expect(
+          rules,
+          contains(
+              "request.resource.data.status in ['present', 'absent', 'leave']"));
+    });
+
+    test('supervisors and above can create team attendance records', () {
+      expect(rules, contains('isSupervisorOrAbove()'));
+      expect(
+        rules,
+        contains('request.resource.data.userId == request.auth.uid'),
+      );
+    });
+  });
 }

@@ -3,9 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
-import 'attendance_screen.dart';
-import 'material_management_screen.dart';
-import 'worksheet_screen.dart';
 import 'staff_management_screen.dart';
 import 'bonus_management_screen.dart';
 import 'bonus_history_screen.dart';
@@ -15,6 +12,7 @@ import '../utils/app_typography.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_decorations.dart';
 import '../utils/app_toast.dart';
+import '../utils/feature_flags.dart';
 import '../utils/page_transitions.dart';
 import '../services/user_service.dart';
 import '../services/auth_service.dart';
@@ -689,7 +687,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                               currentUserRole: UserRole.fromString(workerRole),
                             ),
                           ),
-                        if (isCooOrDirector)
+                        if (FeatureFlags.enableBonusModule && isCooOrDirector)
                           _buildDashboardCard(
                             context,
                             icon: Icons.card_giftcard_rounded,
@@ -698,7 +696,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                 Colors.purple, // DS-EXCEPTION: decorative color
                             destination: const BonusManagementScreen(),
                           ),
-                        if (!isCooOrDirector)
+                        if (FeatureFlags.enableBonusModule && !isCooOrDirector)
                           _buildDashboardCard(
                             context,
                             icon: Icons.history_rounded,
@@ -707,27 +705,6 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                                 .deepPurple, // DS-EXCEPTION: decorative color
                             destination: const BonusHistoryScreen(),
                           ),
-                        _buildDashboardCard(
-                          context,
-                          icon: Icons.fingerprint,
-                          label: 'Attendance',
-                          color: AppColors.dashboardCardColors[0],
-                          destination: const AttendanceScreen(),
-                        ),
-                        _buildDashboardCard(
-                          context,
-                          icon: Icons.assignment_rounded,
-                          label: 'Daily Worksheet',
-                          color: AppColors.dashboardCardColors[1],
-                          destination: const WorksheetScreen(),
-                        ),
-                        _buildDashboardCard(
-                          context,
-                          icon: Icons.inventory_2_rounded,
-                          label: 'Material Request',
-                          color: AppColors.dashboardCardColors[2],
-                          destination: const MaterialManagementScreen(),
-                        ),
                       ],
                     ),
                   ),

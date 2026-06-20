@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../components/common/app_bar_builder.dart';
-import '../components/common/floating_bottom_nav.dart';
 import '../components/common/modern_dropdown.dart';
 import '../models/user_model.dart';
 import '../services/approval_service.dart';
@@ -106,26 +105,57 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
       appBar: buildAppBar(title: 'Material Approvals'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _buildApprovalTabs(),
-      bottomNavigationBar: FloatingBottomNav(
-        selectedIndex: _selectedTabIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedTabIndex = index);
-        },
-        destinations: const [
-          FloatingBottomNavDestination(
-            icon: Icons.pending_actions_outlined,
-            label: 'Pending',
+          : Column(
+              children: [
+                _buildMaterialApprovalTabs(),
+                Expanded(child: _buildApprovalTabs()),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildMaterialApprovalTabs() {
+    return Container(
+      width: double.infinity,
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        AppSpacing.md,
+      ),
+      child: SegmentedButton<int>(
+        segments: const [
+          ButtonSegment(
+            value: 0,
+            icon: Icon(Icons.pending_actions_outlined),
+            label: Text('Pending'),
           ),
-          FloatingBottomNavDestination(
-            icon: Icons.fact_check_outlined,
-            label: 'Status',
+          ButtonSegment(
+            value: 1,
+            icon: Icon(Icons.fact_check_outlined),
+            label: Text('Status'),
           ),
-          FloatingBottomNavDestination(
-            icon: Icons.history_rounded,
-            label: 'History',
+          ButtonSegment(
+            value: 2,
+            icon: Icon(Icons.history_rounded),
+            label: Text('History'),
           ),
         ],
+        selected: {_selectedTabIndex},
+        onSelectionChanged: (selection) {
+          setState(() => _selectedTabIndex = selection.first);
+        },
+        showSelectedIcon: false,
+        style: ButtonStyle(
+          visualDensity: VisualDensity.compact,
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            return states.contains(WidgetState.selected)
+                ? AppColors.primary
+                : AppColors.textSecondary;
+          }),
+          textStyle: WidgetStatePropertyAll(AppTypography.captionStyle),
+        ),
       ),
     );
   }
