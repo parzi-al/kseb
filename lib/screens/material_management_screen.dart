@@ -28,9 +28,9 @@ class MaterialManagementScreen extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
                   context.responsivePadding(AppSpacing.xl),
-                  context.responsivePadding(AppSpacing.page),
                   context.responsivePadding(AppSpacing.xl),
-                  context.responsivePadding(AppSpacing.page),
+                  context.responsivePadding(AppSpacing.xl),
+                  context.responsivePadding(AppSpacing.xl),
                 ),
                 child: Column(
                   children: [
@@ -42,14 +42,14 @@ class MaterialManagementScreen extends StatelessWidget {
                       ),
                       child: Icon(
                         Icons.inventory_2_rounded,
-                        size: 48,
+                        size: AppTypography.iconSizeHero,
                         color: AppColors.primary,
                       ),
                     ),
-                    SizedBox(height: AppSpacing.lg),
+                    SizedBox(height: AppSpacing.base),
                     Text(
                       'Material Management',
-                      style: AppTypography.displayStyle,
+                      style: AppTypography.titleStyle,
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: AppSpacing.sm),
@@ -65,7 +65,7 @@ class MaterialManagementScreen extends StatelessWidget {
               ),
             ),
 
-            SizedBox(height: context.responsiveSpacing(AppSpacing.page)),
+            SizedBox(height: context.responsiveSpacing(AppSpacing.xl)),
 
             // Modern Content Section
             Padding(
@@ -88,7 +88,7 @@ class MaterialManagementScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
+                  SizedBox(height: context.responsiveSpacing(AppSpacing.lg)),
                   _buildManagementCard(
                     context,
                     label: 'WITHDRAW MATERIAL',
@@ -104,7 +104,7 @@ class MaterialManagementScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
+                  SizedBox(height: context.responsiveSpacing(AppSpacing.lg)),
                   _buildManagementCard(
                     context,
                     label: 'APPROVE REQUESTS',
@@ -115,8 +115,7 @@ class MaterialManagementScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         AppRoute(
-                          builder: (context) =>
-                              const MaterialApprovalScreen(),
+                          builder: (context) => const MaterialApprovalScreen(),
                         ),
                       );
                     },
@@ -141,17 +140,17 @@ class MaterialManagementScreen extends StatelessWidget {
   }) {
     return AppCard(
       accentColor: color,
-      padding: EdgeInsets.all(AppSpacing.xl),
+      padding: EdgeInsets.all(AppSpacing.lg),
       onTap: onTap,
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(AppSpacing.lg),
+            padding: EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
             ),
-            child: Icon(icon, size: 28, color: color),
+            child: Icon(icon, size: AppTypography.iconSizeLg, color: color),
           ),
           SizedBox(width: AppSpacing.lg),
           Expanded(
@@ -176,7 +175,7 @@ class MaterialManagementScreen extends StatelessWidget {
             child: Icon(
               Icons.arrow_forward_ios_rounded,
               color: AppColors.textSecondary,
-              size: 16,
+              size: AppTypography.iconSizeSm,
             ),
           ),
         ],

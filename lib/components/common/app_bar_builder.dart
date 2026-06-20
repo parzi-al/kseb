@@ -9,6 +9,7 @@ import '../../utils/app_typography.dart';
 /// is convenient when actions, leading, or bottom widgets are needed.
 AppBar buildAppBar({
   required String title,
+  Widget? titleWidget,
   List<Widget>? actions,
   Widget? leading,
   bool centerTitle = true,
@@ -16,7 +17,7 @@ AppBar buildAppBar({
   PreferredSizeWidget? bottom,
 }) {
   return AppBar(
-    title: Text(title),
+    title: titleWidget ?? Text(title),
     actions: actions,
     leading: leading,
     centerTitle: centerTitle,

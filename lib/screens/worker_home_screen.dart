@@ -6,6 +6,7 @@ import 'dart:async';
 import 'staff_management_screen.dart';
 import 'bonus_management_screen.dart';
 import 'bonus_history_screen.dart';
+import 'material_management_screen.dart';
 import 'portal_module_screen.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_typography.dart';
@@ -19,8 +20,6 @@ import '../services/auth_service.dart';
 import '../models/user_model.dart';
 import '../components/common/skeleton_loader.dart';
 
-const bool kEnableStaffDashboard =
-    bool.fromEnvironment('ENABLE_STAFF_DASHBOARD');
 const bool kEnableStaffDashboardForManagersAndSupervisors =
     bool.fromEnvironment('ENABLE_STAFF_DASHBOARD_FOR_MANAGERS_SUPERVISORS');
 
@@ -676,7 +675,14 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                               : 1.0),
                       children: [
                         ..._buildPortalModuleCards(context),
-                        if (kEnableStaffDashboard && _canShowStaffDashboard())
+                        _buildDashboardCard(
+                          context,
+                          icon: Icons.inventory_2_rounded,
+                          label: 'Material Request',
+                          color: AppColors.dashboardCardColors[2],
+                          destination: const MaterialManagementScreen(),
+                        ),
+                        if (_canShowStaffDashboard())
                           _buildDashboardCard(
                             context,
                             icon: Icons.people_rounded,

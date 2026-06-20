@@ -52,4 +52,25 @@ void main() {
       );
     });
   });
+
+  group('Firestore rules user management safeguards', () {
+    test('manager and executive user edits are explicitly allowed', () {
+      expect(rules, contains('function isValidManagerUserUpdate()'));
+      expect(rules, contains('function canUpdateUserRole'));
+      expect(
+        rules,
+        contains('isManagerOrAbove() &&\n        isValidManagerUserUpdate()'),
+      );
+    });
+
+    test('manager edits cannot change session or createdAt fields', () {
+      expect(rules, contains("'activeSessionToken'"));
+      expect(rules, contains("'lastLoginAt'"));
+      expect(rules, contains("'createdAt'"));
+      expect(
+        rules,
+        contains('!request.resource.data.diff(resource.data).affectedKeys()'),
+      );
+    });
+  });
 }

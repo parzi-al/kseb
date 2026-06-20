@@ -11,6 +11,7 @@ import '../utils/app_typography.dart';
 import '../utils/app_toast.dart';
 import '../components/common/app_bar_builder.dart';
 import '../components/common/app_loading.dart';
+import '../components/common/app_segmented_tabs.dart';
 import '../components/common/modern_dropdown.dart';
 import '../components/common/skeleton_loader.dart';
 import '../models/user_model.dart';
@@ -347,55 +348,21 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
   }
 
   Widget _buildWorksheetTabs() {
-    return Container(
-      width: double.infinity,
-      color: AppColors.surface,
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.sm,
-        AppSpacing.lg,
-        AppSpacing.md,
-      ),
-      child: SegmentedButton<int>(
-        segments: const [
-          ButtonSegment(
-            value: 0,
-            icon: Icon(Icons.edit_document),
-            label: Text('Submit'),
-          ),
-          ButtonSegment(
-            value: 1,
-            icon: Icon(Icons.fact_check_outlined),
-            label: Text('Status'),
-          ),
-          ButtonSegment(
-            value: 2,
-            icon: Icon(Icons.verified_outlined),
-            label: Text('Approvals'),
-          ),
-        ],
-        selected: {_selectedTabIndex},
-        onSelectionChanged: (selection) {
-          setState(() => _selectedTabIndex = selection.first);
-        },
-        showSelectedIcon: false,
-        style: ButtonStyle(
-          visualDensity: VisualDensity.compact,
-          foregroundColor: WidgetStateProperty.resolveWith((states) {
-            return states.contains(WidgetState.selected)
-                ? AppColors.primary
-                : AppColors.textSecondary;
-          }),
-          textStyle: WidgetStatePropertyAll(AppTypography.captionStyle),
-        ),
-      ),
+    return AppSegmentedTabs(
+      selectedIndex: _selectedTabIndex,
+      onChanged: (index) => setState(() => _selectedTabIndex = index),
+      tabs: const [
+        AppSegmentedTab(icon: Icons.edit_document, label: 'Submit'),
+        AppSegmentedTab(icon: Icons.fact_check_outlined, label: 'Status'),
+        AppSegmentedTab(icon: Icons.verified_outlined, label: 'Approvals'),
+      ],
     );
   }
 
   Widget _buildSubmitTab() {
     return Column(
       children: [
-        // Modern Header Section
+        // Page Header Section
         Container(
           width: double.infinity,
           color: AppColors.surface,
@@ -404,7 +371,7 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                 context.responsivePadding(AppSpacing.xl),
                 context.responsivePadding(AppSpacing.xl),
                 context.responsivePadding(AppSpacing.xl),
-                context.responsivePadding(AppSpacing.xxl)),
+                context.responsivePadding(AppSpacing.xl)),
             child: Column(
               children: [
                 Container(
@@ -415,27 +382,21 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
                   ),
                   child: Icon(
                     Icons.assignment_rounded,
-                    size: 48,
+                    size: AppTypography.iconSizeHero,
                     color: AppColors.primary,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.base),
                 Text(
                   'Daily Worksheet',
-                  style: TextStyle(
-                    fontSize: AppTypography.fontSize2XL,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                  ),
+                  style: AppTypography.titleStyle,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Submit your daily work report',
-                  style: TextStyle(
-                    fontSize: AppTypography.fontSizeLG,
+                  style: AppTypography.bodyStyle.copyWith(
                     color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,
                 ),
