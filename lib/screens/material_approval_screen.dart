@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../components/common/app_bar_builder.dart';
+import '../components/common/app_segmented_tabs.dart';
 import '../components/common/modern_dropdown.dart';
 import '../models/user_model.dart';
 import '../services/approval_service.dart';
@@ -115,48 +116,14 @@ class _MaterialApprovalScreenState extends State<MaterialApprovalScreen> {
   }
 
   Widget _buildMaterialApprovalTabs() {
-    return Container(
-      width: double.infinity,
-      color: AppColors.surface,
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.sm,
-        AppSpacing.lg,
-        AppSpacing.md,
-      ),
-      child: SegmentedButton<int>(
-        segments: const [
-          ButtonSegment(
-            value: 0,
-            icon: Icon(Icons.pending_actions_outlined),
-            label: Text('Pending'),
-          ),
-          ButtonSegment(
-            value: 1,
-            icon: Icon(Icons.fact_check_outlined),
-            label: Text('Status'),
-          ),
-          ButtonSegment(
-            value: 2,
-            icon: Icon(Icons.history_rounded),
-            label: Text('History'),
-          ),
-        ],
-        selected: {_selectedTabIndex},
-        onSelectionChanged: (selection) {
-          setState(() => _selectedTabIndex = selection.first);
-        },
-        showSelectedIcon: false,
-        style: ButtonStyle(
-          visualDensity: VisualDensity.compact,
-          foregroundColor: WidgetStateProperty.resolveWith((states) {
-            return states.contains(WidgetState.selected)
-                ? AppColors.primary
-                : AppColors.textSecondary;
-          }),
-          textStyle: WidgetStatePropertyAll(AppTypography.captionStyle),
-        ),
-      ),
+    return AppSegmentedTabs(
+      selectedIndex: _selectedTabIndex,
+      onChanged: (index) => setState(() => _selectedTabIndex = index),
+      tabs: const [
+        AppSegmentedTab(icon: Icons.pending_actions_outlined, label: 'Pending'),
+        AppSegmentedTab(icon: Icons.fact_check_outlined, label: 'Status'),
+        AppSegmentedTab(icon: Icons.history_rounded, label: 'History'),
+      ],
     );
   }
 

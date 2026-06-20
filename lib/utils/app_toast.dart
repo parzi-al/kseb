@@ -8,7 +8,6 @@ class AppToast {
       message: message,
       backgroundColor: AppColors.error,
       icon: Icons.error_outline_rounded,
-      iconColor: AppColors.white,
     );
   }
 
@@ -18,7 +17,6 @@ class AppToast {
       message: message,
       backgroundColor: AppColors.success,
       icon: Icons.check_circle_outline_rounded,
-      iconColor: AppColors.white,
     );
   }
 
@@ -28,7 +26,6 @@ class AppToast {
       message: message,
       backgroundColor: AppColors.warning,
       icon: Icons.warning_amber_rounded,
-      iconColor: AppColors.white,
     );
   }
 
@@ -38,7 +35,6 @@ class AppToast {
       message: message,
       backgroundColor: AppColors.info,
       icon: Icons.info_outline_rounded,
-      iconColor: AppColors.white,
     );
   }
 
@@ -47,13 +43,13 @@ class AppToast {
     required String message,
     required Color backgroundColor,
     required IconData icon,
-    required Color iconColor,
   }) {
-    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    messenger.showSnackBar(
       SnackBar(
-        content: Container(
+        content: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
             children: [
@@ -80,6 +76,24 @@ class AppToast {
                   ),
                 ),
               ),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: messenger.hideCurrentSnackBar,
+                borderRadius: BorderRadius.circular(18),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.grey200,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.close_rounded,
+                    color: AppColors.textSecondary,
+                    size: 18,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -95,27 +109,19 @@ class AppToast {
         margin: const EdgeInsets.all(20),
         duration: const Duration(seconds: 4),
         elevation: 0,
-        action: SnackBarAction(
-          label: '✕',
-          textColor: AppColors.textSecondary,
-          backgroundColor: AppColors.grey200,
-          onPressed: () {
-            ScaffoldMessenger.of(context).removeCurrentSnackBar();
-          },
-        ),
       ),
     );
   }
 }
 
-// Global Error Handler Class
 class AppErrorHandler {
-  static void handleError(BuildContext context, dynamic error,
-      {String? customMessage}) {
-    String errorMessage = customMessage ?? _getErrorMessage(error);
+  static void handleError(
+    BuildContext context,
+    dynamic error, {
+    String? customMessage,
+  }) {
+    final errorMessage = customMessage ?? _getErrorMessage(error);
     AppToast.showError(context, errorMessage);
-
-    // Log error for debugging (you can integrate with crash reporting services)
     debugPrint('Error handled: $error');
   }
 
@@ -124,8 +130,7 @@ class AppErrorHandler {
       return error;
     }
 
-    // Handle common Firebase errors with user-friendly messages
-    String errorString = error.toString().toLowerCase();
+    final errorString = error.toString().toLowerCase();
 
     if (errorString.contains('network')) {
       return 'Network connection error. Please check your internet.';

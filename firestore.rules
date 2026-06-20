@@ -50,6 +50,13 @@ service cloud.firestore {
         roleLevel(currentUserRole()) <= roleLevel(role);
     }
 
+    function canUpdateUserRole(oldRole, newRole) {
+      return oldRole in ['staff', 'supervisor', 'manager', 'coo', 'director'] &&
+        newRole in ['staff', 'supervisor', 'manager', 'coo', 'director'] &&
+        roleLevel(currentUserRole()) <= roleLevel(oldRole) &&
+        roleLevel(currentUserRole()) <= roleLevel(newRole);
+    }
+
     function isNullableString(value) {
       return value == null || value is string;
     }
@@ -81,6 +88,42 @@ service cloud.firestore {
         request.resource.data.bonusAmount is number &&
         request.resource.data.bonusAmount >= 0 &&
         request.resource.data.createdAt is timestamp;
+    }
+
+    function isValidManagerUserUpdate() {
+      return request.resource.data.keys().hasOnly([
+          'name',
+          'email',
+          'phone',
+          'role',
+          'teamId',
+          'areaCode',
+          'bonusPoints',
+          'bonusAmount',
+          'createdAt',
+          'dob',
+          'photoUrl',
+          'insuranceId',
+          'activeSessionToken',
+          'lastLoginAt'
+        ]) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'activeSessionToken',
+          'lastLoginAt',
+          'createdAt'
+        ]) &&
+        isRequiredString(request.resource.data.name) &&
+        isRequiredString(request.resource.data.email) &&
+        isRequiredString(request.resource.data.phone) &&
+        canUpdateUserRole(resource.data.role, request.resource.data.role) &&
+        isNullableString(request.resource.data.teamId) &&
+        isNullableString(request.resource.data.areaCode) &&
+        hasNullableString(request.resource.data, 'photoUrl') &&
+        hasNullableString(request.resource.data, 'insuranceId') &&
+        request.resource.data.bonusPoints is int &&
+        request.resource.data.bonusPoints >= 0 &&
+        request.resource.data.bonusAmount is number &&
+        request.resource.data.bonusAmount >= 0;
     }
 
     function isValidApprovalUpdate() {
@@ -304,6 +347,10 @@ service cloud.firestore {
       allow update: if request.auth != null && 
         request.auth.uid == userId &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email']);
+      // Managers and above can update users within their role hierarchy.
+      allow update: if request.auth != null &&
+        isManagerOrAbove() &&
+        isValidManagerUserUpdate();
       // Only managers and above can create users
       allow create: if request.auth != null &&
         isManagerOrAbove() &&

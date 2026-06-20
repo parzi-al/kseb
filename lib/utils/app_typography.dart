@@ -17,6 +17,13 @@ abstract final class AppTypography {
   static const double fontSize3XL = 24.0;
   static const double fontSize4XL = 28.0;
 
+  // Global icon scale. Use these instead of hard-coded icon sizes.
+  static const double iconSizeSm = 16.0;
+  static const double iconSizeMd = 20.0;
+  static const double iconSizeLg = 24.0;
+  static const double iconSizeXl = 32.0;
+  static const double iconSizeHero = 40.0;
+
   // ── Named TextStyles ──────────────────────────────────────────────
 
   /// Hero text, AumLux branding — 28sp w800

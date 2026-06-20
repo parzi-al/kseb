@@ -30,28 +30,28 @@ class FloatingBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       minimum: const EdgeInsets.fromLTRB(
-        AppSpacing.base,
-        AppSpacing.sm,
-        AppSpacing.base,
-        AppSpacing.base,
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.lg,
       ),
       child: Container(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(34),
           border: Border.all(color: AppColors.grey200),
           boxShadow: [
             BoxShadow(
               color: AppColors.shadowMedium,
-              blurRadius: 24,
-              offset: const Offset(0, 10),
+              blurRadius: 28,
+              offset: const Offset(0, 12),
             ),
           ],
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            const minItemWidth = 116.0;
+            const minItemWidth = 128.0;
             final itemWidth =
                 (constraints.maxWidth / destinations.length).clamp(
               minItemWidth,
@@ -106,21 +106,21 @@ class _FloatingBottomNavItem extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
-          height: 52,
+          height: 64,
           padding: EdgeInsets.symmetric(
-            horizontal: compact ? AppSpacing.xs : AppSpacing.sm,
+            horizontal: compact ? AppSpacing.sm : AppSpacing.md,
           ),
           decoration: BoxDecoration(
             color:
                 selected ? AppColors.primaryWithLowOpacity : Colors.transparent,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(28),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 destination.icon,
-                size: 22,
+                size: AppTypography.iconSizeLg,
                 color: selected ? AppColors.primary : AppColors.textSecondary,
               ),
               if (selected && !compact)

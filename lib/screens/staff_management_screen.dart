@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:ui';
 import '../utils/app_colors.dart';
 import '../utils/app_typography.dart';
 import '../utils/app_spacing.dart';
@@ -16,6 +15,8 @@ import '../components/staff/delete_staff_dialog.dart';
 import '../components/team/team_dialog.dart';
 import '../components/common/app_error_state.dart';
 import '../components/common/app_empty_state.dart';
+import '../components/common/app_bar_builder.dart';
+import '../components/common/app_segmented_tabs.dart';
 import '../components/common/staggered_list_item.dart';
 import '../components/common/skeleton_loader.dart';
 
@@ -33,32 +34,24 @@ class StaffManagementScreen extends StatefulWidget {
   State<StaffManagementScreen> createState() => _StaffManagementScreenState();
 }
 
-class _StaffManagementScreenState extends State<StaffManagementScreen>
-    with SingleTickerProviderStateMixin {
+class _StaffManagementScreenState extends State<StaffManagementScreen> {
   final StaffService _staffService = StaffService();
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
   String _searchQuery = '';
   bool _isFabExpanded = false;
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
+  int _selectedTabIndex = 0;
 
   @override
   void dispose() {
     _searchController.dispose();
-    _tabController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       appBar: _buildAppBar(),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
@@ -91,162 +84,82 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
             child: AnimatedRotation(
               turns: _isFabExpanded ? 0.125 : 0, // 45 degrees rotation
               duration: const Duration(milliseconds: 200),
-              child: Icon(_isFabExpanded ? Icons.close : Icons.add, size: 28),
+              child: Icon(
+                _isFabExpanded ? Icons.close : Icons.add,
+                size: AppTypography.iconSizeLg,
+              ),
             ),
           ),
         ],
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _buildStaffManagementTab(),
-          _buildTeamManagementTab(),
+          _buildStaffTabs(),
+          Expanded(
+            child: IndexedStack(
+              index: _selectedTabIndex,
+              children: [
+                _buildStaffManagementTab(),
+                _buildTeamManagementTab(),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      elevation: 0,
-      backgroundColor: AppColors.white.withValues(alpha: 0.9),
-      foregroundColor: AppColors.textPrimary,
-      surfaceTintColor: Colors.transparent,
-      shadowColor: Colors.transparent,
-      flexibleSpace: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.8),
-              border: Border(
-                bottom: BorderSide(
-                  color: AppColors.grey500.withValues(alpha: 0.1),
-                  width: 1,
-                ),
-              ),
-            ),
+    if (_isSearching) {
+      return buildAppBar(
+        title: '',
+        centerTitle: false,
+        titleWidget: TextField(
+          controller: _searchController,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: 'Search staff...',
+            hintStyle: TextStyle(color: AppColors.grey600),
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.base),
           ),
+          style: AppTypography.bodyStyle,
+          onChanged: (value) {
+            setState(() {
+              _searchQuery = value.toLowerCase();
+            });
+          },
         ),
-      ),
-      title: _isSearching
-          ? TextField(
-              controller: _searchController,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: 'Search staff...',
-                hintStyle: TextStyle(color: AppColors.grey600),
-                border: InputBorder.none,
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: AppSpacing.base),
-              ),
-              style: AppTypography.subheadingStyle,
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value.toLowerCase();
-                });
-              },
-            )
-          : Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(AppSpacing.sm),
-                  decoration: BoxDecoration(
-                    color: AppColors.info,
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.info.withValues(alpha: 0.3),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.people_alt_rounded,
-                    color: AppColors.white,
-                    size: 18,
-                  ),
-                ),
-                SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Staff Management',
-                        style: AppTypography.subheadingStyle.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        'Manage your team',
-                        style: AppTypography.captionStyle.copyWith(
-                          fontSize: AppTypography.fontSizeXS,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-      actions: [
-        Padding(
-          padding: EdgeInsets.only(right: AppSpacing.base),
-          child: Container(
-            decoration: BoxDecoration(
-              color: _isSearching
-                  ? AppColors.info.withValues(alpha: 0.1)
-                  : AppColors.grey500.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              border: Border.all(
-                color: _isSearching
-                    ? AppColors.info.withValues(alpha: 0.3)
-                    : AppColors.grey500.withValues(alpha: 0.2),
-                width: 1,
-              ),
-            ),
-            child: IconButton(
-              icon: Icon(
-                _isSearching ? Icons.close_rounded : Icons.search_rounded,
-                color: _isSearching ? AppColors.info : AppColors.textPrimary,
-                size: 20,
-              ),
-              onPressed: _toggleSearch,
-            ),
-          ),
-        ),
-      ],
-      bottom: TabBar(
-        controller: _tabController,
-        labelColor: AppColors.primary,
-        unselectedLabelColor: AppColors.textSecondary,
-        indicatorColor: AppColors.primary,
-        indicatorWeight: 3,
-        labelStyle: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 15,
-        ),
-        unselectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w500,
-          fontSize: 15,
-        ),
-        tabs: const [
-          Tab(
-            icon: Icon(Icons.people_rounded),
-            text: 'Staff',
-          ),
-          Tab(
-            icon: Icon(Icons.groups_rounded),
-            text: 'Teams',
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close_rounded),
+            onPressed: _toggleSearch,
+            tooltip: 'Close search',
           ),
         ],
-      ),
+      );
+    }
+
+    return buildAppBar(
+      title: 'Staff Management',
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.search_rounded),
+          onPressed: _toggleSearch,
+          tooltip: 'Search staff',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStaffTabs() {
+    return AppSegmentedTabs(
+      selectedIndex: _selectedTabIndex,
+      onChanged: (index) => setState(() => _selectedTabIndex = index),
+      tabs: const [
+        AppSegmentedTab(icon: Icons.people_rounded, label: 'Staff'),
+        AppSegmentedTab(icon: Icons.groups_rounded, label: 'Teams'),
+      ],
     );
   }
 
@@ -290,7 +203,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
 
   Widget _buildTeamManagementTab() {
     return Container(
-      color: AppColors.grey50,
+      color: AppColors.background,
       child: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('teams').snapshots(),
         builder: (context, snapshot) {
@@ -380,100 +293,86 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
     }
 
     return Container(
-      color: AppColors.grey50,
-      child: ClipRRect(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(AppSpacing.xl),
-          topRight: Radius.circular(AppSpacing.xl),
-        ),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(AppSpacing.xl),
-                topRight: Radius.circular(AppSpacing.xl),
+      color: AppColors.background,
+      child: Column(
+        children: [
+          if (_searchQuery.isNotEmpty)
+            Container(
+              width: double.infinity,
+              margin: EdgeInsets.fromLTRB(
+                context.responsivePadding(AppSpacing.lg),
+                AppSpacing.lg,
+                context.responsivePadding(AppSpacing.lg),
+                AppSpacing.sm,
               ),
-            ),
-            child: Column(
-              children: [
-                if (_searchQuery.isNotEmpty) ...[
-                  Container(
-                    margin: EdgeInsets.fromLTRB(AppSpacing.base,
-                        AppSpacing.base, AppSpacing.base, AppSpacing.sm),
-                    padding: EdgeInsets.symmetric(
-                        horizontal: AppSpacing.base, vertical: AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: AppColors.info.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                      border: Border.all(
-                          color: AppColors.info.withValues(alpha: 0.3),
-                          width: 1),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.search_rounded,
-                          color: AppColors.info,
-                          size: 18,
-                        ),
-                        SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            'Found ${filteredStaff.length} result${filteredStaff.length == 1 ? '' : 's'} for "$_searchQuery"',
-                            style: AppTypography.bodyMediumStyle.copyWith(
-                              color: AppColors.info,
-                            ),
-                          ),
-                        ),
-                      ],
+              padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.base,
+                vertical: AppSpacing.md,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.info.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+                border: Border.all(
+                  color: AppColors.info.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.search_rounded,
+                    color: AppColors.info,
+                    size: AppTypography.iconSizeMd,
+                  ),
+                  SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      'Found ${filteredStaff.length} result${filteredStaff.length == 1 ? '' : 's'} for "$_searchQuery"',
+                      style: AppTypography.bodyMediumStyle.copyWith(
+                        color: AppColors.info,
+                      ),
                     ),
                   ),
                 ],
-                Expanded(
-                  child: ListView.builder(
-                    padding: EdgeInsets.fromLTRB(
-                        context.responsivePadding(AppSpacing.base),
-                        _searchQuery.isNotEmpty ? AppSpacing.sm : AppSpacing.lg,
-                        context.responsivePadding(AppSpacing.base),
-                        100),
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: filteredStaff.length,
-                    itemBuilder: (context, index) {
-                      final staffData =
-                          filteredStaff[index].data() as Map<String, dynamic>;
-                      final staffId = filteredStaff[index].id;
-                      final staffRole =
-                          UserRole.fromString(staffData['role'] ?? 'staff');
+              ),
+            ),
+          Expanded(
+            child: ListView.builder(
+              padding: EdgeInsets.fromLTRB(
+                context.responsivePadding(AppSpacing.lg),
+                _searchQuery.isNotEmpty ? AppSpacing.sm : AppSpacing.lg,
+                context.responsivePadding(AppSpacing.lg),
+                100,
+              ),
+              physics: const BouncingScrollPhysics(),
+              itemCount: filteredStaff.length,
+              itemBuilder: (context, index) {
+                final staffData =
+                    filteredStaff[index].data() as Map<String, dynamic>;
+                final staffId = filteredStaff[index].id;
+                final staffRole =
+                    UserRole.fromString(staffData['role'] ?? 'staff');
+                final canEditStaff =
+                    widget.currentUserRole.canManage(staffRole);
 
-                      // Check if current user can edit this staff member
-                      final canEditStaff =
-                          widget.currentUserRole.canManage(staffRole);
-
-                      return StaggeredListItem(
-                        index: index,
-                        child: StaffCard(
-                          staffData: staffData,
-                          staffId: staffId,
-                          onTap: () => _showStaffDetails(staffData),
-                          onEdit: canEditStaff
-                              ? () => _editStaff(staffId, staffData)
-                              : () {},
-                          onDelete: canEditStaff
-                              ? () => _deleteStaff(staffId)
-                              : () {},
-                          canEdit: canEditStaff,
-                        ),
-                      );
-                    },
+                return StaggeredListItem(
+                  index: index,
+                  child: StaffCard(
+                    staffData: staffData,
+                    staffId: staffId,
+                    onTap: () => _showStaffDetails(staffData),
+                    onEdit: canEditStaff
+                        ? () => _editStaff(staffId, staffData)
+                        : () {},
+                    onDelete:
+                        canEditStaff ? () => _deleteStaff(staffId) : () {},
+                    canEdit: canEditStaff,
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -534,7 +433,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
           foregroundColor: AppColors.white,
           elevation: 4,
           heroTag: label, // Unique hero tag for each FAB
-          child: Icon(icon, size: 20),
+          child: Icon(icon, size: AppTypography.iconSizeMd),
         ),
       ],
     );
@@ -606,18 +505,13 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                 Container(
                   padding: EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.purple.withValues(alpha: 0.8),
-                        AppColors.purple
-                      ], // DS-EXCEPTION: role color
-                    ),
+                    color: AppColors.purple.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                   ),
                   child: Icon(
                     Icons.groups_rounded,
-                    color: AppColors.white,
-                    size: 28,
+                    color: AppColors.purple,
+                    size: AppTypography.iconSizeLg,
                   ),
                 ),
                 SizedBox(width: AppSpacing.base),
@@ -638,28 +532,26 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                         children: [
                           Icon(
                             Icons.location_on_rounded,
-                            size: 14,
+                            size: AppTypography.iconSizeSm,
                             color: AppColors.grey600,
                           ),
                           SizedBox(width: AppSpacing.xs),
                           Text(
                             areaCode,
                             style: AppTypography.captionStyle.copyWith(
-                              fontSize: 13,
                               color: AppColors.grey600,
                             ),
                           ),
                           SizedBox(width: AppSpacing.md),
                           Icon(
                             Icons.people_rounded,
-                            size: 14,
+                            size: AppTypography.iconSizeSm,
                             color: AppColors.grey600,
                           ),
                           SizedBox(width: AppSpacing.xs),
                           Text(
                             '$memberCount members',
                             style: AppTypography.captionStyle.copyWith(
-                              fontSize: 13,
                               color: AppColors.grey600,
                             ),
                           ),
@@ -674,12 +566,20 @@ class _StaffManagementScreenState extends State<StaffManagementScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: Icon(Icons.edit_rounded, color: AppColors.info),
+                      icon: Icon(
+                        Icons.edit_rounded,
+                        color: AppColors.info,
+                        size: AppTypography.iconSizeMd,
+                      ),
                       onPressed: () => _editTeam(teamId, teamData),
                       tooltip: 'Edit Team',
                     ),
                     IconButton(
-                      icon: Icon(Icons.delete_rounded, color: AppColors.error),
+                      icon: Icon(
+                        Icons.delete_rounded,
+                        color: AppColors.error,
+                        size: AppTypography.iconSizeMd,
+                      ),
                       onPressed: () => _deleteTeam(teamId, name),
                       tooltip: 'Delete Team',
                     ),
