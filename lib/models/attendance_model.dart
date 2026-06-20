@@ -7,6 +7,36 @@ const Set<String> _validStatuses = {'present', 'absent', 'leave'};
 DateTime _normaliseToMidnight(DateTime dt) =>
     DateTime(dt.year, dt.month, dt.day);
 
+DateTime _dateOnlyFromValue(dynamic value) {
+  if (value == null) return DateTime.now();
+
+  if (value is Timestamp) {
+    final localDate = value.toDate().toLocal();
+    final dateSafeValue = localDate.add(const Duration(hours: 12));
+    return _normaliseToMidnight(dateSafeValue);
+  }
+
+  if (value is DateTime) {
+    return _normaliseToMidnight(value);
+  }
+
+  return _normaliseToMidnight(DateTime.parse(value.toString()));
+}
+
+DateTime _dateTimeFromValue(dynamic value) {
+  if (value == null) return DateTime.now();
+
+  if (value is Timestamp) {
+    return value.toDate();
+  }
+
+  if (value is DateTime) {
+    return value;
+  }
+
+  return DateTime.parse(value.toString());
+}
+
 /// Attendance model for the new structure.
 ///
 /// Single data contract used by [AttendanceService], screens, and tests.
@@ -44,18 +74,10 @@ class AttendanceModel {
       id: doc.id,
       userId: data['userId'] ?? '',
       worksheetId: data['worksheetId'],
-      date: data['date'] != null
-          ? (data['date'] is Timestamp
-              ? (data['date'] as Timestamp).toDate()
-              : DateTime.parse(data['date']))
-          : DateTime.now(),
+      date: _dateOnlyFromValue(data['date']),
       verifiedBy: data['verifiedBy'],
       status: data['status'] ?? 'present',
-      timestamp: data['timestamp'] != null
-          ? (data['timestamp'] is Timestamp
-              ? (data['timestamp'] as Timestamp).toDate()
-              : DateTime.parse(data['timestamp']))
-          : DateTime.now(),
+      timestamp: _dateTimeFromValue(data['timestamp']),
     );
   }
 
@@ -65,18 +87,10 @@ class AttendanceModel {
       id: id,
       userId: data['userId'] ?? '',
       worksheetId: data['worksheetId'],
-      date: data['date'] != null
-          ? (data['date'] is Timestamp
-              ? (data['date'] as Timestamp).toDate()
-              : DateTime.parse(data['date']))
-          : DateTime.now(),
+      date: _dateOnlyFromValue(data['date']),
       verifiedBy: data['verifiedBy'],
       status: data['status'] ?? 'present',
-      timestamp: data['timestamp'] != null
-          ? (data['timestamp'] is Timestamp
-              ? (data['timestamp'] as Timestamp).toDate()
-              : DateTime.parse(data['timestamp']))
-          : DateTime.now(),
+      timestamp: _dateTimeFromValue(data['timestamp']),
     );
   }
 

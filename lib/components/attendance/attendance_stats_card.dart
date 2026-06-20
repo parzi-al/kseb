@@ -12,12 +12,16 @@ class AttendanceStatsCard extends StatelessWidget {
   final int thisMonth;
   final int thisYear;
   final bool isMarkedToday;
+  final String monthLabel;
+  final String yearLabel;
 
   const AttendanceStatsCard({
     super.key,
     required this.thisMonth,
     required this.thisYear,
     required this.isMarkedToday,
+    this.monthLabel = 'This Month',
+    this.yearLabel = 'This Year',
   });
 
   @override
@@ -34,7 +38,7 @@ class AttendanceStatsCard extends StatelessWidget {
           children: [
             Expanded(
               child: _buildStatCard(
-                'This Month',
+                monthLabel,
                 '$thisMonth days',
                 Icons.calendar_month_rounded,
                 Colors.blue,
@@ -43,7 +47,7 @@ class AttendanceStatsCard extends StatelessWidget {
             SizedBox(width: AppSpacing.base),
             Expanded(
               child: _buildStatCard(
-                'This Year',
+                yearLabel,
                 '$thisYear days',
                 Icons.calendar_today_rounded,
                 Colors.green,

@@ -132,6 +132,24 @@ void main() {
         expect(model.verifiedBy, isNull);
       });
 
+      test('normalises date-only timestamp without timezone day drift',
+          () async {
+        final storedInstant = DateTime.utc(2026, 3, 5, 18, 30);
+
+        await fakeFirestore.collection('attendance').doc('tz-date').set({
+          'userId': 'user-tz',
+          'date': Timestamp.fromDate(storedInstant),
+          'timestamp': Timestamp.fromDate(DateTime(2026, 3, 6, 20, 45)),
+          'status': 'present',
+        });
+
+        final doc =
+            await fakeFirestore.collection('attendance').doc('tz-date').get();
+        final model = AttendanceModel.fromFirestore(doc);
+
+        expect(model.date, DateTime(2026, 3, 6));
+      });
+
       test('defaults status to "present" when missing', () async {
         final date = DateTime(2026, 3, 8);
         final ts = DateTime(2026, 3, 8, 8, 0);

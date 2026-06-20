@@ -148,6 +148,10 @@ class AuthService {
   /// Returns the timeout in minutes. Defaults to 15 if the document
   /// doesn't exist or there's an error.
   Future<int> getIdleTimeoutMinutes() async {
+    if (_auth.currentUser == null) {
+      return 15;
+    }
+
     try {
       final doc = await FirebaseFirestore.instance
           .collection('app_settings')

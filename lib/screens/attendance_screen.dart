@@ -27,7 +27,8 @@ class AttendanceScreen extends StatefulWidget {
   State<AttendanceScreen> createState() => _AttendanceScreenState();
 }
 
-class _AttendanceScreenState extends State<AttendanceScreen> {
+class _AttendanceScreenState extends State<AttendanceScreen>
+    with AutomaticKeepAliveClientMixin {
   // Services — no direct FirebaseFirestore usage in this file (FR-001).
   // final LocalAuthentication _localAuth = LocalAuthentication();  // Disabled: Windows incompatibility
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -44,7 +45,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   String? _userId;
   String? _teamId;
   List<AttendanceModel> _attendanceRecords = [];
+  List<AttendanceModel> _historyRecords = [];
   bool _showHistory = false;
+  int? _selectedHistoryYear = DateTime.now().year;
+  int? _selectedHistoryMonth;
 
   // Supervisor team members
   List<UserModel> _teamMembers = [];
@@ -55,13 +59,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   Map<DateTime, bool> _attendanceMap = {};
-  late final Set<DateTime> _publicHolidays;
+  Set<DateTime> _publicHolidays = {};
 
   @override
   void initState() {
     super.initState();
-    _publicHolidays =
-        AttendanceConstants.getPublicHolidays(DateTime.now().year);
+    _publicHolidays = AttendanceConstants.getPublicHolidays(_focusedDay.year);
     _fetchWorkerData();
   }
 
@@ -99,7 +102,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       }
 
       // Fetch attendance stats via service (FR-004)
-      final stats = await _attendanceService.getUserAttendanceStats(_userId!);
+      final stats = await _attendanceService.getUserAttendanceStats(
+        _userId!,
+        referenceDate: _focusedDay,
+      );
       _thisMonthPresent = stats['thisMonth'] ?? 0;
       _thisYearPresent = stats['thisYear'] ?? 0;
       _isMarkedToday = stats['isMarkedToday'] ?? false;
@@ -183,6 +189,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
       _attendanceMap.clear();
       for (final record in _attendanceRecords) {
+        if (record.status != 'present') continue;
         final dateOnly = DateTime(
           record.date.year,
           record.date.month,
@@ -193,7 +200,79 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     } catch (e) {
       _attendanceRecords = [];
       _attendanceMap = {};
+      if (mounted) {
+        AppToast.showError(context, 'Error loading attendance history: $e');
+      }
     }
+  }
+
+  Future<void> _fetchFilteredAttendanceHistory() async {
+    if (_userId == null) return;
+
+    try {
+      final records = await _attendanceService.getAttendanceHistory(
+        _userId!,
+        year: _selectedHistoryYear,
+        month: _selectedHistoryMonth,
+      );
+      if (mounted) {
+        setState(() => _historyRecords = records);
+      }
+    } catch (e) {
+      _historyRecords = [];
+      if (mounted) {
+        AppToast.showError(context, 'Error loading attendance history: $e');
+      }
+    }
+  }
+
+  Future<void> _handleCalendarPageChanged(DateTime focused) async {
+    final previousYear = _focusedDay.year;
+    setState(() {
+      _focusedDay = focused;
+      if (previousYear != focused.year) {
+        _publicHolidays = AttendanceConstants.getPublicHolidays(focused.year);
+      }
+    });
+
+    if (_userId == null) return;
+
+    try {
+      final stats = await _attendanceService.getUserAttendanceStats(
+        _userId!,
+        referenceDate: focused,
+      );
+      if (!mounted) return;
+      setState(() {
+        _thisMonthPresent = stats['thisMonth'] ?? 0;
+        _thisYearPresent = stats['thisYear'] ?? 0;
+        _isMarkedToday = stats['isMarkedToday'] ?? false;
+      });
+    } catch (_) {
+      // Keep the existing stats visible if refresh fails.
+    }
+  }
+
+  String _monthLabel(DateTime date) {
+    return '${_monthName(date.month)} ${date.year}';
+  }
+
+  String _monthName(int month) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return months[month - 1];
   }
 
   /// Time-window check using configurable constants (FR-010).
@@ -297,19 +376,30 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: buildAppBar(
         title: 'Attendance',
         actions: [
           if (_attendanceRecords.isNotEmpty)
-            IconButton(
-              icon: Icon(
-                _showHistory ? Icons.dashboard : Icons.history_rounded,
-                color: AppColors.primary,
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.sm),
+              child: IconButton(
+                icon: Icon(
+                  _showHistory ? Icons.dashboard : Icons.history_rounded,
+                  color: AppColors.primary,
+                ),
+              onPressed: () async {
+                if (!_showHistory) {
+                  await _fetchFilteredAttendanceHistory();
+                }
+                if (mounted) {
+                  setState(() => _showHistory = !_showHistory);
+                }
+              },
+                tooltip: _showHistory ? 'Show Dashboard' : 'Show History',
               ),
-              onPressed: () => setState(() => _showHistory = !_showHistory),
-              tooltip: _showHistory ? 'Show Dashboard' : 'Show History',
             ),
         ],
       ),
@@ -321,118 +411,155 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
+  @override
+  bool get wantKeepAlive => true;
+
   Widget _buildMainView() {
     final double attendancePercentage =
         AttendanceConstants.workingDaysInYear > 0
             ? (_thisYearPresent / AttendanceConstants.workingDaysInYear)
             : 0.0;
 
-    return Column(
-      children: [
-        _buildHeader(),
-        Expanded(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(
-                context.responsivePadding(AppSpacing.xl),
-                context.responsivePadding(AppSpacing.xl),
-                context.responsivePadding(AppSpacing.xl),
-                100),
-            child: Column(
-              children: [
-                SizedBox(height: AppSpacing.lg),
-                // Stats via extracted widget (T010)
-                AttendanceStatsCard(
-                  thisMonth: _thisMonthPresent,
-                  thisYear: _thisYearPresent,
-                  isMarkedToday: _isMarkedToday,
-                ),
-                SizedBox(height: AppSpacing.lg),
-                // Calendar via extracted widget (T011)
-                AttendanceCalendar(
-                  attendanceMap: _attendanceMap,
-                  holidays: _publicHolidays,
-                  focusedDay: _focusedDay,
-                  selectedDay: _selectedDay,
-                  onDaySelected: (selected, focused) {
-                    setState(() {
-                      _selectedDay = selected;
-                      _focusedDay = focused;
-                    });
-                  },
-                  onPageChanged: (focused) => _focusedDay = focused,
-                ),
-                SizedBox(height: AppSpacing.lg),
-                _buildProgressCard(attendancePercentage),
-                SizedBox(height: AppSpacing.xl),
-                _buildMarkButton(),
-                SizedBox(height: AppSpacing.md),
-                // Debug test button — only in kDebugMode (FR-012)
-                if (kDebugMode && !_isMarkedToday) _buildDebugButton(),
-                SizedBox(height: AppSpacing.xl),
-                // Supervisor section for marking team members
-                if (_userRole?.isSupervisor ?? false) ...[
-                  _buildSupervisorSection(),
-                  SizedBox(height: AppSpacing.xl),
-                ],
-              ],
-            ),
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(
+        context.responsivePadding(AppSpacing.xl),
+        context.responsivePadding(AppSpacing.xl),
+        context.responsivePadding(AppSpacing.xl),
+        100,
+      ),
+      child: Column(
+        children: [
+          _buildHeader(),
+          SizedBox(height: AppSpacing.lg),
+          AttendanceStatsCard(
+            thisMonth: _thisMonthPresent,
+            thisYear: _thisYearPresent,
+            isMarkedToday: _isMarkedToday,
+            monthLabel: _monthLabel(_focusedDay),
+            yearLabel: '${_focusedDay.year}',
           ),
-        ),
-      ],
+          SizedBox(height: AppSpacing.lg),
+          AttendanceCalendar(
+            attendanceMap: _attendanceMap,
+            holidays: _publicHolidays,
+            focusedDay: _focusedDay,
+            selectedDay: _selectedDay,
+            onDaySelected: (selected, focused) {
+              setState(() {
+                _selectedDay = selected;
+                _focusedDay = focused;
+              });
+            },
+            onPageChanged: _handleCalendarPageChanged,
+          ),
+          SizedBox(height: AppSpacing.lg),
+          _buildProgressCard(attendancePercentage),
+          SizedBox(height: AppSpacing.xl),
+          _buildMarkButton(),
+          SizedBox(height: AppSpacing.md),
+          if (kDebugMode && !_isMarkedToday) _buildDebugButton(),
+          SizedBox(height: AppSpacing.xl),
+          if (_userRole?.isSupervisor ?? false) ...[
+            _buildSupervisorSection(),
+            SizedBox(height: AppSpacing.xl),
+          ],
+        ],
+      ),
     );
   }
 
   Widget _buildHeader() {
     return Container(
       width: double.infinity,
-      color: AppColors.surface,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-            context.responsivePadding(AppSpacing.xl),
-            context.responsivePadding(AppSpacing.xl),
-            context.responsivePadding(AppSpacing.xl),
-            context.responsivePadding(AppSpacing.xxl)),
-        child: Column(
-          children: [
-            Container(
-              padding: EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: AppColors.primaryWithLowOpacity,
-                shape: BoxShape.circle,
+      padding: EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        border: Border.all(color: AppColors.grey200),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.cardShadow,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColors.primaryWithLowOpacity,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.16),
               ),
-              child: Icon(Icons.person_rounded,
-                  size: 60, color: AppColors.primary),
             ),
-            SizedBox(height: AppSpacing.md),
-            Text(
-              _userName,
-              style: AppTypography.displayLargeStyle,
-              textAlign: TextAlign.center,
+            child: Icon(
+              Icons.person_rounded,
+              size: AppTypography.iconSizeXl,
+              color: AppColors.primary,
             ),
-            SizedBox(height: AppSpacing.sm),
-            Container(
-              padding: EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: AppColors.primaryWithLowOpacity,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  width: 1,
+          ),
+          SizedBox(width: AppSpacing.base),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _userName,
+                  style: AppTypography.titleStyle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              child: Text(
-                _userRole?.displayName ?? 'AumLux Staff',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: AppTypography.fontSizeBase,
-                  fontWeight: FontWeight.w500,
+                SizedBox(height: AppSpacing.xs),
+                Text(
+                  _userRole?.displayName ?? 'AumLux Staff',
+                  style: AppTypography.captionStyle.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: _isMarkedToday
+                  ? AppColors.success.withValues(alpha: 0.1)
+                  : AppColors.warning.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _isMarkedToday
+                      ? Icons.check_circle_rounded
+                      : Icons.schedule_rounded,
+                  color: _isMarkedToday ? AppColors.success : AppColors.warning,
+                  size: AppTypography.iconSizeSm,
+                ),
+                SizedBox(width: AppSpacing.xs),
+                Text(
+                  _isMarkedToday ? 'Marked' : 'Pending',
+                  style: AppTypography.captionStyle.copyWith(
+                    color:
+                        _isMarkedToday ? AppColors.success : AppColors.warning,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -455,7 +582,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       child: Column(
         children: [
           Text(
-            'Yearly Progress',
+            '${_focusedDay.year} Progress',
             style: AppTypography.subheadingStyle,
           ),
           SizedBox(height: AppSpacing.xl),
@@ -877,11 +1004,210 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   /// History view delegated to extracted [AttendanceHistoryList] widget (T015).
   Widget _buildHistoryView() {
-    return AttendanceHistoryList(
-      records: _attendanceRecords,
-      onRefresh: _fetchWorkerData,
-      userRole: _userRole,
-      onRemoveAttendance: _removeAttendanceRecord,
+    return Column(
+      children: [
+        _buildHistoryFilters(),
+        Expanded(
+          child: AttendanceHistoryList(
+            records: _historyRecords,
+            onRefresh: _fetchFilteredAttendanceHistory,
+            userRole: _userRole,
+            onRemoveAttendance: _removeAttendanceRecord,
+          ),
+        ),
+      ],
     );
   }
+
+  Widget _buildHistoryFilters() {
+    final currentYear = DateTime.now().year;
+    final years = List.generate(8, (index) => currentYear - index);
+    final months = List.generate(12, (index) => index + 1);
+
+    return Container(
+      width: double.infinity,
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.md,
+      ),
+      child: Wrap(
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.sm,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          _historyFilterChip(
+            label: _selectedHistoryYear == null
+                ? 'All Years'
+                : '$_selectedHistoryYear',
+            icon: Icons.calendar_today_rounded,
+            selected: _selectedHistoryYear != null,
+            onTap: () => _showHistoryYearPicker(years),
+          ),
+          if (_selectedHistoryYear != null)
+            _historyFilterChip(
+              label: _selectedHistoryMonth == null
+                  ? 'All Months'
+                  : _monthName(_selectedHistoryMonth!),
+              icon: Icons.calendar_month_rounded,
+              selected: _selectedHistoryMonth != null,
+              onTap: () => _showHistoryMonthPicker(months),
+            ),
+          if (_selectedHistoryYear != null || _selectedHistoryMonth != null)
+            TextButton.icon(
+              onPressed: () async {
+                setState(() {
+                  _selectedHistoryYear = null;
+                  _selectedHistoryMonth = null;
+                });
+                await _fetchFilteredAttendanceHistory();
+              },
+              icon: const Icon(Icons.close_rounded),
+              label: const Text('Clear'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _historyFilterChip({
+    required String label,
+    required IconData icon,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.primaryWithLowOpacity
+              : AppColors.surfaceVariant,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+          border: Border.all(
+            color: selected ? AppColors.primary : AppColors.grey200,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: AppTypography.iconSizeSm,
+              color: selected ? AppColors.primary : AppColors.textSecondary,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Text(
+              label,
+              style: AppTypography.captionStyle.copyWith(
+                color: selected ? AppColors.primary : AppColors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showHistoryYearPicker(List<int> years) async {
+    final selected = await _showHistoryOptionSheet<int?>(
+      title: 'Select Year',
+      options: [
+        const _HistoryOption<int?>(label: 'All Years', value: null),
+        for (final year in years) _HistoryOption(label: '$year', value: year),
+      ],
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _selectedHistoryYear = selected;
+      _selectedHistoryMonth = null;
+    });
+    await _fetchFilteredAttendanceHistory();
+  }
+
+  Future<void> _showHistoryMonthPicker(List<int> months) async {
+    final selected = await _showHistoryOptionSheet<int?>(
+      title: 'Select Month',
+      options: [
+        const _HistoryOption<int?>(label: 'All Months', value: null),
+        for (final month in months)
+          _HistoryOption(label: _monthName(month), value: month),
+      ],
+    );
+
+    if (!mounted) return;
+    setState(() => _selectedHistoryMonth = selected);
+    await _fetchFilteredAttendanceHistory();
+  }
+
+  Future<T?> _showHistoryOptionSheet<T>({
+    required String title,
+    required List<_HistoryOption<T>> options,
+  }) {
+    return showModalBottomSheet<T>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.58,
+        minChildSize: 0.32,
+        maxChildSize: 0.82,
+        builder: (context, scrollController) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.lg,
+              0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: AppTypography.subheadingStyle),
+                const SizedBox(height: AppSpacing.md),
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    itemCount: options.length,
+                    itemBuilder: (context, index) {
+                      final option = options[index];
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(option.label),
+                        onTap: () => Navigator.pop(context, option.value),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HistoryOption<T> {
+  const _HistoryOption({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final T value;
 }
