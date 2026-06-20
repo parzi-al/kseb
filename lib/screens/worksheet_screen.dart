@@ -10,7 +10,6 @@ import '../utils/app_decorations.dart';
 import '../utils/app_typography.dart';
 import '../utils/app_toast.dart';
 import '../components/common/app_bar_builder.dart';
-import '../components/common/floating_bottom_nav.dart';
 import '../components/common/app_loading.dart';
 import '../components/common/modern_dropdown.dart';
 import '../components/common/skeleton_loader.dart';
@@ -329,33 +328,66 @@ class _WorksheetScreenState extends State<WorksheetScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: buildAppBar(title: 'Daily Worksheet'),
-      body: IndexedStack(
-        index: _selectedTabIndex,
+      body: Column(
         children: [
-          _isLoading ? const WorksheetSkeleton() : _buildSubmitTab(),
-          _buildMyStatusTab(),
-          _buildApprovalsTab(),
+          _buildWorksheetTabs(),
+          Expanded(
+            child: IndexedStack(
+              index: _selectedTabIndex,
+              children: [
+                _isLoading ? const WorksheetSkeleton() : _buildSubmitTab(),
+                _buildMyStatusTab(),
+                _buildApprovalsTab(),
+              ],
+            ),
+          ),
         ],
       ),
-      bottomNavigationBar: FloatingBottomNav(
-        selectedIndex: _selectedTabIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedTabIndex = index);
-        },
-        destinations: const [
-          FloatingBottomNavDestination(
-            icon: Icons.edit_document,
-            label: 'Submit',
+    );
+  }
+
+  Widget _buildWorksheetTabs() {
+    return Container(
+      width: double.infinity,
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        AppSpacing.md,
+      ),
+      child: SegmentedButton<int>(
+        segments: const [
+          ButtonSegment(
+            value: 0,
+            icon: Icon(Icons.edit_document),
+            label: Text('Submit'),
           ),
-          FloatingBottomNavDestination(
-            icon: Icons.fact_check_outlined,
-            label: 'Status',
+          ButtonSegment(
+            value: 1,
+            icon: Icon(Icons.fact_check_outlined),
+            label: Text('Status'),
           ),
-          FloatingBottomNavDestination(
-            icon: Icons.verified_outlined,
-            label: 'Approvals',
+          ButtonSegment(
+            value: 2,
+            icon: Icon(Icons.verified_outlined),
+            label: Text('Approvals'),
           ),
         ],
+        selected: {_selectedTabIndex},
+        onSelectionChanged: (selection) {
+          setState(() => _selectedTabIndex = selection.first);
+        },
+        showSelectedIcon: false,
+        style: ButtonStyle(
+          visualDensity: VisualDensity.compact,
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            return states.contains(WidgetState.selected)
+                ? AppColors.primary
+                : AppColors.textSecondary;
+          }),
+          textStyle: WidgetStatePropertyAll(AppTypography.captionStyle),
+        ),
       ),
     );
   }

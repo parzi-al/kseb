@@ -7,7 +7,6 @@ import '../utils/app_spacing.dart';
 import '../utils/app_decorations.dart';
 import '../utils/app_toast.dart';
 import '../utils/animation_constants.dart';
-import '../components/common/app_button.dart';
 import '../components/common/app_loading.dart';
 import '../components/common/password_strength_indicator.dart';
 import '../services/auth_service.dart';
@@ -108,14 +107,17 @@ class _LoginScreenState extends State<LoginScreen>
 
   // --- Functions ---
   Future<void> _signIn() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
     // Basic validation
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+    if (email.isEmpty || password.isEmpty) {
       AppToast.showError(context, 'Please enter both email and password.');
       return;
     }
 
     // Password minimum length check (FR-013)
-    if (_passwordController.text.length < 6) {
+    if (password.length < 6) {
       AppToast.showError(context, 'Password must be at least 6 characters.');
       return;
     }
@@ -132,8 +134,8 @@ class _LoginScreenState extends State<LoginScreen>
     try {
       // Use AuthService for sign-in (creates session, logs audit event)
       await _authService.signIn(
-        _emailController.text,
-        _passwordController.text,
+        email,
+        password,
       );
 
       // On success: reset rate limiter
@@ -169,6 +171,85 @@ class _LoginScreenState extends State<LoginScreen>
     _cooldownSub?.cancel();
     _rateLimiter.dispose();
     super.dispose();
+  }
+
+  Widget _buildAuthTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool obscureText = false,
+    TextInputType? keyboardType,
+    TextInputAction? textInputAction,
+    Iterable<String>? autofillHints,
+    ValueChanged<String>? onSubmitted,
+  }) {
+    return Container(
+      decoration: AppDecorations.modernCardDecoration,
+      child: TextField(
+        controller: controller,
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        textInputAction: textInputAction,
+        autofillHints: autofillHints,
+        onSubmitted: onSubmitted,
+        style: AppTypography.bodyMediumStyle,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w500,
+          ),
+          prefixIcon: Container(
+            margin: EdgeInsets.all(AppSpacing.md),
+            padding: EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: AppColors.primaryWithLowOpacity,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            ),
+            child: Icon(
+              icon,
+              color: AppColors.primary,
+              size: context.responsiveHeight(20),
+            ),
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: AppColors.surface,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.lg,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrimaryActionButton() {
+    if (_isLoading) {
+      return const AppLoading(variant: AppLoadingVariant.inline);
+    }
+
+    return ElevatedButton(
+      onPressed: _cooldownRemaining > 0 ? null : _signIn,
+      style: ElevatedButton.styleFrom(
+        minimumSize: const Size.fromHeight(56),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textOnPrimary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
+        ),
+      ),
+      child: Text(
+        'SIGN IN',
+        style: AppTypography.bodyMediumStyle.copyWith(
+          color: AppColors.textOnPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
   }
 
   @override
@@ -255,88 +336,27 @@ class _LoginScreenState extends State<LoginScreen>
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: context.responsiveSpacing(48)),
-              // Modern Email Field
-              Container(
-                decoration: AppDecorations.modernCardDecoration,
-                child: TextField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  style: AppTypography.bodyMediumStyle,
-                  decoration: InputDecoration(
-                    labelText: 'Email Address',
-                    labelStyle: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    prefixIcon: Container(
-                      margin: EdgeInsets.all(AppSpacing.md),
-                      padding: EdgeInsets.all(AppSpacing.sm),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryWithLowOpacity,
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusSm),
-                      ),
-                      child: Icon(
-                        Icons.email_outlined,
-                        color: AppColors.primary,
-                        size: context.responsiveHeight(20),
-                      ),
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(AppSpacing.radiusDefault),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: AppColors.surface,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: AppSpacing.lg,
-                      vertical: AppSpacing.lg,
-                    ),
-                  ),
-                ),
+              _buildAuthTextField(
+                label: 'Email Address',
+                controller: _emailController,
+                icon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.email],
               ),
               SizedBox(height: context.responsiveSpacing(AppSpacing.lg)),
-              // Modern Password Field
-              Container(
-                decoration: AppDecorations.modernCardDecoration,
-                child: TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  style: AppTypography.bodyMediumStyle,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    labelStyle: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    prefixIcon: Container(
-                      margin: EdgeInsets.all(AppSpacing.md),
-                      padding: EdgeInsets.all(AppSpacing.sm),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryWithLowOpacity,
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusSm),
-                      ),
-                      child: Icon(
-                        Icons.lock_outline,
-                        color: AppColors.primary,
-                        size: context.responsiveHeight(20),
-                      ),
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(AppSpacing.radiusDefault),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: AppColors.surface,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: AppSpacing.lg,
-                      vertical: AppSpacing.lg,
-                    ),
-                  ),
-                ),
+              _buildAuthTextField(
+                label: 'Password',
+                controller: _passwordController,
+                icon: Icons.lock_outline,
+                obscureText: true,
+                textInputAction: TextInputAction.done,
+                autofillHints: const [AutofillHints.password],
+                onSubmitted: (_) {
+                  if (_cooldownRemaining == 0 && !_isLoading) {
+                    _signIn();
+                  }
+                },
               ),
               // Password strength indicator (FR-013, FR-014)
               PasswordStrengthIndicator(password: _passwordText),
@@ -370,13 +390,7 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 SizedBox(height: context.responsiveSpacing(AppSpacing.md)),
               ],
-              // Modern Login Button
-              _isLoading
-                  ? const AppLoading(variant: AppLoadingVariant.inline)
-                  : AppButton(
-                      label: 'SIGN IN',
-                      onPressed: _cooldownRemaining > 0 ? null : _signIn,
-                    ),
+              _buildPrimaryActionButton(),
               SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
               // Modern Footer links
               Row(

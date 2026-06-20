@@ -480,6 +480,24 @@ void main() {
     });
   });
 
+  group('markAttendanceForTeamMember', () {
+    test('creates normalized document shape for security rules', () async {
+      await service.markAttendanceForTeamMember(
+        userId: 'user1',
+        date: DateTime(2026, 3, 8),
+      );
+
+      final snap = await fakeFirestore.collection('attendance').get();
+      expect(snap.docs, hasLength(1));
+
+      final data = snap.docs.first.data();
+      expect(data['userId'], 'user1');
+      expect(data['worksheetId'], isNull);
+      expect(data['verifiedBy'], isNull);
+      expect(data['status'], 'present');
+    });
+  });
+
   // ---------------------------------------------------------------------------
   // US3: verifyAttendance
   // ---------------------------------------------------------------------------

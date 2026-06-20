@@ -54,6 +54,10 @@ service cloud.firestore {
       return value == null || value is string;
     }
 
+    function hasNullableString(data, key) {
+      return !(key in data.keys()) || data[key] == null || data[key] is string;
+    }
+
     function isValidUserCreate() {
       return request.resource.data.keys().hasOnly([
           'name',
@@ -201,6 +205,23 @@ service cloud.firestore {
       return value is string && value.size() > 0;
     }
 
+    function isValidAttendanceCreate() {
+      return request.resource.data.keys().hasOnly([
+          'userId',
+          'worksheetId',
+          'date',
+          'verifiedBy',
+          'status',
+          'timestamp'
+        ]) &&
+        isRequiredString(request.resource.data.userId) &&
+        hasNullableString(request.resource.data, 'worksheetId') &&
+        hasNullableString(request.resource.data, 'verifiedBy') &&
+        request.resource.data.date is timestamp &&
+        request.resource.data.status in ['present', 'absent', 'leave'] &&
+        request.resource.data.timestamp == request.time;
+    }
+
     function isValidAddMaterialRequest() {
       return request.resource.data.materialData is map &&
         isRequiredString(request.resource.data.materialName) &&
@@ -298,10 +319,16 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid;
       // Supervisors and above can read all attendance
       allow read: if request.auth != null && isSupervisorOrAbove();
-      // Users can create their own attendance (only once per day)
-      allow create: if request.auth != null && 
-        request.resource.data.userId == request.auth.uid &&
-        request.resource.data.date.toMillis() == request.time.date().toMillis();
+      // Users can create their own attendance; supervisors and above can mark team/member attendance.
+      allow create: if request.auth != null &&
+        isValidAttendanceCreate() &&
+        (
+          (
+            request.resource.data.userId == request.auth.uid &&
+            request.resource.data.date.toMillis() == request.time.date().toMillis()
+          ) ||
+          isSupervisorOrAbove()
+        );
       // Supervisors can update attendance status
       allow update: if request.auth != null && 
         isSupervisorOrAbove() &&

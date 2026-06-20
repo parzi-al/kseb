@@ -48,6 +48,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   // Supervisor team members
   List<UserModel> _teamMembers = [];
+  Map<String, AttendanceModel> _teamAttendanceByUserId = {};
   bool _isLoadingTeamMembers = false;
 
   // Calendar view variables
@@ -143,14 +144,33 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
       // Sort by name
       _teamMembers.sort((a, b) => a.name.compareTo(b.name));
+      await _fetchTeamAttendanceForDate(DateTime.now());
     } catch (e) {
       _teamMembers = [];
+      _teamAttendanceByUserId = {};
       if (mounted) {
         AppToast.showError(context, 'Error fetching team members: $e');
       }
     }
 
     if (mounted) setState(() => _isLoadingTeamMembers = false);
+  }
+
+  /// Fetches team attendance for the date represented by the supervisor list.
+  Future<void> _fetchTeamAttendanceForDate(DateTime date) async {
+    if (_teamMembers.isEmpty) {
+      _teamAttendanceByUserId = {};
+      return;
+    }
+
+    final records = await _attendanceService.getTeamAttendance(
+      userIds: _teamMembers.map((member) => member.id).toList(),
+      date: date,
+    );
+
+    _teamAttendanceByUserId = {
+      for (final record in records) record.userId: record,
+    };
   }
 
   /// Fetches attendance history records via [AttendanceService] (FR-001).
@@ -254,7 +274,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
       if (mounted) {
         AppToast.showSuccess(context, 'Attendance marked successfully! ✓');
-        await _fetchTeamMembers();
+        final today = DateTime.now();
+        if (date.year == today.year &&
+            date.month == today.month &&
+            date.day == today.day) {
+          await _fetchTeamAttendanceForDate(today);
+          if (mounted) setState(() {});
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -635,6 +661,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 ),
                 itemBuilder: (context, index) {
                   final member = _teamMembers[index];
+                  final isMarked =
+                      _teamAttendanceByUserId.containsKey(member.id);
                   return Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: AppSpacing.md,
@@ -673,21 +701,53 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           ),
                         ),
                         SizedBox(width: AppSpacing.md),
-                        ElevatedButton.icon(
-                          onPressed: () =>
-                              _showMarkAttendanceDialog(member.id, member.name),
-                          icon: Icon(Icons.check_circle_outline_rounded,
-                              size: 18),
-                          label: Text('Mark'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: AppColors.textOnPrimary,
+                        if (isMarked)
+                          Container(
                             padding: EdgeInsets.symmetric(
                               horizontal: AppSpacing.md,
                               vertical: AppSpacing.sm,
                             ),
+                            decoration: BoxDecoration(
+                              color: AppColors.success.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusDefault),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.check_circle_rounded,
+                                  color: AppColors.success,
+                                  size: 18,
+                                ),
+                                SizedBox(width: AppSpacing.xs),
+                                Text(
+                                  'Marked',
+                                  style: TextStyle(
+                                    color: AppColors.success,
+                                    fontSize: AppTypography.fontSizeBase,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          ElevatedButton.icon(
+                            onPressed: () => _showMarkAttendanceDialog(
+                                member.id, member.name),
+                            icon: Icon(Icons.check_circle_outline_rounded,
+                                size: 18),
+                            label: Text('Mark'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: AppColors.textOnPrimary,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md,
+                                vertical: AppSpacing.sm,
+                              ),
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   );

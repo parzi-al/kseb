@@ -30,10 +30,13 @@ Future<bool> markAttendance({
 
 **Behaviour**:
 1. Normalise current date to midnight.
-2. Query `attendance` collection where `userId == userId` AND `date == today`. Limit 1.
-3. If record exists → throw `AttendanceAlreadyMarkedException`.
-4. If no record → insert new document with `userId`, `worksheetId`, `date` (midnight), `verifiedBy`, `status`, `timestamp` (server timestamp).
-5. Return `true` on success.
+2. Build deterministic document ID `{encodedUserId}_{yyyyMMdd}` for the user/day.
+3. Run a Firestore transaction and read that document.
+4. If record exists → throw `AttendanceAlreadyMarkedException`.
+5. If no record → insert new document with `userId`, `worksheetId`, `date` (midnight), `verifiedBy`, `status`, `timestamp` (server timestamp).
+6. Return `true` on success.
+
+**Consistency note**: deterministic IDs plus transactional reads prevent duplicate daily attendance records from rapid double taps, retries, or multiple devices submitting at the same time.
 
 **Error conditions**:
 - `AttendanceAlreadyMarkedException` — attendance already marked for today
@@ -52,7 +55,7 @@ Future<int> getMonthlyAttendanceCount({
 })
 ```
 
-**Behaviour**: Query `attendance` where `userId == userId`, `date >= monthStart`, `date < nextMonthStart`, `status == 'present'`. Return count.
+**Behaviour**: Run a Firestore aggregate count where `userId == userId`, `date >= monthStart`, `date < nextMonthStart`, `status == 'present'`. Return count without downloading matching documents.
 
 ---
 
@@ -62,7 +65,7 @@ Future<int> getMonthlyAttendanceCount({
 Future<int> getTotalAttendanceCount(String userId)
 ```
 
-**Behaviour**: Query `attendance` where `userId == userId`, `status == 'present'`. Return count.
+**Behaviour**: Run a Firestore aggregate count where `userId == userId`, `status == 'present'`. Return count without downloading matching documents.
 
 ---
 
@@ -166,7 +169,7 @@ Future<List<AttendanceModel>> getAttendanceHistory(String userId)
 | `FirebaseException` (unavailable) | Network failure | "Network error. Please check your connection and try again." |
 | `ArgumentError` | Invalid status value | Internal error — should not reach user |
 
-## Firestore Security Rules (existing, no changes)
+## Firestore Security Rules
 
 ```
 match /attendance/{attendanceId} {
@@ -174,7 +177,10 @@ match /attendance/{attendanceId} {
     resource.data.userId == request.auth.uid ||
     isRole('supervisor') || isRole('manager') || isRole('coo') || isRole('director')
   );
-  allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+  allow create: if request.auth != null && isValidAttendanceCreate() && (
+    (request.resource.data.userId == request.auth.uid && request.resource.data.date == today) ||
+    isRole('supervisor') || isRole('manager') || isRole('coo') || isRole('director')
+  );
   allow update: if request.auth != null && (
     isRole('supervisor') || isRole('manager') || isRole('coo') || isRole('director')
   );
@@ -183,3 +189,5 @@ match /attendance/{attendanceId} {
   );
 }
 ```
+
+**Change**: Supervisors and above may create attendance records for team/member workflows. Self-service users remain limited to creating their own attendance for the current day.

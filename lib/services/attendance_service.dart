@@ -23,6 +23,13 @@ class AttendanceService {
   AttendanceService({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
+  String _attendanceDocId(String userId, DateTime date) {
+    final safeUserId = Uri.encodeComponent(userId);
+    final day =
+        '${date.year.toString().padLeft(4, '0')}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
+    return '${safeUserId}_$day';
+  }
+
   /// Mark attendance for a user.
   /// Returns true if successful, throws [AttendanceAlreadyMarkedException] if already marked.
   Future<bool> markAttendance({
@@ -41,26 +48,26 @@ class AttendanceService {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    // Check if attendance already marked today
-    final existingAttendance = await _firestore
+    final attendanceRef = _firestore
         .collection(_attendanceCollection)
-        .where('userId', isEqualTo: userId)
-        .where('date', isEqualTo: Timestamp.fromDate(today))
-        .limit(1)
-        .get();
+        .doc(_attendanceDocId(userId, today));
 
-    if (existingAttendance.docs.isNotEmpty) {
-      throw const AttendanceAlreadyMarkedException();
-    }
+    await _firestore.runTransaction((transaction) async {
+      final existingAttendance = await transaction.get(attendanceRef);
+      if (existingAttendance.exists) {
+        throw const AttendanceAlreadyMarkedException();
+      }
 
-    // Mark attendance
-    await _firestore.collection(_attendanceCollection).add({
-      'userId': userId,
-      'worksheetId': worksheetId,
-      'date': Timestamp.fromDate(today),
-      'verifiedBy': verifiedBy,
-      'status': status,
-      'timestamp': FieldValue.serverTimestamp(),
+      // Deterministic document IDs make duplicate daily writes impossible even
+      // when the UI double-submits before the first write finishes.
+      transaction.set(attendanceRef, {
+        'userId': userId,
+        'worksheetId': worksheetId,
+        'date': Timestamp.fromDate(today),
+        'verifiedBy': verifiedBy,
+        'status': status,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
     });
 
     return true;
@@ -81,9 +88,10 @@ class AttendanceService {
         .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(monthStart))
         .where('date', isLessThan: Timestamp.fromDate(monthEnd))
         .where('status', isEqualTo: 'present')
+        .count()
         .get();
 
-    return snapshot.docs.length;
+    return snapshot.count ?? 0;
   }
 
   /// Get total attendance count for a user
@@ -92,9 +100,10 @@ class AttendanceService {
         .collection(_attendanceCollection)
         .where('userId', isEqualTo: userId)
         .where('status', isEqualTo: 'present')
+        .count()
         .get();
 
-    return snapshot.docs.length;
+    return snapshot.count ?? 0;
   }
 
   /// Get attendance records for a user in a date range
@@ -177,24 +186,24 @@ class AttendanceService {
   }) async {
     final normalizedDate = DateTime(date.year, date.month, date.day);
 
-    // Check if attendance already marked for this date
-    final existingAttendance = await _firestore
+    final attendanceRef = _firestore
         .collection(_attendanceCollection)
-        .where('userId', isEqualTo: userId)
-        .where('date', isEqualTo: Timestamp.fromDate(normalizedDate))
-        .limit(1)
-        .get();
+        .doc(_attendanceDocId(userId, normalizedDate));
 
-    if (existingAttendance.docs.isNotEmpty) {
-      throw Exception('Attendance already marked for this date');
-    }
+    await _firestore.runTransaction((transaction) async {
+      final existingAttendance = await transaction.get(attendanceRef);
+      if (existingAttendance.exists) {
+        throw Exception('Attendance already marked for this date');
+      }
 
-    // Mark attendance
-    await _firestore.collection(_attendanceCollection).add({
-      'userId': userId,
-      'date': Timestamp.fromDate(normalizedDate),
-      'status': status,
-      'timestamp': FieldValue.serverTimestamp(),
+      transaction.set(attendanceRef, {
+        'userId': userId,
+        'worksheetId': null,
+        'date': Timestamp.fromDate(normalizedDate),
+        'verifiedBy': null,
+        'status': status,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
     });
   }
 
