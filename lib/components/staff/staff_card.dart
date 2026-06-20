@@ -66,12 +66,7 @@ class StaffCard extends StatelessWidget {
                       children: [
                         Text(
                           staffData['name'] ?? 'Staff Member',
-                          style: const TextStyle(
-                            fontSize: AppTypography.fontSizeLG,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                            height: 1.2,
-                          ),
+                          style: AppTypography.subheadingStyle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -81,16 +76,15 @@ class StaffCard extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.phone_rounded,
-                                size: 14,
+                                size: AppTypography.iconSizeSm,
                                 color: AppColors.grey600,
                               ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   staffData['phone'],
-                                  style: TextStyle(
+                                  style: AppTypography.captionStyle.copyWith(
                                     color: AppColors.grey600,
-                                    fontSize: 13,
                                     height: 1.2,
                                   ),
                                   maxLines: 1,
@@ -106,16 +100,15 @@ class StaffCard extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.email_rounded,
-                                size: 14,
+                                size: AppTypography.iconSizeSm,
                                 color: AppColors.grey600,
                               ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   staffData['email'],
-                                  style: TextStyle(
+                                  style: AppTypography.captionStyle.copyWith(
                                     color: AppColors.grey600,
-                                    fontSize: 13,
                                     height: 1.2,
                                   ),
                                   maxLines: 1,
@@ -161,33 +154,43 @@ class StaffCard extends StatelessWidget {
       height: 44,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            AppColors.info.withValues(alpha: 0.8),
-            AppColors.info,
-          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary.withValues(alpha: 0.18),
+            AppColors.accent.withValues(alpha: 0.14),
+          ],
         ),
         shape: BoxShape.circle,
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.14),
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.info.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: AppColors.primary.withValues(alpha: 0.12),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Center(
-        child: Text(
-          (staffData['name']?.isNotEmpty ?? false)
-              ? staffData['name']!.substring(0, 1).toUpperCase()
-              : 'S',
-          style: const TextStyle(
-            color: AppColors.white,
-            fontSize: AppTypography.fontSizeXL,
-            fontWeight: FontWeight.bold,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(
+            Icons.person_rounded,
+            color: AppColors.primary.withValues(alpha: 0.18),
+            size: AppTypography.iconSizeXl,
           ),
-        ),
+          Text(
+            (staffData['name']?.isNotEmpty ?? false)
+                ? staffData['name']!.substring(0, 1).toUpperCase()
+                : 'S',
+            style: AppTypography.headingStyle.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -215,7 +218,7 @@ class StaffCard extends StatelessWidget {
           ),
           child: Icon(
             icon,
-            size: 18,
+            size: AppTypography.iconSizeMd,
             color: color,
           ),
         ),
