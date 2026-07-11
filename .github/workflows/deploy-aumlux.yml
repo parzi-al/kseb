@@ -18,7 +18,7 @@ permissions:
 
 concurrency:
   group: aumlux-${{ github.ref_name }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.ref_name != 'releases' }}
 
 jobs:
   build:
@@ -33,6 +33,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+          cache: gradle
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -40,11 +41,30 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Cache Dart packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
       - name: Install dependencies
         run: flutter pub get
 
       - name: Build Android APK
         run: flutter build apk --release
+
+      - name: Verify Android APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+          test -s "$APK"
+          unzip -t "$APK" > build/app/outputs/flutter-apk/apk-zip-check.txt
+          sha256sum "$APK" | tee build/app/outputs/flutter-apk/aumlux.apk.sha256
+          AAPT="$(find "$ANDROID_HOME/build-tools" -name aapt -type f | sort -V | tail -n 1)"
+          "$AAPT" dump badging "$APK" > build/app/outputs/flutter-apk/aumlux-apk-info.txt
 
       - name: Build web app
         run: flutter build web --release --base-href /web/
@@ -57,6 +77,8 @@ jobs:
           cp -R build/flutter-web/. build/web/web/
           mkdir -p build/web/downloads
           cp build/app/outputs/flutter-apk/app-release.apk build/web/downloads/aumlux.apk
+          cp build/app/outputs/flutter-apk/aumlux.apk.sha256 build/web/downloads/aumlux.apk.sha256
+          cp build/app/outputs/flutter-apk/aumlux-apk-info.txt build/web/downloads/aumlux-apk-info.txt
           cat > build/web/index.html <<'HTML'
           <!doctype html>
           <html lang="en">
