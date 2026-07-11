@@ -33,12 +33,7 @@ class ShellBottomNav extends StatelessWidget {
       destinations: destinations,
       onDestinationSelected: (index) {
         if (selectedIndex == index) return;
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => MainShell(initialIndex: index),
-          ),
-          (route) => false,
-        );
+        MainShell.openTab(context, index);
       },
     );
   }
