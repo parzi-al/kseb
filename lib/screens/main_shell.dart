@@ -8,21 +8,23 @@ import 'worker_home_screen.dart';
 import 'worksheet_screen.dart';
 
 class MainShell extends StatefulWidget {
-  const MainShell({super.key, this.authService});
+  const MainShell({super.key, this.authService, this.initialIndex = 0});
 
   final AuthService? authService;
+  final int initialIndex;
 
   @override
   State<MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends State<MainShell> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   late final PageController _pageController;
 
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex.clamp(0, 2);
     _pageController = PageController(initialPage: _selectedIndex);
   }
 

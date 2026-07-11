@@ -310,13 +310,134 @@ service cloud.firestore {
           ? isValidWithdrawMaterialRequest()
           : false;
     }
+
+    function isValidTenderRecord(userId) {
+      return request.resource.data.keys().hasOnly([
+          'reference',
+          'title',
+          'tenderType',
+          'workCategory',
+          'department',
+          'office',
+          'location',
+          'noticeDate',
+          'submissionDeadline',
+          'openingDate',
+          'workStartDate',
+          'estimateAmount',
+          'emdAmount',
+          'securityDeposit',
+          'contactPerson',
+          'contactPhone',
+          'remarks',
+          'ownerId',
+          'ownerEmail',
+          'submittedAt',
+          'updatedAt'
+        ]) &&
+        request.resource.data.ownerId == userId &&
+        isNullableString(request.resource.data.ownerEmail) &&
+        isRequiredString(request.resource.data.reference) &&
+        isRequiredString(request.resource.data.title) &&
+        request.resource.data.tenderType is string &&
+        request.resource.data.workCategory is string &&
+        request.resource.data.department is string &&
+        request.resource.data.office is string &&
+        request.resource.data.location is string &&
+        request.resource.data.noticeDate is string &&
+        request.resource.data.submissionDeadline is string &&
+        request.resource.data.openingDate is string &&
+        request.resource.data.workStartDate is string &&
+        request.resource.data.estimateAmount is string &&
+        request.resource.data.emdAmount is string &&
+        request.resource.data.securityDeposit is string &&
+        request.resource.data.contactPerson is string &&
+        request.resource.data.contactPhone is string &&
+        request.resource.data.remarks is string &&
+        request.resource.data.submittedAt == request.time &&
+        request.resource.data.updatedAt == request.time;
+    }
+
+    function isValidTenderUpdate(userId) {
+      return request.resource.data.keys().hasOnly([
+          'reference',
+          'title',
+          'tenderType',
+          'workCategory',
+          'department',
+          'office',
+          'location',
+          'noticeDate',
+          'submissionDeadline',
+          'openingDate',
+          'workStartDate',
+          'estimateAmount',
+          'emdAmount',
+          'securityDeposit',
+          'contactPerson',
+          'contactPhone',
+          'remarks',
+          'ownerId',
+          'ownerEmail',
+          'submittedAt',
+          'updatedAt'
+        ]) &&
+        resource.data.ownerId == userId &&
+        request.resource.data.ownerId == userId &&
+        request.resource.data.submittedAt == resource.data.submittedAt &&
+        isNullableString(request.resource.data.ownerEmail) &&
+        isRequiredString(request.resource.data.reference) &&
+        isRequiredString(request.resource.data.title) &&
+        request.resource.data.tenderType is string &&
+        request.resource.data.workCategory is string &&
+        request.resource.data.department is string &&
+        request.resource.data.office is string &&
+        request.resource.data.location is string &&
+        request.resource.data.noticeDate is string &&
+        request.resource.data.submissionDeadline is string &&
+        request.resource.data.openingDate is string &&
+        request.resource.data.workStartDate is string &&
+        request.resource.data.estimateAmount is string &&
+        request.resource.data.emdAmount is string &&
+        request.resource.data.securityDeposit is string &&
+        request.resource.data.contactPerson is string &&
+        request.resource.data.contactPhone is string &&
+        request.resource.data.remarks is string &&
+        request.resource.data.updatedAt == request.time;
+    }
+
+    function isValidAuthEventCreate() {
+      return request.resource.data.keys().hasOnly([
+          'userId',
+          'email',
+          'eventType',
+          'timestamp',
+          'deviceInfo',
+          'sessionToken',
+          'metadata'
+        ]) &&
+        hasNullableString(request.resource.data, 'userId') &&
+        isRequiredString(request.resource.data.email) &&
+        request.resource.data.eventType in [
+          'login_success',
+          'login_failure',
+          'logout',
+          'idle_timeout',
+          'force_logout'
+        ] &&
+        request.resource.data.timestamp == request.time &&
+        hasNullableString(request.resource.data, 'deviceInfo') &&
+        hasNullableString(request.resource.data, 'sessionToken') &&
+        (
+          !('metadata' in request.resource.data.keys()) ||
+          request.resource.data.metadata is map
+        );
+    }
     
     // Auth audit events — append-only log (FR-018, FR-019)
     match /auth_events/{eventId} {
-      // Any authenticated user can create audit events (app writes on their behalf)
-      allow create: if request.auth != null
-        && request.resource.data.eventType in ['login_success', 'login_failure', 'logout', 'idle_timeout', 'force_logout']
-        && request.resource.data.timestamp == request.time;
+      // Auth events may be written as auth state changes, including after sign-out.
+      allow create: if isValidAuthEventCreate();
       
       // Only managers and above can read audit events (admin visibility)
       allow read: if request.auth != null && isManagerOrAbove();
@@ -589,6 +710,26 @@ service cloud.firestore {
         resource.data.status == 'Pending' &&
         canApproveRole(resource.data.requestedByRole) &&
         isValidApprovalUpdate();
+    }
+
+    // Tender records are user-scoped so users can submit, review, and compare
+    // only the tenders they created.
+    match /user_tenders/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false;
+
+      match /tenders/{tenderId} {
+        allow get, list: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null &&
+          request.auth.uid == userId &&
+          isValidTenderRecord(userId);
+        allow update: if request.auth != null &&
+          request.auth.uid == userId &&
+          isValidTenderUpdate(userId);
+        allow delete: if request.auth != null &&
+          request.auth.uid == userId &&
+          resource.data.ownerId == userId;
+      }
     }
     
     // Deny all other requests by default

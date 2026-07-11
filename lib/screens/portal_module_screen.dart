@@ -10,6 +10,7 @@ import '../components/common/app_button.dart';
 import '../components/common/app_loading.dart';
 import '../components/common/app_text_field.dart';
 import '../components/common/modern_dropdown.dart';
+import '../components/common/shell_bottom_nav.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_decorations.dart';
 import '../utils/app_spacing.dart';
@@ -73,6 +74,7 @@ class _PortalModuleScreenState extends State<PortalModuleScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: buildAppBar(title: widget.title),
+      bottomNavigationBar: const ShellBottomNav(),
       body: ListView(
         padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
         children: [

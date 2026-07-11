@@ -6,6 +6,7 @@ import 'dart:async';
 import 'staff_management_screen.dart';
 import 'bonus_management_screen.dart';
 import 'bonus_history_screen.dart';
+import 'downloads_screen.dart';
 import 'material_management_screen.dart';
 import 'portal_module_screen.dart';
 import 'tender_details_screen.dart';
@@ -686,6 +687,13 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                           label: 'Material Request',
                           color: AppColors.dashboardCardColors[2],
                           destination: const MaterialManagementScreen(),
+                        ),
+                        _buildDashboardCard(
+                          context,
+                          icon: Icons.download_rounded,
+                          label: 'Downloads',
+                          color: AppColors.primary,
+                          destination: const DownloadsScreen(),
                         ),
                         if (_canShowStaffDashboard())
                           _buildDashboardCard(

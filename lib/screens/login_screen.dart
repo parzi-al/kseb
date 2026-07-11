@@ -7,7 +7,7 @@ import '../utils/app_spacing.dart';
 import '../utils/app_decorations.dart';
 import '../utils/app_toast.dart';
 import '../utils/animation_constants.dart';
-import '../components/common/app_loading.dart';
+import '../components/common/app_button.dart';
 import '../components/common/password_strength_indicator.dart';
 import '../services/auth_service.dart';
 import '../services/login_rate_limiter.dart';
@@ -228,27 +228,11 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _buildPrimaryActionButton() {
-    if (_isLoading) {
-      return const AppLoading(variant: AppLoadingVariant.inline);
-    }
-
-    return ElevatedButton(
-      onPressed: _cooldownRemaining > 0 ? null : _signIn,
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size.fromHeight(56),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.textOnPrimary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusDefault),
-        ),
-      ),
-      child: Text(
-        'SIGN IN',
-        style: AppTypography.bodyMediumStyle.copyWith(
-          color: AppColors.textOnPrimary,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+    return AppButton(
+      label: _cooldownRemaining > 0 ? 'Try again later' : 'Sign In',
+      icon: Icons.login_rounded,
+      isLoading: _isLoading,
+      onPressed: _cooldownRemaining > 0 || _isLoading ? null : _signIn,
     );
   }
 

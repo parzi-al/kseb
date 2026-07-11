@@ -1,8 +1,13 @@
-name: Deploy Aumlux
+name: Aumlux Release Cycle
 
 on:
   push:
     branches:
+      - staging
+      - releases
+  pull_request:
+    branches:
+      - staging
       - releases
   workflow_dispatch:
 
@@ -12,7 +17,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: aumlux-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -205,16 +210,27 @@ jobs:
           cp build/web/index.html build/web/download-apk.html
           echo "aumlux.simplewebsite.in" > build/web/CNAME
 
+      - name: Upload staging test build
+        if: github.ref_name == 'staging' || github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: aumlux-${{ github.event_name == 'pull_request' && 'pr' || github.ref_name }}-release-build
+          path: build/web
+          retention-days: 14
+
       - name: Configure GitHub Pages
+        if: github.ref_name == 'releases' && github.event_name == 'push'
         uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
+        if: github.ref_name == 'releases' && github.event_name == 'push'
         uses: actions/upload-pages-artifact@v3
         with:
           name: aumlux-pages
           path: build/web
 
   deploy:
+    if: github.ref_name == 'releases' && github.event_name == 'push'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
