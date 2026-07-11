@@ -947,43 +947,27 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
 
       setState(() => _activeExport = 'tenders_xlsx');
       final excel = xls.Excel.createExcel();
+      excel.rename('Sheet1', 'Tender Summary');
       final summary = excel['Tender Summary'];
-      final details = excel['Tender Details'];
-      summary.appendRow([
-        xls.TextCellValue('Reference'),
-        xls.TextCellValue('Title'),
-        xls.TextCellValue('Type'),
-        xls.TextCellValue('Office'),
-        xls.TextCellValue('Deadline'),
-        xls.TextCellValue('Estimate Amount'),
-        xls.TextCellValue('EMD Amount'),
-      ]);
-      details.appendRow([
-        xls.TextCellValue('Tender'),
-        xls.TextCellValue('Field'),
-        xls.TextCellValue('Value'),
-      ]);
+      excel.setDefaultSheet('Tender Summary');
 
-      for (final doc in tenders) {
+      final headers = _tenderRows(tenders.first.data())
+          .map((row) => xls.TextCellValue(row.key))
+          .toList();
+      summary.appendRow(headers);
+
+      final sortedTenders = [...tenders]..sort((a, b) {
+          final referenceCompare = _value(a.data()['reference'])
+              .compareTo(_value(b.data()['reference']));
+          if (referenceCompare != 0) return referenceCompare;
+          return _value(a.data()['title']).compareTo(_value(b.data()['title']));
+        });
+
+      for (final doc in sortedTenders) {
         final data = doc.data();
         summary.appendRow([
-          xls.TextCellValue(_value(data['reference'])),
-          xls.TextCellValue(_value(data['title'])),
-          xls.TextCellValue(_value(data['tenderType'])),
-          xls.TextCellValue(_value(data['office'])),
-          xls.TextCellValue(_value(data['submissionDeadline'])),
-          xls.TextCellValue(_value(data['estimateAmount'])),
-          xls.TextCellValue(_value(data['emdAmount'])),
+          for (final row in _tenderRows(data)) xls.TextCellValue(row.value),
         ]);
-
-        final label = '${_value(data['reference'])} - ${_value(data['title'])}';
-        for (final row in _tenderRows(data)) {
-          details.appendRow([
-            xls.TextCellValue(label),
-            xls.TextCellValue(row.key),
-            xls.TextCellValue(row.value),
-          ]);
-        }
       }
 
       final bytes = excel.encode();
