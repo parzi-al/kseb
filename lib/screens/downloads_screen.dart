@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../components/common/app_bar_builder.dart';
 import '../components/common/app_button.dart';
@@ -19,6 +18,7 @@ import '../services/approval_service.dart';
 import '../services/user_service.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_decorations.dart';
+import '../utils/generated_file_actions.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_toast.dart';
 import '../utils/app_typography.dart';
@@ -592,86 +592,36 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     return '${prefix}_$stamp.$extension';
   }
 
-  Future<void> _saveFile({
+  Future<bool> _saveFile({
     required Uint8List bytes,
     required String fileName,
     required String mimeType,
     required XTypeGroup typeGroup,
-    String? mobileTitle,
+    required String title,
   }) async {
-    if (_shouldUseShareSheetForDownload) {
-      await _shareGeneratedFile(
-        bytes: bytes,
-        fileName: fileName,
-        mimeType: mimeType,
-        title: mobileTitle ?? 'Save $fileName',
-      );
-      return;
-    }
-
-    final saveLocation = await getSaveLocation(
-      suggestedName: fileName,
-      acceptedTypeGroups: [typeGroup],
-    );
-    if (saveLocation == null) {
-      if (mounted) {
-        AppToast.showError(context, 'Export cancelled.');
-      }
-      return;
-    }
-
-    await XFile.fromData(
-      bytes,
-      name: fileName,
+    return GeneratedFileActions.saveOrShowActions(
+      context: context,
+      bytes: bytes,
+      fileName: fileName,
       mimeType: mimeType,
-    ).saveTo(saveLocation.path);
+      typeGroup: typeGroup,
+      title: title,
+    );
   }
 
-  Future<void> _savePdfFile({
+  Future<bool> _savePdfFile({
     required Uint8List bytes,
     required String fileName,
+    required String title,
   }) async {
-    if (_shouldUseShareSheetForDownload) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-      return;
-    }
-
-    await _saveFile(
+    return _saveFile(
       bytes: bytes,
       fileName: fileName,
       mimeType: 'application/pdf',
+      title: title,
       typeGroup: const XTypeGroup(
         label: 'PDF Document',
         extensions: ['pdf'],
-      ),
-    );
-  }
-
-  bool get _shouldUseShareSheetForDownload {
-    return !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.iOS);
-  }
-
-  Future<void> _shareGeneratedFile({
-    required Uint8List bytes,
-    required String fileName,
-    required String mimeType,
-    required String title,
-  }) async {
-    final box = context.findRenderObject() as RenderBox?;
-    await SharePlus.instance.share(
-      ShareParams(
-        title: title,
-        files: [
-          XFile.fromData(
-            bytes,
-            mimeType: mimeType,
-          ),
-        ],
-        fileNameOverrides: [fileName],
-        sharePositionOrigin:
-            box == null ? null : box.localToGlobal(Offset.zero) & box.size,
       ),
     );
   }
@@ -771,12 +721,13 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
         );
       }
 
-      await _savePdfFile(
+      final exported = await _savePdfFile(
         bytes: Uint8List.fromList(await document.save()),
         fileName: _bulkFileName('all_worksheets', 'pdf'),
+        title: 'Worksheet PDF ready',
       );
 
-      if (mounted) {
+      if (mounted && exported) {
         AppToast.showSuccess(context, 'All worksheets PDF downloaded.');
       }
     } catch (e) {
@@ -898,12 +849,15 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
         );
       }
 
-      await _savePdfFile(
+      final exported = await _savePdfFile(
         bytes: Uint8List.fromList(await document.save()),
         fileName: _bulkFileName('all_tenders', 'pdf'),
+        title: 'Tender PDF ready',
       );
 
-      if (mounted) AppToast.showSuccess(context, 'All tenders PDF downloaded.');
+      if (mounted && exported) {
+        AppToast.showSuccess(context, 'All tenders PDF downloaded.');
+      }
     } catch (e) {
       if (mounted) {
         AppErrorHandler.handleError(
@@ -975,19 +929,19 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
         throw Exception('Unable to generate workbook.');
       }
 
-      await _saveFile(
+      final exported = await _saveFile(
         bytes: Uint8List.fromList(bytes),
         fileName: _bulkFileName('all_tenders', 'xlsx'),
         mimeType:
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        mobileTitle: 'Save tenders XLSX',
+        title: 'Tender XLSX ready',
         typeGroup: const XTypeGroup(
           label: 'Excel Workbook',
           extensions: ['xlsx'],
         ),
       );
 
-      if (mounted) {
+      if (mounted && exported) {
         AppToast.showSuccess(context, 'All tenders XLSX downloaded.');
       }
     } catch (e) {
@@ -1018,19 +972,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
             'Bulk Downloads',
             style: context.responsiveTextStyle(AppTypography.headingStyle),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Single item downloads stay on worksheet and tender cards. Use this page for documentation packs and comparison exports.',
-            style: AppTypography.bodyStyle.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
           const SizedBox(height: AppSpacing.xl),
           _BulkDownloadCard(
             icon: Icons.assignment_rounded,
             title: 'Worksheets',
-            description:
-                'Download all your submitted worksheets as one PDF pack.',
             actions: [
               AppButton(
                 label: 'Download All PDF',
@@ -1044,8 +989,6 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
           _BulkDownloadCard(
             icon: Icons.description_rounded,
             title: 'Tenders',
-            description:
-                'Download all submitted tenders for documentation and comparison.',
             actions: [
               AppButton(
                 label: 'Download All PDF',
@@ -1067,8 +1010,6 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
           _BulkDownloadCard(
             icon: Icons.account_balance_wallet_rounded,
             title: 'EMD / SD',
-            description:
-                'Bulk exports for EMD and SD records will be added here later.',
             actions: [
               AppButton(
                 label: 'Coming Later',
@@ -1088,13 +1029,11 @@ class _BulkDownloadCard extends StatelessWidget {
   const _BulkDownloadCard({
     required this.icon,
     required this.title,
-    required this.description,
     required this.actions,
   });
 
   final IconData icon;
   final String title;
-  final String description;
   final List<Widget> actions;
 
   @override
@@ -1119,13 +1058,6 @@ class _BulkDownloadCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(title, style: AppTypography.subheadingStyle),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  description,
-                  style: AppTypography.bodyStyle.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
                 const SizedBox(height: AppSpacing.base),
                 ...actions,
               ],

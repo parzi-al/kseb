@@ -1,14 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:excel/excel.dart' as xls;
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../components/common/app_bar_builder.dart';
 import '../components/common/app_button.dart';
@@ -18,6 +18,7 @@ import '../components/common/modern_dropdown.dart';
 import '../components/common/shell_bottom_nav.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_decorations.dart';
+import '../utils/generated_file_actions.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_toast.dart';
 import '../utils/app_typography.dart';
@@ -343,42 +344,20 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
         throw Exception('Unable to generate the workbook.');
       }
 
-      if (_shouldUseShareSheetForDownload) {
-        await _shareGeneratedFile(
-          bytes: Uint8List.fromList(bytes),
-          fileName: fileName,
-          mimeType:
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          title: 'Save tender XLSX',
-        );
-        if (mounted) {
-          AppToast.showSuccess(context, 'Tender XLSX ready.');
-        }
-        return;
-      }
-
-      final saveLocation = await getSaveLocation(
-        suggestedName: fileName,
-        acceptedTypeGroups: const [
-          XTypeGroup(label: 'Excel Workbook', extensions: ['xlsx']),
-        ],
-      );
-
-      if (saveLocation == null) {
-        if (mounted) {
-          AppToast.showError(context, 'Export cancelled.');
-        }
-        return;
-      }
-
-      await XFile.fromData(
-        Uint8List.fromList(bytes),
+      final exported = await GeneratedFileActions.saveOrShowActions(
+        context: context,
+        bytes: Uint8List.fromList(bytes),
+        fileName: fileName,
         mimeType:
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        name: fileName,
-      ).saveTo(saveLocation.path);
+        typeGroup: const XTypeGroup(
+          label: 'Excel Workbook',
+          extensions: ['xlsx'],
+        ),
+        title: 'Tender XLSX ready',
+      );
 
-      if (mounted) {
+      if (mounted && exported) {
         AppToast.showSuccess(
           context,
           'Tender XLSX downloaded successfully.',
@@ -440,39 +419,21 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
       );
 
       final bytes = await pdf.save();
+      if (!mounted) return;
 
-      if (_shouldUseShareSheetForDownload) {
-        await Printing.sharePdf(
-          bytes: bytes,
-          filename: fileName,
-        );
-        if (mounted) {
-          AppToast.showSuccess(context, 'Tender PDF ready to save or share.');
-        }
-        return;
-      }
-
-      final saveLocation = await getSaveLocation(
-        suggestedName: fileName,
-        acceptedTypeGroups: const [
-          XTypeGroup(label: 'PDF Document', extensions: ['pdf']),
-        ],
+      final exported = await GeneratedFileActions.saveOrShowActions(
+        context: context,
+        bytes: bytes,
+        fileName: fileName,
+        mimeType: 'application/pdf',
+        typeGroup: const XTypeGroup(
+          label: 'PDF Document',
+          extensions: ['pdf'],
+        ),
+        title: 'Tender PDF ready',
       );
 
-      if (saveLocation == null) {
-        if (mounted) {
-          AppToast.showError(context, 'Export cancelled.');
-        }
-        return;
-      }
-
-      await XFile.fromData(
-        bytes,
-        mimeType: 'application/pdf',
-        name: fileName,
-      ).saveTo(saveLocation.path);
-
-      if (mounted) {
+      if (mounted && exported) {
         AppToast.showSuccess(
           context,
           'Tender PDF downloaded successfully.',
@@ -491,35 +452,6 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
         setState(() => _isExporting = false);
       }
     }
-  }
-
-  bool get _shouldUseShareSheetForDownload {
-    return !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.iOS);
-  }
-
-  Future<void> _shareGeneratedFile({
-    required Uint8List bytes,
-    required String fileName,
-    required String mimeType,
-    required String title,
-  }) async {
-    final box = context.findRenderObject() as RenderBox?;
-    await SharePlus.instance.share(
-      ShareParams(
-        title: title,
-        files: [
-          XFile.fromData(
-            bytes,
-            mimeType: mimeType,
-          ),
-        ],
-        fileNameOverrides: [fileName],
-        sharePositionOrigin:
-            box == null ? null : box.localToGlobal(Offset.zero) & box.size,
-      ),
-    );
   }
 
   Future<pw.ThemeData> _buildPdfTheme() async {

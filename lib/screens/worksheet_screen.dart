@@ -13,6 +13,7 @@ import 'package:printing/printing.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_decorations.dart';
+import '../utils/generated_file_actions.dart';
 import '../utils/app_typography.dart';
 import '../utils/app_toast.dart';
 import '../components/common/app_bar_builder.dart';
@@ -856,40 +857,21 @@ class _WorksheetScreenState extends State<WorksheetScreen>
     try {
       final pdfBytes = await _buildWorksheetPdfBytes(data);
       final fileName = _buildWorksheetPdfFileName(data);
+      if (!mounted) return;
 
-      if (_shouldUseShareSheetForDownload) {
-        await Printing.sharePdf(
-          bytes: Uint8List.fromList(pdfBytes),
-          filename: fileName,
-        );
-        if (mounted) {
-          AppToast.showSuccess(
-              context, 'Worksheet PDF ready to save or share.');
-        }
-        return;
-      }
-
-      final saveLocation = await getSaveLocation(
-        suggestedName: fileName,
-        acceptedTypeGroups: const [
-          XTypeGroup(label: 'PDF Document', extensions: ['pdf']),
-        ],
+      final exported = await GeneratedFileActions.saveOrShowActions(
+        context: context,
+        bytes: Uint8List.fromList(pdfBytes),
+        fileName: fileName,
+        mimeType: 'application/pdf',
+        typeGroup: const XTypeGroup(
+          label: 'PDF Document',
+          extensions: ['pdf'],
+        ),
+        title: 'Worksheet PDF ready',
       );
 
-      if (saveLocation == null) {
-        if (mounted) {
-          AppToast.showError(context, 'PDF download cancelled.');
-        }
-        return;
-      }
-
-      await XFile.fromData(
-        Uint8List.fromList(pdfBytes),
-        name: fileName,
-        mimeType: 'application/pdf',
-      ).saveTo(saveLocation.path);
-
-      if (mounted) {
+      if (mounted && exported) {
         AppToast.showSuccess(context, 'Worksheet PDF downloaded successfully.');
       }
     } catch (e) {
@@ -905,12 +887,6 @@ class _WorksheetScreenState extends State<WorksheetScreen>
         setState(() => _isDownloadingPdf = false);
       }
     }
-  }
-
-  bool get _shouldUseShareSheetForDownload {
-    return !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.iOS);
   }
 
   Future<List<int>> _buildWorksheetPdfBytes(Map<String, dynamic> data) async {
