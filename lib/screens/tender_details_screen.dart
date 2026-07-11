@@ -1,18 +1,20 @@
-import 'dart:io';
-import 'dart:typed_data';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:excel/excel.dart' as xls;
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 import '../components/common/app_bar_builder.dart';
 import '../components/common/app_button.dart';
 import '../components/common/app_segmented_tabs.dart';
 import '../components/common/app_text_field.dart';
 import '../components/common/modern_dropdown.dart';
+import '../components/common/shell_bottom_nav.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_decorations.dart';
 import '../utils/app_spacing.dart';
@@ -31,10 +33,17 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
   final _dateFormat = DateFormat('dd MMM yyyy');
+  final _compareHorizontalScrollController = ScrollController();
 
   int _selectedTabIndex = 0;
+  bool _isSubmitting = false;
   bool _isExporting = false;
-  bool _isDownloading = false;
+  int _sortColumnIndex = 0;
+  bool _sortAscending = true;
+  int _comparePage = 0;
+  static const int _comparePageSize = 10;
+  final Set<int> _visibleCompareColumns = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+  String? _editingTenderId;
 
   final _tenderReferenceController = TextEditingController();
   final _tenderTitleController = TextEditingController();
@@ -57,6 +66,7 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
 
   @override
   void dispose() {
+    _compareHorizontalScrollController.dispose();
     _tenderReferenceController.dispose();
     _tenderTitleController.dispose();
     _departmentController.dispose();
@@ -78,6 +88,12 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
   @override
   bool get wantKeepAlive => true;
 
+  @override
+  void initState() {
+    super.initState();
+    _selectedTabIndex = _selectedTabIndex.clamp(0, 1);
+  }
+
   String _textValue(TextEditingController controller) {
     final value = controller.text.trim();
     return value.isEmpty ? '-' : value;
@@ -88,26 +104,74 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
     return text.isEmpty ? '-' : text;
   }
 
-  List<MapEntry<String, String>> get _previewRows => [
+  Map<String, String> get _currentTenderData => {
+        'reference': _textValue(_tenderReferenceController),
+        'title': _textValue(_tenderTitleController),
+        'tenderType': _stringValue(_selectedTenderType),
+        'workCategory': _stringValue(_selectedWorkCategory),
+        'department': _textValue(_departmentController),
+        'office': _textValue(_officeController),
+        'location': _textValue(_locationController),
+        'noticeDate': _textValue(_noticeDateController),
+        'submissionDeadline': _textValue(_submissionDeadlineController),
+        'openingDate': _textValue(_openingDateController),
+        'workStartDate': _textValue(_workStartDateController),
+        'estimateAmount': _textValue(_estimateAmountController),
+        'emdAmount': _textValue(_emdAmountController),
+        'securityDeposit': _textValue(_securityDepositController),
+        'contactPerson': _textValue(_contactPersonController),
+        'contactPhone': _textValue(_contactPhoneController),
+        'remarks': _textValue(_remarksController),
+      };
+
+  List<MapEntry<String, String>> _rowsFromTenderData(
+    Map<String, dynamic> data,
+  ) =>
+      [
         MapEntry(
-            'Tender / Work Reference', _textValue(_tenderReferenceController)),
-        MapEntry('Tender Title', _textValue(_tenderTitleController)),
-        MapEntry('Tender Type', _stringValue(_selectedTenderType)),
-        MapEntry('Work Category', _stringValue(_selectedWorkCategory)),
-        MapEntry('Department', _textValue(_departmentController)),
-        MapEntry('Office', _textValue(_officeController)),
-        MapEntry('Location', _textValue(_locationController)),
-        MapEntry('Notice Date', _textValue(_noticeDateController)),
+          'Tender / Work Reference',
+          _stringValue(data['reference']?.toString()),
+        ),
+        MapEntry('Tender Title', _stringValue(data['title']?.toString())),
+        MapEntry('Tender Type', _stringValue(data['tenderType']?.toString())),
         MapEntry(
-            'Submission Deadline', _textValue(_submissionDeadlineController)),
-        MapEntry('Bid Opening Date', _textValue(_openingDateController)),
-        MapEntry('Work Start Date', _textValue(_workStartDateController)),
-        MapEntry('Estimate Amount', _textValue(_estimateAmountController)),
-        MapEntry('EMD Amount', _textValue(_emdAmountController)),
-        MapEntry('Security Deposit', _textValue(_securityDepositController)),
-        MapEntry('Contact Person', _textValue(_contactPersonController)),
-        MapEntry('Contact Phone', _textValue(_contactPhoneController)),
-        MapEntry('Remarks', _textValue(_remarksController)),
+          'Work Category',
+          _stringValue(data['workCategory']?.toString()),
+        ),
+        MapEntry('Department', _stringValue(data['department']?.toString())),
+        MapEntry('Office', _stringValue(data['office']?.toString())),
+        MapEntry('Location', _stringValue(data['location']?.toString())),
+        MapEntry('Notice Date', _stringValue(data['noticeDate']?.toString())),
+        MapEntry(
+          'Submission Deadline',
+          _stringValue(data['submissionDeadline']?.toString()),
+        ),
+        MapEntry(
+          'Bid Opening Date',
+          _stringValue(data['openingDate']?.toString()),
+        ),
+        MapEntry(
+          'Work Start Date',
+          _stringValue(data['workStartDate']?.toString()),
+        ),
+        MapEntry(
+          'Estimate Amount',
+          _stringValue(data['estimateAmount']?.toString()),
+        ),
+        MapEntry('EMD Amount', _stringValue(data['emdAmount']?.toString())),
+        MapEntry(
+          'Security Deposit',
+          _stringValue(data['securityDeposit']?.toString()),
+        ),
+        MapEntry(
+          'Contact Person',
+          _stringValue(data['contactPerson']?.toString()),
+        ),
+        MapEntry(
+          'Contact Phone',
+          _stringValue(data['contactPhone']?.toString()),
+        ),
+        MapEntry('Remarks', _stringValue(data['remarks']?.toString())),
       ];
 
   Future<void> _pickDate(TextEditingController controller) async {
@@ -124,18 +188,140 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
     }
   }
 
-  Future<void> _exportToXlsx() async {
+  Future<void> _submitTender() async {
     if (!_formKey.currentState!.validate()) {
       AppToast.showError(context, 'Please fill all required fields correctly.');
       return;
     }
 
+    setState(() => _isSubmitting = true);
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not logged in.');
+      }
+
+      final tendersRef = FirebaseFirestore.instance
+          .collection('user_tenders')
+          .doc(user.uid)
+          .collection('tenders');
+
+      if (_editingTenderId == null) {
+        await tendersRef.add({
+          ..._currentTenderData,
+          'ownerId': user.uid,
+          'ownerEmail': user.email,
+          'submittedAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      } else {
+        await tendersRef.doc(_editingTenderId).update({
+          ..._currentTenderData,
+          'ownerEmail': user.email,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      if (mounted) {
+        AppToast.showSuccess(
+          context,
+          _editingTenderId == null
+              ? 'Tender submitted successfully.'
+              : 'Tender updated successfully.',
+        );
+        setState(() => _selectedTabIndex = 1);
+      }
+    } catch (e) {
+      if (mounted) {
+        AppErrorHandler.handleError(
+          context,
+          e,
+          customMessage: 'Failed to submit tender',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  void _loadTenderForEdit(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc, {
+    BuildContext? closeContext,
+  }) {
+    if (closeContext != null) {
+      Navigator.of(closeContext).pop();
+    }
+
+    final data = doc.data();
+    setState(() {
+      _editingTenderId = doc.id;
+      _selectedTabIndex = 0;
+      _tenderReferenceController.text =
+          _stringValue(data['reference']?.toString());
+      _tenderTitleController.text = _stringValue(data['title']?.toString());
+      _departmentController.text = _stringValue(data['department']?.toString());
+      _officeController.text = _stringValue(data['office']?.toString());
+      _locationController.text = _stringValue(data['location']?.toString());
+      _noticeDateController.text = _stringValue(data['noticeDate']?.toString());
+      _submissionDeadlineController.text =
+          _stringValue(data['submissionDeadline']?.toString());
+      _openingDateController.text =
+          _stringValue(data['openingDate']?.toString());
+      _workStartDateController.text =
+          _stringValue(data['workStartDate']?.toString());
+      _estimateAmountController.text =
+          _stringValue(data['estimateAmount']?.toString());
+      _emdAmountController.text = _stringValue(data['emdAmount']?.toString());
+      _securityDepositController.text =
+          _stringValue(data['securityDeposit']?.toString());
+      _contactPersonController.text =
+          _stringValue(data['contactPerson']?.toString());
+      _contactPhoneController.text =
+          _stringValue(data['contactPhone']?.toString());
+      _remarksController.text = _stringValue(data['remarks']?.toString());
+      _selectedTenderType = _nullableTenderValue(data['tenderType']);
+      _selectedWorkCategory = _nullableTenderValue(data['workCategory']);
+    });
+  }
+
+  String? _nullableTenderValue(dynamic value) {
+    final text = value?.toString().trim() ?? '';
+    return text.isEmpty || text == '-' ? null : text;
+  }
+
+  void _clearTenderForm() {
+    setState(() {
+      _editingTenderId = null;
+      _tenderReferenceController.clear();
+      _tenderTitleController.clear();
+      _departmentController.clear();
+      _officeController.clear();
+      _locationController.clear();
+      _noticeDateController.clear();
+      _submissionDeadlineController.clear();
+      _openingDateController.clear();
+      _workStartDateController.clear();
+      _estimateAmountController.clear();
+      _emdAmountController.clear();
+      _securityDepositController.clear();
+      _contactPersonController.clear();
+      _contactPhoneController.clear();
+      _remarksController.clear();
+      _selectedTenderType = null;
+      _selectedWorkCategory = null;
+    });
+  }
+
+  Future<void> _exportTenderToXlsx(Map<String, dynamic> data) async {
     setState(() => _isExporting = true);
 
     try {
       final excel = xls.Excel.createExcel();
       final sheet = excel['Tender Details'];
-      final fileName = _buildFileName();
+      final fileName = _buildTenderFileName(data, 'xlsx');
 
       sheet.appendRow([
         xls.TextCellValue('Tender Details Export'),
@@ -144,7 +330,7 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
         xls.TextCellValue('Field'),
         xls.TextCellValue('Value'),
       ]);
-      for (final row in _previewRows) {
+      for (final row in _rowsFromTenderData(data)) {
         sheet.appendRow([
           xls.TextCellValue(row.key),
           xls.TextCellValue(row.value),
@@ -170,13 +356,17 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
         return;
       }
 
-      await File(saveLocation.path).writeAsBytes(bytes, flush: true);
-      await _uploadToFirebaseStorage(bytes, fileName);
+      await XFile.fromData(
+        Uint8List.fromList(bytes),
+        mimeType:
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        name: fileName,
+      ).saveTo(saveLocation.path);
 
       if (mounted) {
         AppToast.showSuccess(
           context,
-          'XLSX file saved and uploaded successfully.',
+          'Tender XLSX downloaded successfully.',
         );
       }
     } catch (e) {
@@ -184,7 +374,7 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
         AppErrorHandler.handleError(
           context,
           e,
-          customMessage: 'Failed to export/upload the XLSX file',
+          customMessage: 'Failed to export the tender XLSX file',
         );
       }
     } finally {
@@ -194,86 +384,207 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
     }
   }
 
-  Future<void> _uploadToFirebaseStorage(
-      List<int> bytes, String fileName) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw Exception('User not logged in.');
-    }
-
-    final storagePath = 'tender_exports/${user.uid}/$fileName';
-    final storageRef = FirebaseStorage.instance.ref().child(storagePath);
-
-    await storageRef.putData(
-      Uint8List.fromList(bytes),
-      SettableMetadata(
-        contentType:
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      ),
-    );
-  }
-
-  Future<List<Reference>> _listUploadedTenderFiles() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw Exception('User not logged in.');
-    }
-
-    final baseRef =
-        FirebaseStorage.instance.ref().child('tender_exports').child(user.uid);
-    final listResult = await baseRef.listAll();
-    final files = listResult.items;
-    files.sort((a, b) => b.name.compareTo(a.name));
-    return files;
-  }
-
-  Future<void> _downloadTenderFile(Reference fileRef) async {
-    if (_isDownloading) return;
-    setState(() => _isDownloading = true);
+  Future<void> _exportTenderToPdf(Map<String, dynamic> data) async {
+    setState(() => _isExporting = true);
 
     try {
+      final fileName = _buildTenderFileName(data, 'pdf');
+      final pdf = pw.Document(theme: await _buildPdfTheme());
+
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          build: (context) => [
+            pw.Text(
+              'Tender Details',
+              style: pw.TextStyle(
+                fontSize: 22,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              'Generated on ${DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.now())}',
+              style: const pw.TextStyle(color: PdfColors.grey700),
+            ),
+            pw.SizedBox(height: 24),
+            pw.TableHelper.fromTextArray(
+              headers: const ['Field', 'Value'],
+              data: _rowsFromTenderData(data)
+                  .map((row) => <String>[row.key, row.value])
+                  .toList(),
+              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+              headerDecoration:
+                  const pw.BoxDecoration(color: PdfColors.grey300),
+              cellAlignment: pw.Alignment.centerLeft,
+              cellPadding: const pw.EdgeInsets.all(8),
+            ),
+          ],
+        ),
+      );
+
+      final bytes = await pdf.save();
       final saveLocation = await getSaveLocation(
-        suggestedName: fileRef.name,
+        suggestedName: fileName,
         acceptedTypeGroups: const [
-          XTypeGroup(label: 'Excel Workbook', extensions: ['xlsx']),
+          XTypeGroup(label: 'PDF Document', extensions: ['pdf']),
         ],
       );
 
       if (saveLocation == null) {
         if (mounted) {
-          AppToast.showError(context, 'Download cancelled.');
+          AppToast.showError(context, 'Export cancelled.');
         }
         return;
       }
 
-      final bytes = await fileRef.getData(20 * 1024 * 1024);
-      if (bytes == null) {
-        throw Exception('Unable to download selected file.');
-      }
-
-      await File(saveLocation.path).writeAsBytes(bytes, flush: true);
+      await XFile.fromData(
+        bytes,
+        mimeType: 'application/pdf',
+        name: fileName,
+      ).saveTo(saveLocation.path);
 
       if (mounted) {
-        AppToast.showSuccess(context, 'File downloaded successfully.');
+        AppToast.showSuccess(
+          context,
+          'Tender PDF downloaded successfully.',
+        );
       }
     } catch (e) {
       if (mounted) {
         AppErrorHandler.handleError(
           context,
           e,
-          customMessage: 'Failed to download file',
+          customMessage: 'Failed to export the tender PDF file',
         );
       }
     } finally {
       if (mounted) {
-        setState(() => _isDownloading = false);
+        setState(() => _isExporting = false);
       }
     }
   }
 
-  String _buildFileName() {
-    final currentDate = DateFormat('yyyyMMdd').format(DateTime.now());
-    return 'TenderDetails_$currentDate.xlsx';
+  Future<pw.ThemeData> _buildPdfTheme() async {
+    final baseFont = await PdfGoogleFonts.notoSansRegular();
+    final boldFont = await PdfGoogleFonts.notoSansBold();
+
+    return pw.ThemeData.withFont(
+      base: baseFont,
+      bold: boldFont,
+      fontFallback: [baseFont],
+    );
+  }
+
+  String _buildTenderFileName(Map<String, dynamic> data, String extension) {
+    final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+    final reference = _stringValue(data['reference']?.toString())
+        .replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '_');
+    final suffix = reference == '-' ? timestamp : '${reference}_$timestamp';
+    return 'TenderDetails_$suffix.$extension';
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> _tenderStream() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return const Stream<QuerySnapshot<Map<String, dynamic>>>.empty();
+    }
+
+    return FirebaseFirestore.instance
+        .collection('user_tenders')
+        .doc(user.uid)
+        .collection('tenders')
+        .snapshots();
+  }
+
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> _sortedTenderDocs(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
+  ) {
+    final sorted = [...docs];
+    sorted.sort((a, b) {
+      final result = _compareTenderField(
+        a.data(),
+        b.data(),
+        _sortColumnIndex,
+      );
+      return _sortAscending ? result : -result;
+    });
+    return sorted;
+  }
+
+  int _compareTenderField(
+    Map<String, dynamic> left,
+    Map<String, dynamic> right,
+    int columnIndex,
+  ) {
+    if (columnIndex == 7 || columnIndex == 8) {
+      return _numberValue(left, columnIndex)
+          .compareTo(_numberValue(right, columnIndex));
+    }
+
+    return _tableValue(left, columnIndex)
+        .toLowerCase()
+        .compareTo(_tableValue(right, columnIndex).toLowerCase());
+  }
+
+  num _numberValue(Map<String, dynamic> data, int columnIndex) {
+    final text = _tableValue(data, columnIndex).replaceAll(',', '');
+    return num.tryParse(text) ?? 0;
+  }
+
+  String _tableValue(Map<String, dynamic> data, int columnIndex) {
+    return switch (columnIndex) {
+      0 => _stringValue(data['reference']?.toString()),
+      1 => _stringValue(data['title']?.toString()),
+      2 => _stringValue(data['tenderType']?.toString()),
+      3 => _stringValue(data['workCategory']?.toString()),
+      4 => _stringValue(data['office']?.toString()),
+      5 => _stringValue(data['location']?.toString()),
+      6 => _stringValue(data['submissionDeadline']?.toString()),
+      7 => _stringValue(data['estimateAmount']?.toString()),
+      8 => _stringValue(data['emdAmount']?.toString()),
+      _ => '',
+    };
+  }
+
+  String _sortColumnLabel(int columnIndex) {
+    return switch (columnIndex) {
+      0 => 'Reference',
+      1 => 'Title',
+      2 => 'Type',
+      3 => 'Category',
+      4 => 'Office',
+      5 => 'Location',
+      6 => 'Submission Date',
+      7 => 'Bid Amount',
+      8 => 'EMD',
+      _ => 'Reference',
+    };
+  }
+
+  void _sortTenderTable(int columnIndex, bool ascending) {
+    setState(() {
+      _sortColumnIndex = columnIndex;
+      _sortAscending = ascending;
+      _comparePage = 0;
+    });
+  }
+
+  void _toggleCompareColumn(int columnIndex, bool visible) {
+    setState(() {
+      if (visible) {
+        _visibleCompareColumns.add(columnIndex);
+      } else if (_visibleCompareColumns.length > 1) {
+        _visibleCompareColumns.remove(columnIndex);
+      }
+    });
+  }
+
+  List<int> get _visibleCompareColumnIndexes {
+    return List.generate(9, (index) => index)
+        .where(_visibleCompareColumns.contains)
+        .toList();
   }
 
   @override
@@ -285,123 +596,36 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
       backgroundColor: AppColors.background,
       appBar: buildAppBar(
         title: 'Tender Details',
-        actions: [
-          IconButton(
-            tooltip: 'Existing Exports',
-            icon: const Icon(Icons.menu_open_rounded),
-            onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-          ),
-        ],
       ),
-      endDrawer: _buildExistingExportsDrawer(),
+      bottomNavigationBar: const ShellBottomNav(),
       body: Column(
         children: [
           _buildHeader(),
-          _buildTabs(),
           Expanded(
-            child: IndexedStack(
-              index: _selectedTabIndex,
-              children: [
-                _buildFormTab(),
-                _buildPreviewTab(),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth >= 1100) {
+                  return _buildWideTenderWorkspace();
+                }
+
+                return Column(
+                  children: [
+                    _buildTabs(),
+                    Expanded(
+                      child: IndexedStack(
+                        index: _selectedTabIndex,
+                        children: [
+                          _buildFormTab(),
+                          _buildListTab(),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildExistingExportsDrawer() {
-    return Drawer(
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.folder_open_rounded,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text('Existing Tender Exports',
-                      style: AppTypography.subheadingStyle),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: FutureBuilder<List<Reference>>(
-                future: _listUploadedTenderFiles(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (snapshot.hasError) {
-                    return _buildDrawerMessage(
-                        'Unable to load existing exports.');
-                  }
-
-                  final files = snapshot.data ?? const <Reference>[];
-                  if (files.isEmpty) {
-                    return _buildDrawerMessage(
-                        'No uploaded tender exports found.');
-                  }
-
-                  return ListView.separated(
-                    itemCount: files.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final fileRef = files[index];
-                      return ListTile(
-                        leading: const Icon(Icons.table_chart_outlined),
-                        title: Text(
-                          fileRef.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Text(
-                          'Tap to download',
-                          style: AppTypography.captionStyle,
-                        ),
-                        trailing: _isDownloading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.download_rounded),
-                        onTap: _isDownloading
-                            ? null
-                            : () => _downloadTenderFile(fileRef),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDrawerMessage(String message) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: AppTypography.bodyStyle.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
       ),
     );
   }
@@ -439,7 +663,7 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Fill the form and download it as an Excel workbook.',
+              'Submit tender records, list saved tenders project-wise, and export as PDF or XLSX.',
               style: AppTypography.bodyStyle.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -457,16 +681,75 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
       onChanged: (index) => setState(() => _selectedTabIndex = index),
       tabs: const [
         AppSegmentedTab(icon: Icons.edit_document, label: 'Form'),
-        AppSegmentedTab(icon: Icons.preview_outlined, label: 'Preview'),
+        AppSegmentedTab(icon: Icons.view_list_rounded, label: 'List'),
       ],
     );
   }
 
-  Widget _buildFormTab() {
+  Widget _buildWideTenderWorkspace() {
+    return Padding(
+      padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 4,
+            child: _buildWorkspacePanel(
+              title: 'Tender Form',
+              icon: Icons.edit_document,
+              child: _buildFormTab(includeOuterPadding: false),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.lg),
+          Expanded(
+            flex: 6,
+            child: _buildWorkspacePanel(
+              title: 'Tender List',
+              icon: Icons.view_list_rounded,
+              child: _buildListTab(includeOuterPadding: false),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWorkspacePanel({
+    required String title,
+    required IconData icon,
+    required Widget child,
+  }) {
+    return Container(
+      height: double.infinity,
+      decoration: AppDecorations.modernCardDecoration,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Row(
+              children: [
+                Icon(icon, color: AppColors.primary),
+                const SizedBox(width: AppSpacing.sm),
+                Text(title, style: AppTypography.subheadingStyle),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormTab({bool includeOuterPadding = true}) {
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
+        padding: includeOuterPadding
+            ? EdgeInsets.all(context.responsivePadding(AppSpacing.lg))
+            : const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -647,11 +930,24 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
             ),
             SizedBox(height: context.responsiveSpacing(AppSpacing.xxl)),
             AppButton(
-              label: _isExporting ? 'Generating XLSX...' : 'Download XLSX',
-              icon: Icons.download_rounded,
-              isLoading: _isExporting,
-              onPressed: _isExporting ? null : _exportToXlsx,
+              label: _isSubmitting
+                  ? (_editingTenderId == null ? 'Submitting...' : 'Updating...')
+                  : (_editingTenderId == null
+                      ? 'Submit Tender'
+                      : 'Update Tender'),
+              icon: Icons.check_circle_outline_rounded,
+              isLoading: _isSubmitting,
+              onPressed: _isSubmitting ? null : _submitTender,
             ),
+            if (_editingTenderId != null) ...[
+              const SizedBox(height: AppSpacing.base),
+              AppButton(
+                label: 'Cancel edit',
+                icon: Icons.close_rounded,
+                variant: AppButtonVariant.outline,
+                onPressed: _clearTenderForm,
+              ),
+            ],
             const SizedBox(height: AppSpacing.xl),
           ],
         ),
@@ -659,57 +955,647 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
     );
   }
 
-  Widget _buildPreviewTab() {
-    return ListView(
-      padding: EdgeInsets.all(context.responsivePadding(AppSpacing.lg)),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: AppDecorations.modernCardDecoration,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildListTab({bool includeOuterPadding = true}) {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _tenderStream(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return _buildPanelMessage(
+            'Unable to load submitted tenders: ${snapshot.error}',
+          );
+        }
+
+        final docs = <QueryDocumentSnapshot<Map<String, dynamic>>>[
+          ...snapshot.data?.docs ??
+              const <QueryDocumentSnapshot<Map<String, dynamic>>>[],
+        ];
+        final tenders = _sortedTenderDocs(docs);
+        if (tenders.isEmpty) {
+          return _buildPanelMessage(
+            'No submitted tenders yet. Submit the form to list records.',
+          );
+        }
+
+        final groupedTenders = _groupTendersByProject(tenders);
+
+        return ListView(
+          padding: includeOuterPadding
+              ? EdgeInsets.all(context.responsivePadding(AppSpacing.lg))
+              : const EdgeInsets.all(AppSpacing.lg),
+          children: [
+            Text('Reference-wise Tenders',
+                style: AppTypography.subheadingStyle),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Open a project to compare its tenders. Use the pen icon to edit and the download icons for individual tender files.',
+              style: AppTypography.bodyStyle.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            ...groupedTenders.entries.map(
+              (entry) => _buildProjectTenderCard(entry.key, entry.value),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Map<String, List<QueryDocumentSnapshot<Map<String, dynamic>>>>
+      _groupTendersByProject(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> tenders,
+  ) {
+    final grouped =
+        <String, List<QueryDocumentSnapshot<Map<String, dynamic>>>>{};
+    for (final tender in tenders) {
+      final key = _projectKey(tender.data());
+      grouped.putIfAbsent(key, () => []).add(tender);
+    }
+    return grouped;
+  }
+
+  String _projectKey(Map<String, dynamic> data) {
+    final reference = _stringValue(data['reference']?.toString());
+    if (reference != '-') return reference;
+    final category = _stringValue(data['workCategory']?.toString());
+    if (category != '-') return category;
+    return 'Unassigned Reference';
+  }
+
+  Widget _buildProjectTenderCard(
+    String projectName,
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> tenders,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.base),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: AppDecorations.modernCardDecoration,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
             children: [
-              Text('Workbook Preview', style: AppTypography.subheadingStyle),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'These rows will be written to the exported XLSX file.',
-                style: AppTypography.bodyStyle.copyWith(
-                  color: AppColors.textSecondary,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(projectName, style: AppTypography.subheadingStyle),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      '${tenders.length} tender${tenders.length == 1 ? '' : 's'}',
+                      style: AppTypography.captionStyle.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  _openProjectCompareDialog(projectName, tenders);
+                },
+                icon: const Icon(Icons.compare_arrows_rounded),
+                label: const Text('Compare'),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: AppSpacing.base),
-        ..._previewRows.map(
-          (row) => Container(
-            margin: const EdgeInsets.only(bottom: AppSpacing.base),
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: AppDecorations.modernCardDecoration,
+          const SizedBox(height: AppSpacing.base),
+          ...tenders.map(_buildTenderActionTile),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTenderActionTile(
+    QueryDocumentSnapshot<Map<String, dynamic>> tender,
+  ) {
+    final data = tender.data();
+    final details = [
+      _stringValue(data['tenderType']?.toString()),
+      'Bid: ${_stringValue(data['estimateAmount']?.toString())}',
+      'Start: ${_stringValue(data['workStartDate']?.toString())}',
+      'Submit: ${_stringValue(data['submissionDeadline']?.toString())}',
+      _stringValue(data['office']?.toString()),
+    ].where((value) => value != '-').join(' - ');
+
+    return Container(
+      margin: const EdgeInsets.only(top: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.base),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+      ),
+      child: Row(
+        children: [
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  row.key,
-                  style: AppTypography.captionStyle.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+                  _stringValue(data['title']?.toString()),
+                  style: AppTypography.bodyMediumStyle,
                 ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(row.value, style: AppTypography.bodyStyle),
+                if (details.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    details,
+                    style: AppTypography.captionStyle.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
+          IconButton(
+            tooltip: 'View tender details',
+            icon:
+                const Icon(Icons.visibility_outlined, color: AppColors.primary),
+            onPressed: () => _showTenderDetails(data),
+          ),
+          IconButton(
+            tooltip: 'Edit tender',
+            icon: const Icon(Icons.edit_rounded, color: AppColors.primary),
+            onPressed: () => _loadTenderForEdit(tender),
+          ),
+          IconButton(
+            tooltip: 'Copy share link',
+            icon: const Icon(Icons.share_rounded, color: AppColors.primary),
+            onPressed: () => _copyTenderShareLink(tender.id),
+          ),
+          IconButton(
+            tooltip: 'Download PDF',
+            icon: const Icon(Icons.picture_as_pdf_rounded,
+                color: AppColors.primary),
+            onPressed: _isExporting ? null : () => _exportTenderToPdf(data),
+          ),
+          IconButton(
+            tooltip: 'Download XLSX',
+            icon: const Icon(Icons.table_chart_outlined,
+                color: AppColors.primary),
+            onPressed: _isExporting ? null : () => _exportTenderToXlsx(data),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _copyTenderShareLink(String tenderId) async {
+    final baseUri = Uri.base;
+    final shareUri = baseUri.replace(
+      queryParameters: {
+        ...baseUri.queryParameters,
+        'share': 'tender',
+        'id': tenderId,
+      },
+    );
+
+    await Clipboard.setData(ClipboardData(text: shareUri.toString()));
+    if (mounted) {
+      AppToast.showSuccess(context, 'Tender link copied.');
+    }
+  }
+
+  void _showTenderDetails(Map<String, dynamic> data) {
+    final rows = _rowsFromTenderData(data);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.72,
+          minChildSize: 0.42,
+          maxChildSize: 0.92,
+          builder: (context, controller) {
+            return ListView(
+              controller: controller,
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              children: [
+                Text(
+                  _stringValue(data['title']?.toString()),
+                  style: AppTypography.titleStyle,
+                ),
+                const SizedBox(height: AppSpacing.base),
+                ...rows.map(
+                  (row) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.base),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          row.key,
+                          style: AppTypography.captionStyle.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(row.value, style: AppTypography.bodyStyle),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _isExporting
+                            ? null
+                            : () => _exportTenderToPdf(data),
+                        icon: const Icon(Icons.picture_as_pdf_rounded),
+                        label: const Text('Download PDF'),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.base),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _isExporting
+                            ? null
+                            : () => _exportTenderToXlsx(data),
+                        icon: const Icon(Icons.table_chart_outlined),
+                        label: const Text('Download XLSX'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _openProjectCompareDialog(
+    String projectName,
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> tenders,
+  ) {
+    setState(() => _comparePage = 0);
+
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final sortedTenders = _sortedTenderDocs(tenders);
+            void refreshDialog() => setDialogState(() {});
+
+            return Dialog(
+              insetPadding: const EdgeInsets.all(AppSpacing.lg),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 1100,
+                  maxHeight: 720,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.compare_arrows_rounded,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: AppSpacing.base),
+                          Expanded(
+                            child: Text(
+                              'Compare: $projectName',
+                              style: AppTypography.subheadingStyle,
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Close',
+                            icon: const Icon(Icons.close_rounded),
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        child: _buildTenderTable(
+                          sortedTenders,
+                          closeContext: dialogContext,
+                          onTableChanged: refreshDialog,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildCompareTableHeader(VoidCallback onTableChanged) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.base),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            spacing: AppSpacing.base,
+            runSpacing: AppSpacing.sm,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              SizedBox(
+                width: 240,
+                child: ModernDropdown<int>(
+                  value: _sortColumnIndex,
+                  label: 'Sort by',
+                  prefixIcon: Icons.sort_rounded,
+                  items: List.generate(
+                    9,
+                    (index) => ModernDropdownItem.create<int>(
+                      value: index,
+                      text: _sortColumnLabel(index),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    if (value == null) return;
+                    _sortTenderTable(value, _sortAscending);
+                    onTableChanged();
+                  },
+                ),
+              ),
+              SegmentedButton<bool>(
+                segments: const [
+                  ButtonSegment<bool>(
+                    value: true,
+                    icon: Icon(Icons.arrow_upward_rounded),
+                    label: Text('Ascending'),
+                  ),
+                  ButtonSegment<bool>(
+                    value: false,
+                    icon: Icon(Icons.arrow_downward_rounded),
+                    label: Text('Descending'),
+                  ),
+                ],
+                selected: {_sortAscending},
+                onSelectionChanged: (selection) {
+                  _sortTenderTable(_sortColumnIndex, selection.first);
+                  onTableChanged();
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xs,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                'Columns',
+                style: AppTypography.captionStyle.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              ...List.generate(
+                9,
+                (index) => _buildCompareColumnCheckbox(
+                  index,
+                  onTableChanged,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompareColumnCheckbox(
+    int columnIndex,
+    VoidCallback onTableChanged,
+  ) {
+    final selected = _visibleCompareColumns.contains(columnIndex);
+    final canUncheck = selected && _visibleCompareColumns.length > 1;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+      onTap: () {
+        if (!selected || canUncheck) {
+          _toggleCompareColumn(columnIndex, !selected);
+          onTableChanged();
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(right: AppSpacing.xs),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Checkbox(
+              value: selected,
+              activeColor: AppColors.primary,
+              onChanged: !selected || canUncheck
+                  ? (value) {
+                      _toggleCompareColumn(columnIndex, value ?? false);
+                      onTableChanged();
+                    }
+                  : null,
+            ),
+            Text(
+              _sortColumnLabel(columnIndex),
+              style: AppTypography.captionStyle,
+            ),
+          ],
         ),
-        const SizedBox(height: AppSpacing.base),
-        AppButton(
-          label: 'Download XLSX',
-          icon: Icons.download_rounded,
-          isLoading: _isExporting,
-          onPressed: _isExporting ? null : _exportToXlsx,
+      ),
+    );
+  }
+
+  Widget _buildTenderTable(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> tenders, {
+    BuildContext? closeContext,
+    VoidCallback? onTableChanged,
+  }) {
+    final visibleColumns = _visibleCompareColumnIndexes;
+    final displayedSortColumnIndex = visibleColumns.indexOf(_sortColumnIndex);
+    final totalPages = (tenders.length / _comparePageSize).ceil();
+    final page = _comparePage.clamp(0, totalPages - 1);
+    final startIndex = page * _comparePageSize;
+    final endIndex = (startIndex + _comparePageSize).clamp(
+      0,
+      tenders.length,
+    );
+    final visibleTenders = tenders.sublist(startIndex, endIndex);
+
+    if (page != _comparePage) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() => _comparePage = page);
+        }
+      });
+    }
+
+    return Container(
+      decoration: AppDecorations.modernCardDecoration,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          _buildCompareTableHeader(onTableChanged ?? () {}),
+          const Divider(height: 1),
+          Scrollbar(
+            controller: _compareHorizontalScrollController,
+            thumbVisibility: true,
+            trackVisibility: true,
+            child: SingleChildScrollView(
+              controller: _compareHorizontalScrollController,
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                sortColumnIndex: displayedSortColumnIndex == -1
+                    ? null
+                    : displayedSortColumnIndex,
+                sortAscending: _sortAscending,
+                showCheckboxColumn: false,
+                columnSpacing: AppSpacing.lg,
+                columns: [
+                  ...visibleColumns.map(
+                    (index) => _buildDataColumn(
+                      _sortColumnLabel(index),
+                      index,
+                      onTableChanged,
+                    ),
+                  ),
+                  const DataColumn(label: Text('Actions')),
+                ],
+                rows: visibleTenders.map((doc) {
+                  final data = doc.data();
+                  return DataRow(
+                    onSelectChanged: null,
+                    cells: [
+                      ...visibleColumns.map(
+                        (index) => DataCell(
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minWidth: index == 1 ? 220 : 120,
+                              maxWidth: index == 1 ? 320 : 180,
+                            ),
+                            child: Text(
+                              _tableValue(data, index),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              tooltip: 'Edit',
+                              icon: const Icon(Icons.edit_rounded,
+                                  color: AppColors.primary),
+                              onPressed: () => _loadTenderForEdit(
+                                doc,
+                                closeContext: closeContext,
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'PDF',
+                              icon: const Icon(Icons.picture_as_pdf_rounded,
+                                  color: AppColors.primary),
+                              onPressed: _isExporting
+                                  ? null
+                                  : () => _exportTenderToPdf(data),
+                            ),
+                            IconButton(
+                              tooltip: 'XLSX',
+                              icon: const Icon(Icons.table_chart_outlined,
+                                  color: AppColors.primary),
+                              onPressed: _isExporting
+                                  ? null
+                                  : () => _exportTenderToXlsx(data),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.base),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Showing ${startIndex + 1}-$endIndex of ${tenders.length}',
+                    style: AppTypography.captionStyle.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: page == 0
+                      ? null
+                      : () => setState(() => _comparePage = page - 1),
+                  child: const Text('Previous'),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                TextButton(
+                  onPressed: page >= totalPages - 1
+                      ? null
+                      : () => setState(() => _comparePage = page + 1),
+                  child: const Text('Next'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  DataColumn _buildDataColumn(
+    String label,
+    int index,
+    VoidCallback? onSortChanged,
+  ) {
+    return DataColumn(
+      label: Text(label),
+      onSort: (columnIndex, ascending) {
+        _sortTenderTable(columnIndex, ascending);
+        onSortChanged?.call();
+      },
+    );
+  }
+
+  Widget _buildPanelMessage(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: AppTypography.bodyStyle.copyWith(
+            color: AppColors.textSecondary,
+          ),
         ),
-        const SizedBox(height: AppSpacing.xl),
-      ],
+      ),
     );
   }
 

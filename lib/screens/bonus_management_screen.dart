@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../components/common/app_bar_builder.dart';
 import '../components/common/modern_dropdown.dart';
+import '../components/common/shell_bottom_nav.dart';
 import '../components/common/skeleton_loader.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
@@ -240,6 +241,7 @@ class _BonusManagementScreenState extends State<BonusManagementScreen> {
           ),
         ],
       ),
+      bottomNavigationBar: const ShellBottomNav(),
       body: _isLoading
           ? const BonusManagementSkeleton()
           : SingleChildScrollView(

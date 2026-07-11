@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'app_colors.dart';
 
 class AppToast {
@@ -130,6 +131,14 @@ class AppErrorHandler {
       return error;
     }
 
+    if (error is FirebaseAuthException) {
+      return _firebaseAuthMessage(error.code);
+    }
+
+    if (error is FirebaseException) {
+      return _firebaseMessage(error.code);
+    }
+
     final errorString = error.toString().toLowerCase();
 
     if (errorString.contains('network')) {
@@ -160,6 +169,42 @@ class AppErrorHandler {
       return 'Your session has expired. Please log in again.';
     } else {
       return 'Something went wrong. Please try again.';
+    }
+  }
+
+  static String _firebaseAuthMessage(String code) {
+    switch (code) {
+      case 'invalid-email':
+        return 'Enter a valid email address.';
+      case 'invalid-credential':
+      case 'wrong-password':
+      case 'user-not-found':
+        return 'Email or password is incorrect.';
+      case 'user-disabled':
+        return 'This account has been disabled.';
+      case 'too-many-requests':
+        return 'Too many attempts. Please wait before trying again.';
+      case 'network-request-failed':
+        return 'Network error. Check your connection and try again.';
+      default:
+        return 'Unable to sign in. Please try again.';
+    }
+  }
+
+  static String _firebaseMessage(String code) {
+    switch (code) {
+      case 'permission-denied':
+        return 'You do not have permission to perform this action.';
+      case 'unavailable':
+        return 'Service is temporarily unavailable. Please try again.';
+      case 'not-found':
+        return 'The requested record was not found.';
+      case 'deadline-exceeded':
+        return 'The request timed out. Please try again.';
+      case 'resource-exhausted':
+        return 'Too many requests right now. Please try again later.';
+      default:
+        return 'Something went wrong. Please try again.';
     }
   }
 }

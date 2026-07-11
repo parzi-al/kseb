@@ -8,6 +8,7 @@ import '../components/common/app_empty_state.dart';
 import '../components/common/staggered_list_item.dart';
 import '../components/common/fade_in_widget.dart';
 import '../components/common/modern_dropdown.dart';
+import '../components/common/shell_bottom_nav.dart';
 import '../components/common/skeleton_loader.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
@@ -105,6 +106,7 @@ class _BonusHistoryScreenState extends State<BonusHistoryScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: buildAppBar(title: 'Bonus History'),
+      bottomNavigationBar: const ShellBottomNav(),
       body: Column(
         children: [
           // User Selection (only for COO/Director)

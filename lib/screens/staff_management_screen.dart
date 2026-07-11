@@ -17,6 +17,7 @@ import '../components/common/app_error_state.dart';
 import '../components/common/app_empty_state.dart';
 import '../components/common/app_bar_builder.dart';
 import '../components/common/app_segmented_tabs.dart';
+import '../components/common/shell_bottom_nav.dart';
 import '../components/common/staggered_list_item.dart';
 import '../components/common/skeleton_loader.dart';
 
@@ -53,6 +54,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: _buildAppBar(),
+      bottomNavigationBar: const ShellBottomNav(),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

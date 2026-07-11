@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -628,6 +629,22 @@ class _WorksheetScreenState extends State<WorksheetScreen>
     );
   }
 
+  Future<void> _copyWorksheetShareLink(String requestId) async {
+    final baseUri = Uri.base;
+    final shareUri = baseUri.replace(
+      queryParameters: {
+        ...baseUri.queryParameters,
+        'share': 'worksheet',
+        'id': requestId,
+      },
+    );
+
+    await Clipboard.setData(ClipboardData(text: shareUri.toString()));
+    if (mounted) {
+      AppToast.showSuccess(context, 'Worksheet link copied.');
+    }
+  }
+
   Widget _buildWorksheetActions({
     required String requestId,
     required Map<String, dynamic> data,
@@ -635,25 +652,57 @@ class _WorksheetScreenState extends State<WorksheetScreen>
     required bool isBusy,
   }) {
     if (!showApprovalActions) {
-      return SizedBox(
-        width: double.infinity,
-        child: OutlinedButton.icon(
-          onPressed: () => _showWorksheetDetails(data),
-          icon: const Icon(Icons.visibility_outlined),
-          label: const Text('View Details'),
-        ),
+      return Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () => _showWorksheetDetails(data),
+              icon: const Icon(Icons.visibility_outlined),
+              label: const Text('View Details'),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.base),
+          IconButton.filledTonal(
+            tooltip: 'Download PDF',
+            onPressed:
+                _isDownloadingPdf ? null : () => _downloadWorksheetPdf(data),
+            icon: const Icon(Icons.picture_as_pdf_rounded),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          IconButton.filledTonal(
+            tooltip: 'Copy share link',
+            onPressed: () => _copyWorksheetShareLink(requestId),
+            icon: const Icon(Icons.share_rounded),
+          ),
+        ],
       );
     }
 
     return Column(
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => _showWorksheetDetails(data),
-            icon: const Icon(Icons.visibility_outlined),
-            label: const Text('View Details'),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _showWorksheetDetails(data),
+                icon: const Icon(Icons.visibility_outlined),
+                label: const Text('View Details'),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.base),
+            IconButton.filledTonal(
+              tooltip: 'Download PDF',
+              onPressed:
+                  _isDownloadingPdf ? null : () => _downloadWorksheetPdf(data),
+              icon: const Icon(Icons.picture_as_pdf_rounded),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            IconButton.filledTonal(
+              tooltip: 'Copy share link',
+              onPressed: () => _copyWorksheetShareLink(requestId),
+              icon: const Icon(Icons.share_rounded),
+            ),
+          ],
         ),
         const SizedBox(height: AppSpacing.base),
         Row(
@@ -848,7 +897,11 @@ class _WorksheetScreenState extends State<WorksheetScreen>
         return;
       }
 
-      await File(saveLocation.path).writeAsBytes(pdfBytes, flush: true);
+      await XFile.fromData(
+        Uint8List.fromList(pdfBytes),
+        name: _buildWorksheetPdfFileName(data),
+        mimeType: 'application/pdf',
+      ).saveTo(saveLocation.path);
 
       if (mounted) {
         AppToast.showSuccess(context, 'Worksheet PDF downloaded successfully.');
@@ -909,7 +962,6 @@ class _WorksheetScreenState extends State<WorksheetScreen>
       pw.MultiPage(
         pageTheme: pw.PageTheme(
           margin: const pw.EdgeInsets.all(24),
-          theme: pw.ThemeData.withFont(),
         ),
         build: (context) => [
           pw.Text(
@@ -996,10 +1048,10 @@ class _WorksheetScreenState extends State<WorksheetScreen>
 
   Future<pw.ThemeData> _buildPdfTheme() async {
     return pw.ThemeData.withFont(
-      base: await PdfGoogleFonts.openSansRegular(),
-      bold: await PdfGoogleFonts.openSansBold(),
-      italic: await PdfGoogleFonts.openSansItalic(),
-      boldItalic: await PdfGoogleFonts.openSansBoldItalic(),
+      base: await PdfGoogleFonts.notoSansRegular(),
+      bold: await PdfGoogleFonts.notoSansBold(),
+      italic: await PdfGoogleFonts.notoSansItalic(),
+      boldItalic: await PdfGoogleFonts.notoSansBoldItalic(),
     );
   }
 
