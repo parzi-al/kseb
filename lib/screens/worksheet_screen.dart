@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart' as pdf;
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_decorations.dart';
@@ -32,6 +37,7 @@ class _WorksheetScreenState extends State<WorksheetScreen>
   bool _isLoading = false;
   UserModel? _currentUser;
   String? _busyRequestId;
+  bool _isDownloadingPdf = false;
   int _selectedTabIndex = 0;
 
   // Form controllers to manage text field data
@@ -792,6 +798,19 @@ class _WorksheetScreenState extends State<WorksheetScreen>
                     ),
                   ),
                 ),
+                const SizedBox(height: AppSpacing.lg),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _isDownloadingPdf
+                        ? null
+                        : () => _downloadWorksheetPdf(data),
+                    icon: const Icon(Icons.download_rounded),
+                    label: Text(
+                      _isDownloadingPdf ? 'Downloading PDF...' : 'Download PDF',
+                    ),
+                  ),
+                ),
               ],
             );
           },
@@ -806,6 +825,192 @@ class _WorksheetScreenState extends State<WorksheetScreen>
   String _detailValue(Object? value) {
     final text = value?.toString().trim() ?? '';
     return text.isEmpty ? '-' : text;
+  }
+
+  Future<void> _downloadWorksheetPdf(Map<String, dynamic> data) async {
+    if (_isDownloadingPdf) return;
+
+    setState(() => _isDownloadingPdf = true);
+
+    try {
+      final pdfBytes = await _buildWorksheetPdfBytes(data);
+      final saveLocation = await getSaveLocation(
+        suggestedName: _buildWorksheetPdfFileName(data),
+        acceptedTypeGroups: const [
+          XTypeGroup(label: 'PDF Document', extensions: ['pdf']),
+        ],
+      );
+
+      if (saveLocation == null) {
+        if (mounted) {
+          AppToast.showError(context, 'PDF download cancelled.');
+        }
+        return;
+      }
+
+      await File(saveLocation.path).writeAsBytes(pdfBytes, flush: true);
+
+      if (mounted) {
+        AppToast.showSuccess(context, 'Worksheet PDF downloaded successfully.');
+      }
+    } catch (e) {
+      if (mounted) {
+        AppErrorHandler.handleError(
+          context,
+          e,
+          customMessage: 'Failed to download worksheet PDF',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isDownloadingPdf = false);
+      }
+    }
+  }
+
+  Future<List<int>> _buildWorksheetPdfBytes(Map<String, dynamic> data) async {
+    final worksheetData =
+        Map<String, dynamic>.from(data['worksheetData'] ?? {});
+    final worksheetType =
+        _detailValue(data['worksheetType'] ?? worksheetData['workType']);
+    final photoUrl = worksheetData['photoUrl']?.toString().trim() ?? '';
+    final hasPhoto = photoUrl.isNotEmpty;
+
+    final rows = <MapEntry<String, String>>[
+      MapEntry('Worksheet Title', _detailValue(data['worksheetTitle'])),
+      MapEntry('Worksheet Type', worksheetType),
+      MapEntry('Office', _detailValue(worksheetData['office'])),
+      if (worksheetType == 'Project') ...[
+        MapEntry('Project', _detailValue(worksheetData['projectSelection'])),
+        MapEntry('Project Name', _detailValue(worksheetData['projectName'])),
+      ],
+      MapEntry('Permit Book', _detailValue(worksheetData['permitBook'])),
+      MapEntry('Location', _detailValue(worksheetData['location'])),
+      if (_hasDetailValue(worksheetData['moreInfo']))
+        MapEntry('Notes', _detailValue(worksheetData['moreInfo'])),
+      if (hasPhoto) MapEntry('Photo URL', _detailValue(photoUrl)),
+      MapEntry('Requested By', _detailValue(data['requestedByName'])),
+      MapEntry('Requester Email', _detailValue(data['requestedByEmail'])),
+      MapEntry('Status', _detailValue(data['status'])),
+      if (_hasDetailValue(data['approvedByEmail']))
+        MapEntry('Approved By', _detailValue(data['approvedByEmail'])),
+      if (data['requestTimestamp'] is Timestamp)
+        MapEntry(
+          'Submitted At',
+          DateFormat('dd MMM yyyy, hh:mm a')
+              .format((data['requestTimestamp'] as Timestamp).toDate()),
+        ),
+    ];
+
+    final document = pw.Document(theme: await _buildPdfTheme());
+    final photoImage = hasPhoto ? await networkImage(photoUrl) : null;
+
+    document.addPage(
+      pw.MultiPage(
+        pageTheme: pw.PageTheme(
+          margin: const pw.EdgeInsets.all(24),
+          theme: pw.ThemeData.withFont(),
+        ),
+        build: (context) => [
+          pw.Text(
+            _detailValue(data['worksheetTitle']),
+            style: pw.TextStyle(
+              fontSize: 20,
+              fontWeight: pw.FontWeight.bold,
+              color: pdf.PdfColors.blueGrey900,
+            ),
+          ),
+          pw.SizedBox(height: 6),
+          pw.Text(
+            'Worksheet Details',
+            style: pw.TextStyle(
+              fontSize: 11,
+              color: pdf.PdfColors.grey700,
+            ),
+          ),
+          pw.SizedBox(height: 16),
+          if (photoImage != null) ...[
+            pw.Text(
+              'Uploaded Photo',
+              style: pw.TextStyle(
+                fontSize: 13,
+                fontWeight: pw.FontWeight.bold,
+                color: pdf.PdfColors.blueGrey900,
+              ),
+            ),
+            pw.SizedBox(height: 8),
+            pw.Container(
+              padding: const pw.EdgeInsets.all(8),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: pdf.PdfColors.grey400, width: 0.7),
+                borderRadius: pw.BorderRadius.circular(8),
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Image(
+                    photoImage,
+                    fit: pw.BoxFit.contain,
+                    height: 240,
+                  ),
+                  pw.SizedBox(height: 6),
+                  pw.Text(
+                    photoUrl,
+                    style: const pw.TextStyle(fontSize: 8),
+                  ),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 16),
+          ],
+          pw.TableHelper.fromTextArray(
+            headers: const ['Field', 'Value'],
+            data: rows.map((row) => [row.key, row.value]).toList(),
+            headerStyle: pw.TextStyle(
+              fontWeight: pw.FontWeight.bold,
+              color: pdf.PdfColors.white,
+            ),
+            headerDecoration: const pw.BoxDecoration(
+              color: pdf.PdfColors.blueGrey800,
+            ),
+            cellStyle: const pw.TextStyle(fontSize: 10),
+            cellAlignment: pw.Alignment.centerLeft,
+            columnWidths: const {
+              0: pw.FlexColumnWidth(2),
+              1: pw.FlexColumnWidth(4),
+            },
+            border: pw.TableBorder.all(
+              color: pdf.PdfColors.grey400,
+              width: 0.6,
+            ),
+            oddRowDecoration: pw.BoxDecoration(
+              color: pdf.PdfColors.grey100,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return document.save();
+  }
+
+  Future<pw.ThemeData> _buildPdfTheme() async {
+    return pw.ThemeData.withFont(
+      base: await PdfGoogleFonts.openSansRegular(),
+      bold: await PdfGoogleFonts.openSansBold(),
+      italic: await PdfGoogleFonts.openSansItalic(),
+      boldItalic: await PdfGoogleFonts.openSansBoldItalic(),
+    );
+  }
+
+  String _buildWorksheetPdfFileName(Map<String, dynamic> data) {
+    final title = _detailValue(data['worksheetTitle'])
+        .replaceAll(RegExp(r'[^A-Za-z0-9 _-]'), '')
+        .trim()
+        .replaceAll(RegExp(r'\s+'), '_');
+    final safeTitle = title.isEmpty ? 'worksheet' : title;
+    final dateStamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+    return '${safeTitle}_$dateStamp.pdf';
   }
 
   // Helper widget for a section header
