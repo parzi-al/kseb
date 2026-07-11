@@ -1,9 +1,8 @@
-import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:excel/excel.dart' as xls;
 import 'package:file_selector/file_selector.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -616,6 +615,32 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     ).saveTo(saveLocation.path);
   }
 
+  Future<void> _savePdfFile({
+    required Uint8List bytes,
+    required String fileName,
+  }) async {
+    if (_shouldUseShareSheetForDownload) {
+      await Printing.sharePdf(bytes: bytes, filename: fileName);
+      return;
+    }
+
+    await _saveFile(
+      bytes: bytes,
+      fileName: fileName,
+      mimeType: 'application/pdf',
+      typeGroup: const XTypeGroup(
+        label: 'PDF Document',
+        extensions: ['pdf'],
+      ),
+    );
+  }
+
+  bool get _shouldUseShareSheetForDownload {
+    return !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
+  }
+
   Future<void> _exportAllWorksheetsPdf() async {
     if (_isExporting) return;
 
@@ -711,14 +736,9 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
         );
       }
 
-      await _saveFile(
+      await _savePdfFile(
         bytes: Uint8List.fromList(await document.save()),
         fileName: _bulkFileName('all_worksheets', 'pdf'),
-        mimeType: 'application/pdf',
-        typeGroup: const XTypeGroup(
-          label: 'PDF Document',
-          extensions: ['pdf'],
-        ),
       );
 
       if (mounted) {
@@ -843,14 +863,9 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
         );
       }
 
-      await _saveFile(
+      await _savePdfFile(
         bytes: Uint8List.fromList(await document.save()),
         fileName: _bulkFileName('all_tenders', 'pdf'),
-        mimeType: 'application/pdf',
-        typeGroup: const XTypeGroup(
-          label: 'PDF Document',
-          extensions: ['pdf'],
-        ),
       );
 
       if (mounted) AppToast.showSuccess(context, 'All tenders PDF downloaded.');

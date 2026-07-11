@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart' as pdf;
@@ -629,22 +629,6 @@ class _WorksheetScreenState extends State<WorksheetScreen>
     );
   }
 
-  Future<void> _copyWorksheetShareLink(String requestId) async {
-    final baseUri = Uri.base;
-    final shareUri = baseUri.replace(
-      queryParameters: {
-        ...baseUri.queryParameters,
-        'share': 'worksheet',
-        'id': requestId,
-      },
-    );
-
-    await Clipboard.setData(ClipboardData(text: shareUri.toString()));
-    if (mounted) {
-      AppToast.showSuccess(context, 'Worksheet link copied.');
-    }
-  }
-
   Widget _buildWorksheetActions({
     required String requestId,
     required Map<String, dynamic> data,
@@ -668,12 +652,6 @@ class _WorksheetScreenState extends State<WorksheetScreen>
                 _isDownloadingPdf ? null : () => _downloadWorksheetPdf(data),
             icon: const Icon(Icons.picture_as_pdf_rounded),
           ),
-          const SizedBox(width: AppSpacing.sm),
-          IconButton.filledTonal(
-            tooltip: 'Copy share link',
-            onPressed: () => _copyWorksheetShareLink(requestId),
-            icon: const Icon(Icons.share_rounded),
-          ),
         ],
       );
     }
@@ -695,12 +673,6 @@ class _WorksheetScreenState extends State<WorksheetScreen>
               onPressed:
                   _isDownloadingPdf ? null : () => _downloadWorksheetPdf(data),
               icon: const Icon(Icons.picture_as_pdf_rounded),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            IconButton.filledTonal(
-              tooltip: 'Copy share link',
-              onPressed: () => _copyWorksheetShareLink(requestId),
-              icon: const Icon(Icons.share_rounded),
             ),
           ],
         ),
@@ -883,8 +855,22 @@ class _WorksheetScreenState extends State<WorksheetScreen>
 
     try {
       final pdfBytes = await _buildWorksheetPdfBytes(data);
+      final fileName = _buildWorksheetPdfFileName(data);
+
+      if (_shouldUseShareSheetForDownload) {
+        await Printing.sharePdf(
+          bytes: Uint8List.fromList(pdfBytes),
+          filename: fileName,
+        );
+        if (mounted) {
+          AppToast.showSuccess(
+              context, 'Worksheet PDF ready to save or share.');
+        }
+        return;
+      }
+
       final saveLocation = await getSaveLocation(
-        suggestedName: _buildWorksheetPdfFileName(data),
+        suggestedName: fileName,
         acceptedTypeGroups: const [
           XTypeGroup(label: 'PDF Document', extensions: ['pdf']),
         ],
@@ -899,7 +885,7 @@ class _WorksheetScreenState extends State<WorksheetScreen>
 
       await XFile.fromData(
         Uint8List.fromList(pdfBytes),
-        name: _buildWorksheetPdfFileName(data),
+        name: fileName,
         mimeType: 'application/pdf',
       ).saveTo(saveLocation.path);
 
@@ -919,6 +905,12 @@ class _WorksheetScreenState extends State<WorksheetScreen>
         setState(() => _isDownloadingPdf = false);
       }
     }
+  }
+
+  bool get _shouldUseShareSheetForDownload {
+    return !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
   }
 
   Future<List<int>> _buildWorksheetPdfBytes(Map<String, dynamic> data) async {

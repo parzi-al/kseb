@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:excel/excel.dart' as xls;
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -425,6 +425,18 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
       );
 
       final bytes = await pdf.save();
+
+      if (_shouldUseShareSheetForDownload) {
+        await Printing.sharePdf(
+          bytes: bytes,
+          filename: fileName,
+        );
+        if (mounted) {
+          AppToast.showSuccess(context, 'Tender PDF ready to save or share.');
+        }
+        return;
+      }
+
       final saveLocation = await getSaveLocation(
         suggestedName: fileName,
         acceptedTypeGroups: const [
@@ -464,6 +476,12 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
         setState(() => _isExporting = false);
       }
     }
+  }
+
+  bool get _shouldUseShareSheetForDownload {
+    return !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
   }
 
   Future<pw.ThemeData> _buildPdfTheme() async {
@@ -600,7 +618,6 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
       bottomNavigationBar: const ShellBottomNav(),
       body: Column(
         children: [
-          _buildHeader(),
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -626,51 +643,6 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      color: AppColors.surface,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          context.responsivePadding(AppSpacing.xl),
-          context.responsivePadding(AppSpacing.xl),
-          context.responsivePadding(AppSpacing.xl),
-          context.responsivePadding(AppSpacing.xl),
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: AppColors.primaryWithLowOpacity,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.description_outlined,
-                size: AppTypography.iconSizeHero,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.base),
-            Text(
-              'Tender Details',
-              style: AppTypography.titleStyle,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Submit tender records, list saved tenders project-wise, and export as PDF or XLSX.',
-              style: AppTypography.bodyStyle.copyWith(
-                color: AppColors.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1038,31 +1010,50 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(projectName, style: AppTypography.subheadingStyle),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      '${tenders.length} tender${tenders.length == 1 ? '' : 's'}',
-                      style: AppTypography.captionStyle.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final title = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(projectName, style: AppTypography.subheadingStyle),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '${tenders.length} tender${tenders.length == 1 ? '' : 's'}',
+                    style: AppTypography.captionStyle.copyWith(
+                      color: AppColors.textSecondary,
                     ),
-                  ],
-                ),
-              ),
-              TextButton.icon(
+                  ),
+                ],
+              );
+              final compareButton = TextButton.icon(
                 onPressed: () {
                   _openProjectCompareDialog(projectName, tenders);
                 },
                 icon: const Icon(Icons.compare_arrows_rounded),
                 label: const Text('Compare'),
-              ),
-            ],
+              );
+
+              if (constraints.maxWidth < 360) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    title,
+                    const SizedBox(height: AppSpacing.sm),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: compareButton,
+                    ),
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(child: title),
+                  compareButton,
+                ],
+              );
+            },
           ),
           const SizedBox(height: AppSpacing.base),
           ...tenders.map(_buildTenderActionTile),
@@ -1090,75 +1081,105 @@ class _TenderDetailsScreenState extends State<TenderDetailsScreen>
         color: AppColors.background,
         borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 430;
+          final detailsColumn = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _stringValue(data['title']?.toString()),
+                style: AppTypography.bodyMediumStyle,
+              ),
+              if (details.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  details,
+                  style: AppTypography.captionStyle.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ],
+          );
+          final actions = _buildTenderActionButtons(tender, data);
+
+          if (isCompact) {
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _stringValue(data['title']?.toString()),
-                  style: AppTypography.bodyMediumStyle,
+                detailsColumn,
+                const SizedBox(height: AppSpacing.sm),
+                Wrap(
+                  spacing: AppSpacing.xs,
+                  runSpacing: AppSpacing.xs,
+                  children: actions,
                 ),
-                if (details.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    details,
-                    style: AppTypography.captionStyle.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
               ],
-            ),
-          ),
-          IconButton(
-            tooltip: 'View tender details',
-            icon:
-                const Icon(Icons.visibility_outlined, color: AppColors.primary),
-            onPressed: () => _showTenderDetails(data),
-          ),
-          IconButton(
-            tooltip: 'Edit tender',
-            icon: const Icon(Icons.edit_rounded, color: AppColors.primary),
-            onPressed: () => _loadTenderForEdit(tender),
-          ),
-          IconButton(
-            tooltip: 'Copy share link',
-            icon: const Icon(Icons.share_rounded, color: AppColors.primary),
-            onPressed: () => _copyTenderShareLink(tender.id),
-          ),
-          IconButton(
-            tooltip: 'Download PDF',
-            icon: const Icon(Icons.picture_as_pdf_rounded,
-                color: AppColors.primary),
-            onPressed: _isExporting ? null : () => _exportTenderToPdf(data),
-          ),
-          IconButton(
-            tooltip: 'Download XLSX',
-            icon: const Icon(Icons.table_chart_outlined,
-                color: AppColors.primary),
-            onPressed: _isExporting ? null : () => _exportTenderToXlsx(data),
-          ),
-        ],
+            );
+          }
+
+          return Row(
+            children: [
+              Expanded(child: detailsColumn),
+              const SizedBox(width: AppSpacing.sm),
+              Wrap(
+                spacing: AppSpacing.xs,
+                children: actions,
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Future<void> _copyTenderShareLink(String tenderId) async {
-    final baseUri = Uri.base;
-    final shareUri = baseUri.replace(
-      queryParameters: {
-        ...baseUri.queryParameters,
-        'share': 'tender',
-        'id': tenderId,
-      },
-    );
+  List<Widget> _buildTenderActionButtons(
+    QueryDocumentSnapshot<Map<String, dynamic>> tender,
+    Map<String, dynamic> data,
+  ) {
+    return [
+      _buildCompactTenderAction(
+        tooltip: 'View tender details',
+        icon: Icons.visibility_outlined,
+        onPressed: () => _showTenderDetails(data),
+      ),
+      _buildCompactTenderAction(
+        tooltip: 'Edit tender',
+        icon: Icons.edit_rounded,
+        onPressed: () => _loadTenderForEdit(tender),
+      ),
+      _buildCompactTenderAction(
+        tooltip: 'Download PDF',
+        icon: Icons.picture_as_pdf_rounded,
+        onPressed: _isExporting ? null : () => _exportTenderToPdf(data),
+      ),
+      _buildCompactTenderAction(
+        tooltip: 'Download XLSX',
+        icon: Icons.table_chart_outlined,
+        onPressed: _isExporting ? null : () => _exportTenderToXlsx(data),
+      ),
+    ];
+  }
 
-    await Clipboard.setData(ClipboardData(text: shareUri.toString()));
-    if (mounted) {
-      AppToast.showSuccess(context, 'Tender link copied.');
-    }
+  Widget _buildCompactTenderAction({
+    required String tooltip,
+    required IconData icon,
+    required VoidCallback? onPressed,
+  }) {
+    return IconButton.filledTonal(
+      tooltip: tooltip,
+      iconSize: 20,
+      constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+      padding: EdgeInsets.zero,
+      style: IconButton.styleFrom(
+        foregroundColor: AppColors.primary,
+        backgroundColor: AppColors.primaryWithLowOpacity,
+        disabledForegroundColor: AppColors.textSecondary,
+      ),
+      onPressed: onPressed,
+      icon: Icon(icon),
+    );
   }
 
   void _showTenderDetails(Map<String, dynamic> data) {
