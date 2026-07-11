@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../components/common/app_bar_builder.dart';
 import '../components/common/app_button.dart';
@@ -596,7 +597,18 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     required String fileName,
     required String mimeType,
     required XTypeGroup typeGroup,
+    String? mobileTitle,
   }) async {
+    if (_shouldUseShareSheetForDownload) {
+      await _shareGeneratedFile(
+        bytes: bytes,
+        fileName: fileName,
+        mimeType: mimeType,
+        title: mobileTitle ?? 'Save $fileName',
+      );
+      return;
+    }
+
     final saveLocation = await getSaveLocation(
       suggestedName: fileName,
       acceptedTypeGroups: [typeGroup],
@@ -639,6 +651,29 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     return !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
+  }
+
+  Future<void> _shareGeneratedFile({
+    required Uint8List bytes,
+    required String fileName,
+    required String mimeType,
+    required String title,
+  }) async {
+    final box = context.findRenderObject() as RenderBox?;
+    await SharePlus.instance.share(
+      ShareParams(
+        title: title,
+        files: [
+          XFile.fromData(
+            bytes,
+            mimeType: mimeType,
+          ),
+        ],
+        fileNameOverrides: [fileName],
+        sharePositionOrigin:
+            box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+      ),
+    );
   }
 
   Future<void> _exportAllWorksheetsPdf() async {
@@ -961,6 +996,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
         fileName: _bulkFileName('all_tenders', 'xlsx'),
         mimeType:
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        mobileTitle: 'Save tenders XLSX',
         typeGroup: const XTypeGroup(
           label: 'Excel Workbook',
           extensions: ['xlsx'],
