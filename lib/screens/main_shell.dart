@@ -8,21 +8,40 @@ import 'worker_home_screen.dart';
 import 'worksheet_screen.dart';
 
 class MainShell extends StatefulWidget {
-  const MainShell({super.key, this.authService});
+  MainShell({Key? key, this.authService, this.initialIndex = 0})
+      : super(key: key ?? shellKey);
+
+  static final shellKey = GlobalKey<_MainShellState>();
 
   final AuthService? authService;
+  final int initialIndex;
+
+  static void openTab(BuildContext context, int index) {
+    final shellState = shellKey.currentState;
+    if (shellState == null) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => MainShell(initialIndex: index)),
+        (route) => false,
+      );
+      return;
+    }
+
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    shellState.selectPage(index);
+  }
 
   @override
   State<MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends State<MainShell> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   late final PageController _pageController;
 
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex.clamp(0, 2);
     _pageController = PageController(initialPage: _selectedIndex);
   }
 
@@ -32,7 +51,8 @@ class _MainShellState extends State<MainShell> {
     super.dispose();
   }
 
-  void _selectPage(int index) {
+  void selectPage(int index) {
+    if (_selectedIndex == index) return;
     setState(() => _selectedIndex = index);
     _pageController.animateToPage(
       index,
@@ -75,7 +95,7 @@ class _MainShellState extends State<MainShell> {
       ),
       bottomNavigationBar: FloatingBottomNav(
         selectedIndex: selectedIndex,
-        onDestinationSelected: _selectPage,
+        onDestinationSelected: selectPage,
         destinations: destinations,
       ),
     );

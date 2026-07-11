@@ -6,8 +6,10 @@ import 'dart:async';
 import 'staff_management_screen.dart';
 import 'bonus_management_screen.dart';
 import 'bonus_history_screen.dart';
+import 'downloads_screen.dart';
 import 'material_management_screen.dart';
 import 'portal_module_screen.dart';
+import 'tender_details_screen.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_typography.dart';
 import '../utils/app_spacing.dart';
@@ -686,6 +688,13 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
                           color: AppColors.dashboardCardColors[2],
                           destination: const MaterialManagementScreen(),
                         ),
+                        _buildDashboardCard(
+                          context,
+                          icon: Icons.download_rounded,
+                          label: 'Downloads',
+                          color: AppColors.primary,
+                          destination: const DownloadsScreen(),
+                        ),
                         if (_canShowStaffDashboard())
                           _buildDashboardCard(
                             context,
@@ -768,6 +777,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
           label: 'Polevar',
           sections: _polevarSections(),
         ),
+        _tenderExportCard(context),
         _portalCard(
           context,
           icon: Icons.receipt_long_rounded,
@@ -803,6 +813,7 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
           label: 'Polevar',
           sections: _polevarSections(),
         ),
+        _tenderExportCard(context),
         _portalCard(
           context,
           icon: Icons.receipt_long_rounded,
@@ -1223,6 +1234,16 @@ class _WorkerHomeScreenState extends State<WorkerHomeScreen>
         icon: icon,
         sections: sections,
       ),
+    );
+  }
+
+  Widget _tenderExportCard(BuildContext context) {
+    return _buildDashboardCard(
+      context,
+      icon: Icons.description_outlined,
+      label: 'Tender Export',
+      color: AppColors.dashboardCardColors[1],
+      destination: const TenderDetailsScreen(),
     );
   }
 

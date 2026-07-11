@@ -1,22 +1,29 @@
-name: Deploy Aumlux
+name: Aumlux Release Cycle
 
 on:
   push:
     branches:
+      - staging
+      - releases
+  pull_request:
+    branches:
+      - staging
       - releases
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: aumlux-${{ github.ref_name }}
+  cancel-in-progress: ${{ github.ref_name != 'releases' }}
 
 jobs:
-  build:
+  validate:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
@@ -28,6 +35,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+          cache: gradle
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -35,11 +43,65 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Cache Dart packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+  build-staging:
+    if: github.event_name == 'push' && github.ref_name == 'staging'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Cache Dart packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
       - name: Install dependencies
         run: flutter pub get
 
       - name: Build Android APK
-        run: flutter build apk --release
+        run: flutter build apk --release --target-platform android-arm64
+
+      - name: Verify Android APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+          test -s "$APK"
+          unzip -t "$APK" > build/app/outputs/flutter-apk/apk-zip-check.txt
+          sha256sum "$APK" | tee build/app/outputs/flutter-apk/aumlux.apk.sha256
+          AAPT="$(find "$ANDROID_HOME/build-tools" -name aapt -type f | sort -V | tail -n 1)"
+          "$AAPT" dump badging "$APK" > build/app/outputs/flutter-apk/aumlux-apk-info.txt
 
       - name: Build web app
         run: flutter build web --release --base-href /web/
@@ -52,6 +114,8 @@ jobs:
           cp -R build/flutter-web/. build/web/web/
           mkdir -p build/web/downloads
           cp build/app/outputs/flutter-apk/app-release.apk build/web/downloads/aumlux.apk
+          cp build/app/outputs/flutter-apk/aumlux.apk.sha256 build/web/downloads/aumlux.apk.sha256
+          cp build/app/outputs/flutter-apk/aumlux-apk-info.txt build/web/downloads/aumlux-apk-info.txt
           cat > build/web/index.html <<'HTML'
           <!doctype html>
           <html lang="en">
@@ -204,6 +268,66 @@ jobs:
           HTML
           cp build/web/index.html build/web/download-apk.html
           echo "aumlux.simplewebsite.in" > build/web/CNAME
+          cat > build/web/release-metadata.txt <<EOF
+          branch=${GITHUB_REF_NAME}
+          commit=${GITHUB_SHA}
+          run_id=${GITHUB_RUN_ID}
+          built_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          EOF
+
+      - name: Upload staging test build
+        uses: actions/upload-artifact@v4
+        with:
+          name: aumlux-staging-${{ github.sha }}
+          path: build/web
+          retention-days: 14
+
+  deploy-release:
+    if: github.event_name == 'push' && github.ref_name == 'releases'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download latest staging artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ID="$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
+            --workflow "Aumlux Release Cycle" \
+            --branch staging \
+            --event push \
+            --status success \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')"
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "No successful staging build found."
+            exit 1
+          fi
+
+          ARTIFACT_NAME="$(gh api \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts" \
+            --jq '.artifacts[] | select(.expired == false) | select(.name | startswith("aumlux-staging-")) | .name' \
+            | head -n 1)"
+          if [ -z "$ARTIFACT_NAME" ]; then
+            echo "No non-expired staging artifact found for run $RUN_ID."
+            exit 1
+          fi
+
+          mkdir -p build/web
+          gh run download "$RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name "$ARTIFACT_NAME" \
+            --dir build/web
+
+          echo "Promoting staging artifact: $ARTIFACT_NAME from run $RUN_ID"
+          test -s build/web/index.html
+          test -s build/web/downloads/aumlux.apk
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
@@ -214,14 +338,6 @@ jobs:
           name: aumlux-pages
           path: build/web
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

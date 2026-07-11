@@ -5,6 +5,7 @@ import '../utils/app_spacing.dart';
 import '../utils/app_decorations.dart';
 import '../components/common/app_bar_builder.dart';
 import '../components/common/app_card.dart';
+import '../components/common/shell_bottom_nav.dart';
 import '../utils/page_transitions.dart';
 import 'add_material_screen.dart';
 import 'material_approval_screen.dart';
@@ -18,6 +19,7 @@ class MaterialManagementScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: buildAppBar(title: 'Material Management'),
+      bottomNavigationBar: const ShellBottomNav(),
       body: SingleChildScrollView(
         child: Column(
           children: [
