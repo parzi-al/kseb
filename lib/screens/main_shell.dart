@@ -35,6 +35,7 @@ class _MainShellState extends State<MainShell> {
   }
 
   void _selectPage(int index) {
+    if (_selectedIndex == index) return;
     setState(() => _selectedIndex = index);
     _pageController.animateToPage(
       index,

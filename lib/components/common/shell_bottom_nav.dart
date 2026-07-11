@@ -32,6 +32,7 @@ class ShellBottomNav extends StatelessWidget {
       selectedIndex: selectedIndex,
       destinations: destinations,
       onDestinationSelected: (index) {
+        if (selectedIndex == index) return;
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (_) => MainShell(initialIndex: index),
