@@ -119,18 +119,6 @@ jobs:
           sha256sum "$APK" | tee build/app/outputs/flutter-apk/aumlux.apk.sha256
           AAPT="$(find "$ANDROID_HOME/build-tools" -name aapt -type f | sort -V | tail -n 1)"
           "$AAPT" dump badging "$APK" > build/app/outputs/flutter-apk/aumlux-apk-info.txt
-        run: flutter build apk --release --target-platform android-arm64
-
-      - name: Verify Android APK
-        shell: bash
-        run: |
-          set -euo pipefail
-          APK="build/app/outputs/flutter-apk/app-release.apk"
-          test -s "$APK"
-          unzip -t "$APK" > build/app/outputs/flutter-apk/apk-zip-check.txt
-          sha256sum "$APK" | tee build/app/outputs/flutter-apk/aumlux.apk.sha256
-          AAPT="$(find "$ANDROID_HOME/build-tools" -name aapt -type f | sort -V | tail -n 1)"
-          "$AAPT" dump badging "$APK" > build/app/outputs/flutter-apk/aumlux-apk-info.txt
 
       - name: Build web app
         run: flutter build web --release --base-href /web/
